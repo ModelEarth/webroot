@@ -5,18 +5,213 @@
 
 [SuiteCRM](https://SuiteCRM.com) provides a standardized partner admin [database schema](https://schema--suitecrm-docs.netlify.app/schema) with a [large developer community](https://community.SuiteCRM.com).
 
-[Download version 8.7.1](https://suitecrm.com/wpfd_file/suitecrm-8-7-1/) or a more recent [download](https://suitecrm.com/download/) if a matching .sh file is available.
-Unzip the download in your webroot. Rename the folder to **SuiteCRM**.
+The original .sh [Linux install](https://github.com/motaviegas/SuiteCRM_Script) script was developed by Chris for his 10-minute  .sh file [video and steps](https://community.suitecrm.com/t/how-to-install-suitecrm-8-6-1-under-10-minutes/93252). 
 
-[Get our .sh fork for Mac and Windows - SuiteCRM 8.7.1](https://github.com/ModelEarth/SuiteCRM_Script/blob/main/SCRM_8.7.1_0.1.4_MacLinuxWindows.sh)  
-Created from the .sh script initially developed by Chris for his 10-minute [Linux install](https://github.com/motaviegas/SuiteCRM_Script) .sh file [video and steps](https://community.suitecrm.com/t/how-to-install-suitecrm-8-6-1-under-10-minutes/93252).  
+Remote Azure database init has not yet been added to suite.sh. [Send a PR](https://github.com/ModelEarth/profile/tree/main/crm).
 
-Place in your local SuiteCRM folder and rename the file to **start.sh**
+<!--
+Some coders may prefere to work in the default Apache www root:
+/usr/local/var/www/crm/public
+-->
+    
+<!--
+[Our prior .sh fork for Mac and Windows - SuiteCRM 8.8.0](https://github.com/ModelEarth/SuiteCRM_Script/blob/main/SCRM_8.8.0_MacLinuxWindows.sh)  
+-->
+
+## 10-Minute SuiteCRM Setup
+
+As you run the suite.sh install, you may want to also check the [steps below video](https://community.suitecrm.com/t/how-to-install-suitecrm-8-6-1-under-10-minutes/93252).
+
+
+
+1.) Open a terminal in the "profile/crm" folder and grant the suite.sh file permission within the folder:
+
+    sudo chmod +x ./suite.sh
+
+<!--
+  Not from video, probably don't need.
+  sudo chmod -R 755 .
+-->
+
+2.) Run suite.sh in your crm folder. 
+SuiteCRM 8.8.0 will be pulled from [downloads](https://suitecrm.com/download/)
+
+<!--
+Now run ./suite.sh with sudo to avoid "Permission denied".
+
+The http server currently gets deactivated AFTER php portion regardless of sudo on MacOS.  
+Please document how to include permissions for PHP.
+
+admi and admi
+changed root password from blank (enter) to admin2
+-->
+
+    ./suite.sh --version 8.8.0 --subfolder account
+
+Take note of the user and password of the MariaDB database that will be requested.
+
+
+**Resulting Apache site:** [http://localhost:8080](http://localhost:8080/)
+
+TO DO: Apache port 8080 still points at the default /usr/local/var/www/.  
+Document how to point it at [webroot]/profile/crm/account instead.
+
+TO DO: Try opening MariaDB with [DBeaver](https://dbeaver.io) and adjust permissions.
+
+TO DO: Add/test DOCUMENT_ROOT for Windows.
+<!--
+TO DO: Possible [fix for PHP install](https://claude.ai/share/645e14b8-78ed-4130-8907-9b8f3ddbf671) from Claude.
+-->
+
+## Update Apache Config
+
+Steps to update the port point at profile/crm/account - Lokesh
+
+1. Edit https.config on DocumentRoot with this code :
+
+DocumentRoot "/Users/lokesh/Desktop/Model_Earth/profile/crm/account/public"
+<Directory "/Users/lokesh/Desktop/Model_Earth/profile/crm/account/public">
+    Options -Indexes +FollowSymLinks
+    AllowOverride All
+    Require all granted
+</Directory>
+
+2. Updating the httpd-vhosts.conf with only one host
+
+Replacing whole file with this if we have other than this host
+
+<VirtualHost *:8080>
+    ServerAdmin admin@example.com
+    DocumentRoot "/Users/lokesh/Desktop/Model_Earth/profile/crm/account/public"
+    ServerName localhost
+
+    <Directory "/Users/lokesh/Desktop/Model_Earth/profile/crm/account/public">
+        Options -Indexes +FollowSymLinks +MultiViews
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog /opt/homebrew/var/log/httpd/crm-error_log
+    CustomLog /opt/homebrew/var/log/httpd/crm-access_log combined
+
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set X-Frame-Options "SAMEORIGIN"
+</VirtualHost>
+
+3. Giving permission for apache to access our folder
+
+	sudo chmod +x /Users/lokesh/Desktop/Model_Earth/profile/crm/account
+
+4. Then restart Apache
+
+	brew services restart httpd
+
+
+## PHP and link to SuiteCRM site
+
+For a proper SuiteCRM installation, you'll want Apache or Nginx configured with PHP-FPM rather than a PHP server since:
+
+- SuiteCRM expects certain URL rewriting rules and directory access controls
+- Better handling of file uploads and larger requests
+- Support for .htaccess files that control access to sensitive directories
+- More robust handling of concurrent users
+- Better security controls
+
+So we're trying to AVOID using this cmd to Launch a PHP server in crm/account/public at [http://localhost:8000](http://localhost:8000/)
+
+But it's the only PHP approach we have working so far (but not with MariaDB yet).
+You can run the 10-minute setup below first to download and unzip the SuiteCRM files into the account folder.
+
+    php -S localhost:8000 -t ./account/public
+
+Note that the port above is 8000, and not the 8080 used with suite.sh download/installer.
+
+<!--
+Plus we'd need to launch on port 8080 to use with Apache init in suite.sh
+-->
+
+**Resulting PHP SuiteCRM site:** [http://localhost:8000](http://localhost:8000/)
+
+
+## Apache PHP-FPM Investigations
+
+Attempting to figure out why Apache is not pointing at profile/crm/account running suite.sh script.
+
+<!--
+This issue could be limited to Macs that are 2020 and older.
+Apple began transitioning its Mac computers from Intel processors to Apple silicon starting in late 2020.
+Intel (older computers): /usr/local/...
+Apple Silicon: /opt/homebrew/...
+
+Run the following and you'll see "It works!" at http://localhost:8080/
+
+Create the missing file and update the httpd.conf file.
+-->
+
+For installations through Homebrew, files are at /usr/local/etc/httpd/httpd.conf.
+Otherwise the Apache httpd.conf file might are at /etc/apache2/httpd.conf. 
+So the following changes ot the Apache default after a Homebrew install.
+
+    sudo mkdir -p /opt/homebrew/etc/httpd/extra
+    sudo cp /usr/local/etc/httpd/extra/httpd-vhosts.conf /opt/homebrew/etc/httpd/extra/httpd-vhosts.conf
+
+Create the missing log directory
+
+    sudo mkdir -p /opt/homebrew/var/log/httpd
+    sudo chown -R $(whoami):staff /opt/homebrew/var/log/httpd
+
+    sudo apachectl configtest
+    sudo apachectl start
+
+
+In /usr/local/etc/httpd/httpd.conf you could try changing "/usr/local/var/www" to the path to your "[webroot]/profile/crm/account" folder.
+
+If no effect, try the other httpd.conf file here:
+/opt/homebrew/etc/httpd/extra
+
+<!--
+That had:
+/usr/local/var/www/crm/public
+
+Gave it permissions (this was a Hello World test file):
+sudo chmod 644 /usr/local/var/www/crm/index.php
+sudo chown $(whoami):staff /usr/local/var/www/hello.php
+
+EDIT /usr/local/etc/httpd/httpd.conf
+-->
+
+Both of these need to be in /usr/local/etc/httpd/httpd.conf
+Listen 8080
+ServerName 192.168.1.202:8080
+
+Try in /opt/homebrew too
+
+Also try adding:
+LoadModule php_module /usr/local/lib/httpd/modules/libphp.so
+
+And make sure this is not getting added multiple times by suite.sh
+
+<FilesMatch \.php$>
+    SetHandler application/x-httpd-php
+</FilesMatch>
+DirectoryIndex index.php index.html
+
+Restart Apache
+
+    sudo brew services restart httpd
+
+
+## Debugging Errors
+
+Check Apache error logs. (This is very useful): 
+
+    tail -f /usr/local/var/log/httpd/error_log
 
 ## Quick install script for Mac, Linux and Windows
 
-[Collaborate with Us](/dreamstudio/earth/) using standardized data tables within Microsoft Azure, SQL Express and MariaDB.
-Summary of what's included for each OS within the start.sh script
+[Collaborate with us](/dreamstudio/earth/) using standardized data tables within Microsoft Azure, SQL Express and MariaDB.
+Summary of what's included for each OS within the suite.sh script
 
 | OS      | PHP            | Apache        | DB Option                     |
 |---------|----------------|---------------|-------------------------------|
@@ -25,25 +220,6 @@ Summary of what's included for each OS within the start.sh script
 | <a href="#windows">Windows</a> | via Chocolatey | via Chocolatey| SQL Express / Azure / MariaDB |
 
 <br>
-## Localsite 10-Minute Setup
-
-Open a terminal in your SuiteCRM folder and grant the start.sh file (from above) permission within the folder:
-
-	sudo chmod +x ./start.sh
-
-<!--
-	Not from video, probably don't need.
-	sudo chmod -R 755 .
--->
-
-As you run the start.sh install, also follow the [steps below video](https://community.suitecrm.com/t/how-to-install-suitecrm-8-6-1-under-10-minutes/93252).
-
-We're avoiding sudo here for better security, however you'll need to do additional manual steps below.
-
-	./start.sh
-
-Take note of the user and password of the MariaDB database that will be requested.
-
 **MacOS users** - You may need to run these if you have brew errors:
 
 	brew install --cask temurin
@@ -72,42 +248,44 @@ If you installed ImageMagick via Homebrew (which is common), you can safely pres
 
 [View steps](https://community.suitecrm.com/t/how-to-install-suitecrm-8-6-1-under-10-minutes/93252).
 
-When the .sh script finishes successfully, run the cmd:<!-- sudo mysql_secure_installation -->
-
-	mariadb-secure-installation
-
-Most likely it needs to be:
+The following cmd is included in the suite.sh file. 
+It only runs if the MariaDB is not yet installed.
+The older name for the cmd was: mysql\_secure\_installation
 
 	sudo mariadb-secure-installation
 
-First enter your machine password, then blank for the MariaDB database's root password
+First enter your machine password, then (possibly) blank for the MariaDB database's root password
 
-Without making any additional changes, initial login response says:
+Initial login response says:
 You already have your root account protected, so you can safely answer 'n'.
+But we enter all Y's.
 
-However the steps under the video:
-
-Switch to unix_socket authentication [Y/n] Y
+The steps under [the 10-minute video](https://community.suitecrm.com/t/how-to-install-suitecrm-8-6-1-under-10-minutes/93252) are:
+Switch to unix_socket authentication [Y/n] y
 Change the root password? [Y/n] y
 put your DB root password and take note of it!!!
-Remove anonymous users? [Y/n] Y
-Disallow root login remotely? [Y/n] Y
-Remove test database and access to it? [Y/n] Y
-Reload privilege tables now? [Y/n] Y
+Remove anonymous users? [Y/n] y
+Disallow root login remotely? [Y/n] y
+Remove test database and access to it? [Y/n] y
+Reload privilege tables now? [Y/n] y
 
-Get "IP retrieved" displayed near the start of your start.sh terminal.
+**IP retrieved**
+Get your "IP retrieved" near the start of your suite.sh terminal.
 
-Mac webroot:
-Default Apache port for Homebrew says "It works!"
+**Webroot at localhost:8080**
+The Apache port at localhost:8080 says "It works!"  
+<!-- previously it broke (stopped) when running the PHP install portion. -->
+But it doesn't point at the correct path in /profile/crm/account yet.
+
 [http://localhost:8080](http://localhost:8080)
 
 ## PHP Site Activation
+ 
+Please document steps that work for you by posting an issue in our [profile repo](https://github.com/ModelEarth/profile/tree/main/crm), or fork and send a PR.
 
-If you ran `./start.sh` without sudo, you'll likely need to do manual activation here.  
+Older note, not sure this still applies...
 
-Please share the steps you use by posting an issue in our [profile repo](https://github.com/ModelEarth/profile/tree/main/crm), or fork and send a PR.
-
-The first time you may need to run `./start.sh` again, since database did not initially exist.
+The first time you may need to run `./suite.sh` again - if the database did not initially exist.
 
 BUG: When running a second time, the webroot stopped working.
 
@@ -117,7 +295,13 @@ PHP module not found. PHP may not work correctly with Apache.
 ✅ Directory listing disabled.
 
 
-brew services start php@8.2
+## To Try for PHP...
+
+    brew services start php@8.2
+
+<!--
+  brew services restart php@8.2
+-->
 
 To enable PHP in Apache add the following to httpd.conf and restart Apache:
     LoadModule php_module /usr/local/opt/php@8.2/lib/httpd/modules/libphp.so
@@ -144,26 +328,27 @@ For compilers to find php@8.2 you may need to set:
   export CPPFLAGS="-I/usr/local/opt/php@8.2/include"
 
 To start php@8.2 now and restart at login:
-  brew services start php@8.2
+
+    brew services start php@8.2
 
 Or, if you don't want/need a background service you can just run:
-  /usr/local/opt/php@8.2/sbin/php-fpm --nodaemonize
+
+    /usr/local/opt/php@8.2/sbin/php-fpm --nodaemonize
+
 🔧 Updating PATH to use PHP 8.2...
 Linking /usr/local/Cellar/php@8.2/8.2.28_1... 25 symlinks created.
 
 If you need to have this software first in your PATH instead consider running:
-  echo 'export PATH="/usr/local/opt/php@8.2/bin:$PATH"' >> ~/.zshrc
-  echo 'export PATH="/usr/local/opt/php@8.2/sbin:$PATH"' >> ~/.zshrc
+
+    echo 'export PATH="/usr/local/opt/php@8.2/bin:$PATH"' >> ~/.zshrc
+    echo 'export PATH="/usr/local/opt/php@8.2/sbin:$PATH"' >> ~/.zshrc
 
 
-<!--
-TODO: Create a get.sh file that automatically pulls the .sh file from GitHub, saves, renames to start.sh and runs the script.
--->
 <br id="mac">
 
 # MacOS - SuiteCRM Install
 
-This script automates the installation and configuration of SuiteCRM 8.7.1 on macOS environments. It handles the complete setup process including web server, database, and application deployment.
+This script automates the installation and configuration of SuiteCRM on macOS environments. It handles the complete setup process including web server, database, and application deployment.
 
 ## Prerequisites
 
@@ -177,7 +362,7 @@ This script automates the installation and configuration of SuiteCRM 8.7.1 on ma
 - **Apache HTTP Server**: Web server to host SuiteCRM
 - **PHP 8.2**: Required programming language for SuiteCRM
 - **MariaDB**: Database server for storing CRM data
-- **SuiteCRM 8.7.1**: The CRM application itself
+- **SuiteCRM**: The CRM application itself
 
 ## Installation Process
 
@@ -216,7 +401,7 @@ This script automates the installation and configuration of SuiteCRM 8.7.1 on ma
 - Verifies database and user creation
 
 ### SuiteCRM Installation
-- Downloads SuiteCRM 8.7.1
+- Downloads SuiteCRM
 - Extracts files to the configured document root
 - Sets appropriate file and directory permissions
 - Makes console scripts executable
@@ -267,7 +452,7 @@ If you encounter issues during installation:
 
 # Linux - SuiteCRM Install
 
-A comprehensive installation script for automatically deploying SuiteCRM 8.7.1 on Linux systems (Ubuntu/Debian). Includes system updates, required dependencies, database configuration, web server setup, and security hardening.
+A comprehensive installation script for automatically deploying SuiteCRM on Linux systems (Ubuntu/Debian). Includes system updates, required dependencies, database configuration, web server setup, and security hardening.
 
 ## Prerequisites
 
@@ -350,7 +535,7 @@ This installation includes basic security measures, but for production environme
 # Windows - SuiteCRM Install
 
 This script automates the installation and configuration of 
-SuiteCRM 8.7.1 on Windows environments using Git Bash or Cygwin.
+SuiteCRM on Windows environments using Git Bash or Cygwin.
 
 ## Prerequisites
 
@@ -364,7 +549,7 @@ SuiteCRM 8.7.1 on Windows environments using Git Bash or Cygwin.
 - **Apache HTTP Server**: Web server to host SuiteCRM
 - **PHP 8.2**: Required programming language for SuiteCRM
 - **MariaDB**: Database server for storing CRM data
-- **SuiteCRM 8.7.1**: The CRM application itself
+- **SuiteCRM**: The CRM application itself
 
 ## Installation Process
 
@@ -400,7 +585,7 @@ SuiteCRM 8.7.1 on Windows environments using Git Bash or Cygwin.
 - Verifies database and user creation
 
 ### SuiteCRM Installation
-- Downloads SuiteCRM 8.7.1
+- Downloads SuiteCRM
 - Extracts files to the configured document root
 - Sets appropriate file permissions using Windows ACLs
 

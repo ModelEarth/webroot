@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-<title>World Trade Flow - SQL Data Visualizations - Supabase and DuckDB</title>
+<title>Trade Flow - SQL Data Visualizations - Supabase and DuckDB</title>
 <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -84,7 +84,7 @@
             </select>
         </div>
         <div id="page-title">
-            <h3 style="display:inline-block;">World Trade Flow</h3>
+            <h3 style="display:inline-block;">Trade Flow</h3>
         </div>
 
         <div style="float:right">
@@ -542,6 +542,74 @@
                 fetchViewData('industries');  // Automatically load the first view
             });
         </script>
+
+
+
+   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <link href="https://unpkg.com/tabulator-tables@6.3.1/dist/css/tabulator.min.css" rel="stylesheet">
+    <script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js"></script>
+ 
+
+<h2>Select a Table</h2>
+    <select id="numberSelect">
+        <option value="">-- Choose a Table --</option>
+    </select>
+
+    <br />
+    <br />
+    <br />
+    <div id="tabulator-table"></div>
+
+
+     <script>
+        // Data: key = number, value = name
+        const numberMap = {
+        'Commodity' : 'https://raw.githubusercontent.com/ModelEarth/profile/refs/heads/main/impacts/json/commodity.json',
+        'Import Commodity Factor' : 'https://raw.githubusercontent.com/ModelEarth/profile/refs/heads/main/impacts/json/importcommodityfactor.json',
+        'Industry' : 'https://raw.githubusercontent.com/ModelEarth/profile/refs/heads/main/impacts/json/industry.json'
+ };
+       
+        const select = document.getElementById('numberSelect');
+        let selectedValue = "";
+        tbl = document.getElementById('tabulator-table')
+
+        // Populate the select
+        for (const [name, jsonurl] of Object.entries(numberMap)) {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = `${name}`;
+            select.appendChild(option);
+        }
+
+        // Add change event listener
+        select.addEventListener('change', function () {
+            selectedValue = this.value;
+           
+
+        
+      fetch(numberMap[selectedValue])
+      .then(response => response.text())
+      .then(text => {
+        const data = text.trim().split("\n").map(line => JSON.parse(line));
+
+
+        
+        //create Tabulator on DOM element with id "example-table"
+            var table = new Tabulator("#tabulator-table", {
+                height: 700, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
+                data:data, //assign data to table
+                layout:"fitColumns", //fit columns to width of table (optional)
+                autoColumns:true,
+            });
+
+        });
+            
+   });
+    </script>
+
+
 
     TO DO: Default to loading <a href="json">json files</a>. 
     (Supabase has to be restarted every 14 days to avoid error.)

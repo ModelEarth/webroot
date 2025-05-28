@@ -1,4 +1,4 @@
-[Profile Panels](../../../) and [World Trade Flow](../../../../profile/trade/)
+[Profile Panels](../../../) and [Trade Flow](../../../../profile/trade/)
 
 # DuckDB from .csv files
 

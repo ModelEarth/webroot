@@ -1,4 +1,4 @@
-[World Trade Flow](/profile/trade/)
+[Trade Flow](/profile/trade/)
 # Data Prep for Visualizations
 
 Environmentally-Extended Input-Output (EEIO) Models - Data Pulls

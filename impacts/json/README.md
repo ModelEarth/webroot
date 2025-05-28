@@ -1,4 +1,4 @@
-[World Trade Flow](/profile/trade/)
+[Trade Flow](/profile/trade/)
 # Trade File Pipeline - to json and parquet
 
 Colab that creates tables in pandas and sends tables to Supabase.  

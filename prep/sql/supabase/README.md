@@ -1,4 +1,4 @@
-[World Trade Flow](/profile/trade/) and [IO Data Prep](../../)
+[Trade Flow](/profile/trade/) and [IO Data Prep](../../)
 
 # Supabase from Exiobase .csv files
 

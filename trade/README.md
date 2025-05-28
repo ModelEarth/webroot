@@ -60,7 +60,7 @@ The [Big Sankey](https://github.com/baptiste-an/Application-mapping-GHG) ([view 
 
 TO DO: Update the ExiobaseSupabase CoLab above to also pull the BEA data to match the <a href="https://github.com/ModelEarth/USEEIO/tree/master/import_factors_exio">generate\_import\_factors.py</a>. Test with the US.   <!-- Yuhao, Ruolin, Nancy-->
 
-## World Trade Flow/Impact Visualizations
+## Trade Flow/Impact Visualizations
 
 See chart starter sample in upper right.
 
