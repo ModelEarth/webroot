@@ -114,34 +114,24 @@ restart_services() {
 # Function to check MariaDB root password status
 check_mysql_root_status() {
     echo "🔍 Checking MariaDB root access..."
-    
-    # Try to connect without password first
-    if mysql -u root -e "SELECT 1" &>/dev/null; then
-        echo "✅ MariaDB root access confirmed (no password set)."
-        ROOT_PASS_SET=false
-        MYSQL_ROOT_PASS=""
-        MYSQL_SECURE_NEEDED=true
-    else
-        # Try with empty password explicitly
-        if mysql -u root -p'' -e "SELECT 1" &>/dev/null; then
+
+    # Always ask for password (to be sure and safe)
+    read -sp "Enter MariaDB root password (leave empty if none): " MYSQL_ROOT_PASS
+    echo ""
+
+    if mysql -u root -p"$MYSQL_ROOT_PASS" -e "SELECT 1" &>/dev/null; then
+        if [[ -z "$MYSQL_ROOT_PASS" ]]; then
             echo "✅ MariaDB root access confirmed (empty password)."
             ROOT_PASS_SET=false
-            MYSQL_ROOT_PASS=""
             MYSQL_SECURE_NEEDED=true
         else
-            echo "🔑 MariaDB root password appears to be set. (It's not empty.)"
+            echo "✅ MariaDB root password verified."
             ROOT_PASS_SET=true
             MYSQL_SECURE_NEEDED=false
-            read -sp "Enter MariaDB root password: " MYSQL_ROOT_PASS
-            echo ""
-            
-            # Test the password
-            if ! mysql -u root -p"$MYSQL_ROOT_PASS" -e "SELECT 1" &>/dev/null; then
-                echo "❌ Invalid root password. Database configuration failed."
-                exit 1
-            fi
-            echo "✅ MariaDB root password verified."
         fi
+    else
+        echo "❌ Invalid root password. Database configuration failed."
+        exit 1
     fi
 }
 
@@ -175,7 +165,14 @@ configure_database_enhanced() {
     # Tried both $db_pass and $MYSQL_ROOT_PASS with "admin" (Failed to configure database.))
     # "admin" is prbobably correct for root password. Because hitting Enter returned "Invalid root password. Database configuration failed."
     # Could Failed message be because database already exists?
-    MYSQL_CMD="$MYSQL_CMD ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$MYSQL_ROOT_PASS'; FLUSH PRIVILEGES; EXIT;"
+    if [[ "$ROOT_PASS_SET" == true ]]; then
+    echo "🔧 Resetting root password using mysql_native_password..."
+    mysql -u root -p"$MYSQL_ROOT_PASS" <<EOF
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$MYSQL_ROOT_PASS';
+FLUSH PRIVILEGES;
+EOF
+fi
+
 
     # Create database and user with comprehensive permissions
     if ! $MYSQL_CMD <<EOF
@@ -259,8 +256,12 @@ setup_mysql_security() {
     check_mysql_root_status
     
     if [[ "$MYSQL_SECURE_NEEDED" == true ]]; then
-        echo "⚠️ MariaDB root password is not set. This is a security risk."
-        read -p "Would you like to run mysql_secure_installation now? [Y/n]: " run_secure
+        echo "⚠️ MariaDB root password is not set. Setting it automatically..."
+mysql -u root <<EOF
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$DEFAULT_ROOT_PASSWORD';
+FLUSH PRIVILEGES;
+EOF
+MYSQL_SECURE_NEEDED=false
         
         if [[ ! "$run_secure" =~ ^[Nn]$ ]]; then
             echo "🔒 Running mysql_secure_installation..."
@@ -674,15 +675,38 @@ if [[ "$os" == "macos" ]]; then
         fi
         
         # Add PHP handling if not already configured
-        if ! grep -q "FilesMatch \\.php$" "$HTTPD_CONF"; then
-            cat << EOF >> "$HTTPD_CONF"
+        if ! grep -q "SetHandler application/x-httpd-php" "$HTTPD_CONF"; then
+    cat << EOF >> "$HTTPD_CONF"
 <FilesMatch \.php$>
     SetHandler application/x-httpd-php
 </FilesMatch>
 DirectoryIndex index.php index.html
 EOF
-            echo "✅ PHP handler configuration added."
-        fi
+    echo "✅ PHP handler configuration added."
+else
+    echo "✅ PHP handler already exists — skipping addition."
+fi
+
+    PHP_MODULE_LINE="LoadModule php_module /opt/homebrew/opt/php@8.2/lib/httpd/modules/libphp.so"
+
+# Add PHP module line if not present
+if ! grep -q "^LoadModule php_module" "$HTTPD_CONF"; then
+    echo "🔧 Adding PHP module to httpd.conf..."
+    # Add after the last LoadModule line
+    awk -v newline="$PHP_MODULE_LINE" '
+        /^LoadModule/ { last=NR }
+        { lines[NR]=$0 }
+        END {
+            for (i=1; i<=last; i++) print lines[i]
+            print newline
+            for (i=last+1; i<=NR; i++) print lines[i]
+        }
+    ' "$HTTPD_CONF" > "${HTTPD_CONF}.tmp" && mv "${HTTPD_CONF}.tmp" "$HTTPD_CONF"
+    echo "✅ PHP module line added."
+else
+    echo "✅ PHP module already present — skipping."
+fi
+
         
         # Disable directory listing globally
         sed -i '' 's/Options Indexes FollowSymLinks/Options -Indexes +FollowSymLinks/g' "$HTTPD_CONF"
