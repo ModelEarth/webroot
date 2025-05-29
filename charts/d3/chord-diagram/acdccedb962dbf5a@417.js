@@ -167,8 +167,17 @@ async function _data() {
 
    // Generate an array of colors, cycling through D3 schemes if needed
 
-   const colorScheme = d3.schemeCategory10;
-   const colors = names.map((_, i) => colorScheme[i % colorScheme.length]);
+  //  const colorScheme = d3.schemeCategory10;
+  //  const colors = names.map((_, i) => colorScheme[i % colorScheme.length]);
+
+  // return Object.assign(matrix, {
+  //   names: names,
+  //   colors: colors
+  // });
+
+   const colorScheme = d3.schemeTableau10.concat(d3.schemePaired); // better for many sectors
+  const color = d3.scaleOrdinal(colorScheme);
+  const colors = names.map(name => color(name));
 
   return Object.assign(matrix, {
     names: names,
