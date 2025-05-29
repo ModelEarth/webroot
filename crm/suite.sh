@@ -704,6 +704,10 @@ EOF
     # Get current user and group
     CURRENT_USER=$(whoami)
     GROUP=$(id -gn)
+
+    # Construct full path to the SuiteCRM public directory
+    CRM_PUBLIC_DIR="$DOCUMENT_ROOT/$INSTANCE_FOLDER/public"
+    echo "📁 SuiteCRM public path: $CRM_PUBLIC_DIR"
     
     # Create directories if they don't exist with proper ownership
     echo "🔧 Creating CRM directories..."
@@ -746,37 +750,51 @@ EOF
             echo "⚠️ Failed to enable vhosts in Apache config. Manual configuration may be required."
         }
     }
+
+    # ----------- PATCH httpd.conf (Global Apache Config) ------------
+    if [ -f "$HTTPD_CONF" ]; then
+        echo "🛠️ Updating httpd.conf..."
+        # Set DocumentRoot
+        sed -i '' "s|^DocumentRoot \".*\"|DocumentRoot \"$CRM_PUBLIC_DIR\"|" "$HTTPD_CONF"
+        # Update the Directory block following DocumentRoot
+        sed -i '' "/<Directory \".*www\"/,/<\/Directory>/c\\
+    <Directory \"$CRM_PUBLIC_DIR\">\\
+        Options -Indexes +FollowSymLinks\\
+        AllowOverride All\\
+        Require all granted\\
+    </Directory>" "$HTTPD_CONF"
+    fi
+
     
     # Create VirtualHost configuration with security headers
+    echo "🛠️ Writing new httpd-vhosts.conf..."
     cat << EOF > "$HTTPD_VHOSTS"
-# Default virtual host (respond to any unmatched requests)
-<VirtualHost *:8080>
-    DocumentRoot "$DOCUMENT_ROOT"
-    ServerName localhost
-</VirtualHost>
-
-# CRM virtual host
-<VirtualHost *:8080>
-    ServerAdmin admin@example.com
-    DocumentRoot "$DOCUMENT_ROOT/$INSTANCE_FOLDER/public"
-    ServerName $server_ip
-    
-    <Directory "$DOCUMENT_ROOT/$INSTANCE_FOLDER/public">
-        Options -Indexes +FollowSymLinks +MultiViews
-        AllowOverride All
-        Require all granted
-    </Directory>
-    
-    ErrorLog /opt/homebrew/var/log/httpd/crm-error_log
-    CustomLog /opt/homebrew/var/log/httpd/crm-access_log combined
-    
-    # Security headers
-    Header always set X-Content-Type-Options "nosniff"
-    Header always set X-XSS-Protection "1; mode=block"
-    Header always set X-Frame-Options "SAMEORIGIN"
-</VirtualHost>
+    <VirtualHost *:8080>
+        ServerAdmin admin@example.com
+        DocumentRoot "$CRM_PUBLIC_DIR"
+        ServerName localhost
+        <Directory "$CRM_PUBLIC_DIR">
+            Options -Indexes +FollowSymLinks +MultiViews
+            AllowOverride All
+            Require all granted
+        </Directory>
+        ErrorLog /opt/homebrew/var/log/httpd/crm-error_log
+        CustomLog /opt/homebrew/var/log/httpd/crm-access_log combined
+        Header always set X-Content-Type-Options "nosniff"
+        Header always set X-XSS-Protection "1; mode=block"
+        Header always set X-Frame-Options "SAMEORIGIN"
+    </VirtualHost>
 EOF
 
+    echo "🔐 Fixing folder permissions for Apache..."
+    PARENT="$CRM_PUBLIC_DIR"
+    while [[ "$PARENT" != "/" ]]; do
+        chmod +x "$PARENT" 2>/dev/null || true
+        PARENT=$(dirname "$PARENT")
+    done
+    chmod -R 755 "$CRM_PUBLIC_DIR"
+    chown -R "$CURRENT_USER:$GROUP" "$CRM_PUBLIC_DIR"
+    
     # Enable headers module for security headers
     sed -i '' 's/#LoadModule headers_module/LoadModule headers_module/g' "$HTTPD_CONF" || {
         echo "⚠️ Failed to enable headers module in Apache config."
