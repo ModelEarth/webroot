@@ -256,12 +256,23 @@ setup_mysql_security() {
     check_mysql_root_status
     
     if [[ "$MYSQL_SECURE_NEEDED" == true ]]; then
-        echo "⚠️ MariaDB root password is not set. Setting it automatically..."
-mysql -u root <<EOF
+    echo "⚠️ MariaDB root password is not set."
+
+    # Prompt the user to set a new root password
+    read -sp "Enter a new password for MariaDB root user: " DEFAULT_ROOT_PASSWORD
+    echo ""
+
+    echo "🔧 Setting root password..."
+    mysql -u root <<EOF
 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$DEFAULT_ROOT_PASSWORD';
 FLUSH PRIVILEGES;
 EOF
-MYSQL_SECURE_NEEDED=false
+
+    # Update variables for rest of script
+    MYSQL_ROOT_PASS=$DEFAULT_ROOT_PASSWORD
+    ROOT_PASS_SET=true
+    MYSQL_SECURE_NEEDED=false
+
         
         if [[ ! "$run_secure" =~ ^[Nn]$ ]]; then
             echo "🔒 Running mysql_secure_installation..."
