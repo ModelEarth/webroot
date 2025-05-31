@@ -114,24 +114,92 @@ restart_services() {
 # Function to check MariaDB root password status
 check_mysql_root_status() {
     echo "🔍 Checking MariaDB root access..."
+    local retries=5
+    local attempt=1
+    local reset_attempted=false
 
-    # Always ask for password (to be sure and safe)
-    read -sp "Enter MariaDB root password (leave empty if none): " MYSQL_ROOT_PASS
-    echo ""
+    while [[ $attempt -le $retries ]]; do
+        read -sp "Enter MariaDB root password (leave empty if none) [attempt $attempt/$retries]: " MYSQL_ROOT_PASS
+        echo ""
 
-    if mysql -u root -p"$MYSQL_ROOT_PASS" -e "SELECT 1" &>/dev/null; then
-        if [[ -z "$MYSQL_ROOT_PASS" ]]; then
-            echo "✅ MariaDB root access confirmed (empty password)."
-            ROOT_PASS_SET=false
-            MYSQL_SECURE_NEEDED=true
+        if mysql -u root -p"$MYSQL_ROOT_PASS" -e "SELECT 1" &>/dev/null; then
+            if [[ -z "$MYSQL_ROOT_PASS" ]]; then
+                echo "✅ MariaDB root access confirmed (empty password)."
+                ROOT_PASS_SET=false
+                MYSQL_SECURE_NEEDED=true
+            else
+                echo "✅ MariaDB root password verified."
+                ROOT_PASS_SET=true
+                MYSQL_SECURE_NEEDED=false
+            fi
+            return 0
         else
-            echo "✅ MariaDB root password verified."
+            echo "❌ Invalid root password (attempt $attempt/$retries)."
+            ((attempt++))
+            if [[ $attempt -le $retries ]]; then
+                echo "Please try again."
+            fi
+        fi
+    done
+
+    # Offer password reset after max retries
+    echo "❌ Max retries reached."
+    read -p "Would you like to reset the MariaDB root password? [y/N]: " reset_choice
+    if [[ "$reset_choice" =~ ^[Yy]$ ]]; then
+        echo "🔧 Attempting to reset MariaDB root password..."
+        read -sp "Enter new MariaDB root password: " NEW_ROOT_PASS
+        echo ""
+        if mysqladmin -u root -p"$MYSQL_ROOT_PASS" password "$NEW_ROOT_PASS" &>/dev/null; then
+            echo "✅ Root password reset successfully."
+            MYSQL_ROOT_PASS="$NEW_ROOT_PASS"
             ROOT_PASS_SET=true
             MYSQL_SECURE_NEEDED=false
+            # Re-check access with new password
+            if mysql -u root -p"$MYSQL_ROOT_PASS" -e "SELECT 1" &>/dev/null; then
+                echo "✅ MariaDB root access confirmed with new password."
+                return 0
+            else
+                echo "❌ Failed to verify new root password."
+            fi
+        else
+            echo "❌ Failed to reset root password. Please reset manually using:"
+            echo "   mysqladmin -u root password"
+            echo "   Then re-run the script or try again below."
         fi
-    else
-        echo "❌ Invalid root password. Database configuration failed."
-        exit 1
+        reset_attempted=true
+    fi
+
+    # Allow retry after reset attempt or if user declines reset
+    if [[ "$reset_choice" =~ ^[Yy]$ ]]; then
+        echo "🔧 Attempting to reset MariaDB root password..."
+        read -sp "Enter new MariaDB root password: " NEW_ROOT_PASS
+        echo ""
+        # Ensure MariaDB is running
+        if ! pgrep -f "mysql" > /dev/null; then
+            echo "🔧 Starting MariaDB..."
+            brew services start mariadb || { echo "❌ Failed to start MariaDB."; exit 1; }
+            sleep 3
+        fi
+        # Try reset with provided password, then with empty password
+        if mysqladmin -u root -p"$MYSQL_ROOT_PASS" password "$NEW_ROOT_PASS" &>/dev/null || \
+        mysqladmin -u root password "$NEW_ROOT_PASS" &>/dev/null; then
+            echo "✅ Root password reset successfully."
+            MYSQL_ROOT_PASS="$NEW_ROOT_PASS"
+            ROOT_PASS_SET=true
+            MYSQL_SECURE_NEEDED=false
+            # Re-check access with new password
+            if mysql -u root -p"$MYSQL_ROOT_PASS" -e "SELECT 1" &>/dev/null; then
+                echo "✅ MariaDB root access confirmed with new password."
+                return 0
+            else
+                echo "❌ Failed to verify new root password."
+            fi
+        else
+            echo "❌ Failed to reset root password. Please reset manually using:"
+            echo "   mysqladmin -u root password"
+            echo "   Then re-run the script or try again below."
+        fi
+        reset_attempted=true
     fi
 }
 
