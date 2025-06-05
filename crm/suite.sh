@@ -282,7 +282,11 @@ setup_mysql_security() {
     echo "🔒 Setting up MySQL security..."
     
     # Re-check root password status after potential mysql_secure_installation
-    check_mysql_root_status
+    if [[ -z "$MYSQL_ROOT_PASS" ]]; then
+        check_mysql_root_status
+    else
+        echo "🔁 Reusing previously verified MariaDB root password."
+    fi
     
     if [[ "$MYSQL_SECURE_NEEDED" == true ]]; then
         echo "⚠️ MariaDB root password is not set. Setting it automatically..."
