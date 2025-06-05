@@ -48,8 +48,8 @@ changed root password from blank (enter) to admin2
 
     ./suite.sh --version 8.8.0 --subfolder account
 
-Take note of the user and password of the MariaDB database that will be requested.
-
+Take note of the user and password of the MariaDB database that will be requested.  
+On your initial run, you'll also create a root MariaDB database password to take note of.
 
 **Resulting Apache site:** [http://localhost:8080](http://localhost:8080/)
 
