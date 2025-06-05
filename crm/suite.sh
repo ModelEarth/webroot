@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Developed by Loren Heyns and Claude, extending Linux 10-min install by Chris.
+# Developed by Loren Heyns (with Claude) and Lokesh Reddy, extending Linux 10-min install by Chris.
 
 # Parse command line arguments
 VERSION="8.8.0"  # Default version
