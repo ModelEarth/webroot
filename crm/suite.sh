@@ -168,39 +168,6 @@ check_mysql_root_status() {
         fi
         reset_attempted=true
     fi
-
-    # Allow retry after reset attempt or if user declines reset
-    if [[ "$reset_choice" =~ ^[Yy]$ ]]; then
-        echo "🔧 Attempting to reset MariaDB root password..."
-        read -sp "Enter new MariaDB root password: " NEW_ROOT_PASS
-        echo ""
-        # Ensure MariaDB is running
-        if ! pgrep -f "mysql" > /dev/null; then
-            echo "🔧 Starting MariaDB..."
-            brew services start mariadb || { echo "❌ Failed to start MariaDB."; exit 1; }
-            sleep 3
-        fi
-        # Try reset with provided password, then with empty password
-        if mysqladmin -u root -p"$MYSQL_ROOT_PASS" password "$NEW_ROOT_PASS" &>/dev/null || \
-        mysqladmin -u root password "$NEW_ROOT_PASS" &>/dev/null; then
-            echo "✅ Root password reset successfully."
-            MYSQL_ROOT_PASS="$NEW_ROOT_PASS"
-            ROOT_PASS_SET=true
-            MYSQL_SECURE_NEEDED=false
-            # Re-check access with new password
-            if mysql -u root -p"$MYSQL_ROOT_PASS" -e "SELECT 1" &>/dev/null; then
-                echo "✅ MariaDB root access confirmed with new password."
-                return 0
-            else
-                echo "❌ Failed to verify new root password."
-            fi
-        else
-            echo "❌ Failed to reset root password. Please reset manually using:"
-            echo "   mysqladmin -u root password"
-            echo "   Then re-run the script or try again below."
-        fi
-        reset_attempted=true
-    fi
 }
 
 # Enhanced database configuration with proper permissions
@@ -233,13 +200,7 @@ configure_database_enhanced() {
     # Tried both $db_pass and $MYSQL_ROOT_PASS with "admin" (Failed to configure database.))
     # "admin" is prbobably correct for root password. Because hitting Enter returned "Invalid root password. Database configuration failed."
     # Could Failed message be because database already exists?
-    if [[ "$ROOT_PASS_SET" == true ]]; then
-    echo "🔧 Resetting root password using mysql_native_password..."
-    mysql -u root -p"$MYSQL_ROOT_PASS" <<EOF
-ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$MYSQL_ROOT_PASS';
-FLUSH PRIVILEGES;
-EOF
-fi
+    
 
 
     # Create database and user with comprehensive permissions
@@ -324,23 +285,12 @@ setup_mysql_security() {
     check_mysql_root_status
     
     if [[ "$MYSQL_SECURE_NEEDED" == true ]]; then
-    echo "⚠️ MariaDB root password is not set."
-
-    # Prompt the user to set a new root password
-    read -sp "Enter a new password for MariaDB root user: " DEFAULT_ROOT_PASSWORD
-    echo ""
-
-    echo "🔧 Setting root password..."
-    mysql -u root <<EOF
+        echo "⚠️ MariaDB root password is not set. Setting it automatically..."
+mysql -u root <<EOF
 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$DEFAULT_ROOT_PASSWORD';
 FLUSH PRIVILEGES;
 EOF
-
-    # Update variables for rest of script
-    MYSQL_ROOT_PASS=$DEFAULT_ROOT_PASSWORD
-    ROOT_PASS_SET=true
-    MYSQL_SECURE_NEEDED=false
-
+MYSQL_SECURE_NEEDED=false
         
         if [[ ! "$run_secure" =~ ^[Nn]$ ]]; then
             echo "🔒 Running mysql_secure_installation..."
