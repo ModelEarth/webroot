@@ -4,6 +4,8 @@
 -- https://github.com/microsoft/CDM/blob/master/schemaDocuments/core/applicationCommon/foundationCommon/crmCommon/Account.cdm.json
 -- https://github.com/microsoft/CDM/blob/master/docs/schema/examples/OrdersProductsCustomersLinked/model.json
 
+-- To determine: Will we retain id fields in relation tables? Find examples of that in use.
+
 -- Microsoft Common Data Model (CDM) Database Schema
 -- Core CRM Entities with proper database design principles
 -- Created by Claude Sonnet 4 from prompt above: 2025-06-06
@@ -29,7 +31,7 @@ CREATE TYPE dbo.CDMOptionSet AS TABLE (
 
 -- Accounts Table (Companies/Organizations)
 CREATE TABLE dbo.accounts (
-    account_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     account_number NVARCHAR(50) NULL,
     name NVARCHAR(160) NOT NULL,
     account_category_code INT NULL, -- OptionSet: Customer, Vendor, Partner, etc.
@@ -77,14 +79,14 @@ CREATE TABLE dbo.accounts (
     override_created_on DATETIME2 NULL,
     
     -- Constraints
-    CONSTRAINT FK_accounts_parent_account FOREIGN KEY (parent_account_id) REFERENCES dbo.accounts(account_id),
+    CONSTRAINT FK_accounts_parent_account FOREIGN KEY (parent_account_id) REFERENCES dbo.accounts(id),
     CONSTRAINT CK_accounts_status_code CHECK (status_code IN (1, 2)), -- Active, Inactive
     CONSTRAINT CK_accounts_state_code CHECK (state_code IN (0, 1)) -- Open, Closed
 );
 
 -- Contacts Table (People)
 CREATE TABLE dbo.contacts (
-    contact_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     contact_number NVARCHAR(50) NULL,
     first_name NVARCHAR(50) NULL,
     middle_name NVARCHAR(50) NULL,
@@ -154,7 +156,7 @@ CREATE TABLE dbo.contacts (
 
 -- Leads Table (Prospects)
 CREATE TABLE dbo.leads (
-    lead_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     lead_number NVARCHAR(50) NULL,
     subject NVARCHAR(300) NOT NULL,
     first_name NVARCHAR(50) NULL,
@@ -230,7 +232,7 @@ CREATE TABLE dbo.leads (
 
 -- Opportunities Table (Sales Deals)
 CREATE TABLE dbo.opportunities (
-    opportunity_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     name NVARCHAR(300) NOT NULL,
     account_id UNIQUEIDENTIFIER NULL,
     contact_id UNIQUEIDENTIFIER NULL,
@@ -284,9 +286,9 @@ CREATE TABLE dbo.opportunities (
     override_created_on DATETIME2 NULL,
     
     -- Foreign Key Constraints
-    CONSTRAINT FK_opportunities_account FOREIGN KEY (account_id) REFERENCES dbo.accounts(account_id),
-    CONSTRAINT FK_opportunities_contact FOREIGN KEY (contact_id) REFERENCES dbo.contacts(contact_id),
-    CONSTRAINT FK_opportunities_lead FOREIGN KEY (originating_lead_id) REFERENCES dbo.leads(lead_id),
+    CONSTRAINT FK_opportunities_account FOREIGN KEY (account_id) REFERENCES dbo.accounts(id),
+    CONSTRAINT FK_opportunities_contact FOREIGN KEY (contact_id) REFERENCES dbo.contacts(id),
+    CONSTRAINT FK_opportunities_lead FOREIGN KEY (originating_lead_id) REFERENCES dbo.leads(id),
     
     -- Constraints
     CONSTRAINT CK_opportunities_probability CHECK (probability_score BETWEEN 0 AND 100),
@@ -296,7 +298,7 @@ CREATE TABLE dbo.opportunities (
 
 -- Products Table
 CREATE TABLE dbo.products (
-    product_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     product_number NVARCHAR(100) NULL,
     name NVARCHAR(100) NOT NULL,
     description NVARCHAR(MAX) NULL,
@@ -340,14 +342,14 @@ CREATE TABLE dbo.products (
     override_created_on DATETIME2 NULL,
     
     -- Constraints
-    CONSTRAINT FK_products_parent FOREIGN KEY (parent_product_id) REFERENCES dbo.products(product_id),
+    CONSTRAINT FK_products_parent FOREIGN KEY (parent_product_id) REFERENCES dbo.products(id),
     CONSTRAINT CK_products_status_code CHECK (status_code IN (1, 2, 3)), -- Active, Draft, Under Revision
     CONSTRAINT CK_products_state_code CHECK (state_code IN (0, 1)) -- Active, Retired
 );
 
 -- Activities Table (Tasks, Phone Calls, Appointments, Emails)
 CREATE TABLE dbo.activities (
-    activity_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     subject NVARCHAR(400) NOT NULL,
     activity_type_code NVARCHAR(64) NOT NULL, -- task, phonecall, appointment, email, etc.
     description NVARCHAR(MAX) NULL,
@@ -406,7 +408,7 @@ CREATE TABLE dbo.activities (
 
 -- Account-Contact Relationships
 CREATE TABLE dbo.accounts_contacts (
-    account_contact_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     account_id UNIQUEIDENTIFIER NOT NULL,
     contact_id UNIQUEIDENTIFIER NOT NULL,
     relationship_type NVARCHAR(50) NULL, -- Primary Contact, Decision Maker, Influencer, etc.
@@ -414,42 +416,42 @@ CREATE TABLE dbo.accounts_contacts (
     created_on DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
     created_by UNIQUEIDENTIFIER NOT NULL,
     
-    CONSTRAINT FK_accounts_contacts_account FOREIGN KEY (account_id) REFERENCES dbo.accounts(account_id) ON DELETE CASCADE,
-    CONSTRAINT FK_accounts_contacts_contact FOREIGN KEY (contact_id) REFERENCES dbo.contacts(contact_id) ON DELETE CASCADE,
+    CONSTRAINT FK_accounts_contacts_account FOREIGN KEY (account_id) REFERENCES dbo.accounts(id) ON DELETE CASCADE,
+    CONSTRAINT FK_accounts_contacts_contact FOREIGN KEY (contact_id) REFERENCES dbo.contacts(id) ON DELETE CASCADE,
     CONSTRAINT UQ_accounts_contacts UNIQUE (account_id, contact_id)
 );
 
 -- Account-Opportunity Relationships
 CREATE TABLE dbo.accounts_opportunities (
-    account_opportunity_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     account_id UNIQUEIDENTIFIER NOT NULL,
     opportunity_id UNIQUEIDENTIFIER NOT NULL,
     relationship_type NVARCHAR(50) NULL, -- Customer, Partner, Competitor, etc.
     created_on DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
     created_by UNIQUEIDENTIFIER NOT NULL,
     
-    CONSTRAINT FK_accounts_opportunities_account FOREIGN KEY (account_id) REFERENCES dbo.accounts(account_id) ON DELETE CASCADE,
-    CONSTRAINT FK_accounts_opportunities_opportunity FOREIGN KEY (opportunity_id) REFERENCES dbo.opportunities(opportunity_id) ON DELETE CASCADE,
+    CONSTRAINT FK_accounts_opportunities_account FOREIGN KEY (account_id) REFERENCES dbo.accounts(id) ON DELETE CASCADE,
+    CONSTRAINT FK_accounts_opportunities_opportunity FOREIGN KEY (opportunity_id) REFERENCES dbo.opportunities(id) ON DELETE CASCADE,
     CONSTRAINT UQ_accounts_opportunities UNIQUE (account_id, opportunity_id)
 );
 
 -- Contact-Lead Relationships
 CREATE TABLE dbo.contacts_leads (
-    contact_lead_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     contact_id UNIQUEIDENTIFIER NOT NULL,
     lead_id UNIQUEIDENTIFIER NOT NULL,
     relationship_type NVARCHAR(50) NULL, -- Converted From, Related To, etc.
     created_on DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
     created_by UNIQUEIDENTIFIER NOT NULL,
     
-    CONSTRAINT FK_contacts_leads_contact FOREIGN KEY (contact_id) REFERENCES dbo.contacts(contact_id) ON DELETE CASCADE,
-    CONSTRAINT FK_contacts_leads_lead FOREIGN KEY (lead_id) REFERENCES dbo.leads(lead_id) ON DELETE CASCADE,
+    CONSTRAINT FK_contacts_leads_contact FOREIGN KEY (contact_id) REFERENCES dbo.contacts(id) ON DELETE CASCADE,
+    CONSTRAINT FK_contacts_leads_lead FOREIGN KEY (lead_id) REFERENCES dbo.leads(id) ON DELETE CASCADE,
     CONSTRAINT UQ_contacts_leads UNIQUE (contact_id, lead_id)
 );
 
 -- Opportunity-Product Relationships (Opportunity Products)
 CREATE TABLE dbo.opportunities_products (
-    opportunity_product_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     opportunity_id UNIQUEIDENTIFIER NOT NULL,
     product_id UNIQUEIDENTIFIER NOT NULL,
     quantity DECIMAL(18,2) NOT NULL DEFAULT 1,
@@ -468,14 +470,14 @@ CREATE TABLE dbo.opportunities_products (
     modified_on DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
     modified_by UNIQUEIDENTIFIER NOT NULL,
     
-    CONSTRAINT FK_opportunities_products_opportunity FOREIGN KEY (opportunity_id) REFERENCES dbo.opportunities(opportunity_id) ON DELETE CASCADE,
-    CONSTRAINT FK_opportunities_products_product FOREIGN KEY (product_id) REFERENCES dbo.products(product_id),
+    CONSTRAINT FK_opportunities_products_opportunity FOREIGN KEY (opportunity_id) REFERENCES dbo.opportunities(id) ON DELETE CASCADE,
+    CONSTRAINT FK_opportunities_products_product FOREIGN KEY (product_id) REFERENCES dbo.products(id),
     CONSTRAINT CK_opportunities_products_quantity CHECK (quantity > 0)
 );
 
 -- Activity-Entity Relationships (Activities can be related to multiple entity types)
 CREATE TABLE dbo.activities_entities (
-    activity_entity_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     activity_id UNIQUEIDENTIFIER NOT NULL,
     entity_id UNIQUEIDENTIFIER NOT NULL,
     entity_type NVARCHAR(50) NOT NULL, -- account, contact, lead, opportunity, product
@@ -483,7 +485,7 @@ CREATE TABLE dbo.activities_entities (
     created_on DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
     created_by UNIQUEIDENTIFIER NOT NULL,
     
-    CONSTRAINT FK_activities_entities_activity FOREIGN KEY (activity_id) REFERENCES dbo.activities(activity_id) ON DELETE CASCADE,
+    CONSTRAINT FK_activities_entities_activity FOREIGN KEY (activity_id) REFERENCES dbo.activities(id) ON DELETE CASCADE,
     CONSTRAINT CK_activities_entities_type CHECK (entity_type IN ('account', 'contact', 'lead', 'opportunity', 'product')),
     CONSTRAINT UQ_activities_entities UNIQUE (activity_id, entity_id, entity_type)
 );
@@ -568,7 +570,7 @@ BEGIN
             ELSE full_name
         END
     FROM dbo.contacts 
-    WHERE contact_id = @ContactId;
+    WHERE id = @ContactId;
     
     RETURN ISNULL(@DisplayName, '');
 END;
@@ -584,4 +586,48 @@ BEGIN
     SELECT @Probability = 
         CASE @SalesStageCode
             WHEN 1 THEN 10  -- Qualify
-            WHEN 2 THEN
+            WHEN 2 THEN 25  -- Develop
+            WHEN 3 THEN 50  -- Propose
+            WHEN 4 THEN 75  -- Close
+            WHEN 5 THEN 100 -- Won
+            ELSE 0
+        END;
+    
+    RETURN @Probability;
+END;
+GO
+
+-- Function to calculate weighted pipeline value
+CREATE FUNCTION dbo.fn_GetWeightedPipelineValue(@OpportunityId UNIQUEIDENTIFIER)
+RETURNS MONEY
+AS
+BEGIN
+    DECLARE @WeightedValue MONEY;
+    
+    SELECT @WeightedValue = 
+        CASE 
+            WHEN estimated_value IS NOT NULL AND probability_score IS NOT NULL 
+            THEN estimated_value * (probability_score / 100.0)
+            ELSE 0
+        END
+    FROM dbo.opportunities 
+    WHERE id = @OpportunityId;
+    
+    RETURN ISNULL(@WeightedValue, 0);
+END;
+GO
+
+-- =====================================================
+-- STORED PROCEDURES
+-- =====================================================
+
+-- Procedure to create a new lead from web form
+CREATE PROCEDURE dbo.sp_CreateLeadFromWebForm
+    @FirstName NVARCHAR(50),
+    @LastName NVARCHAR(50),
+    @CompanyName NVARCHAR(100),
+    @EmailAddress NVARCHAR(100),
+    @PhoneNumber NVARCHAR(50) = NULL,
+    @Subject NVARCHAR(300),
+    @LeadSourceCode INT = 3, -- Web
+    @OwnerId UNIQUEIDENT
