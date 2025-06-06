@@ -3,7 +3,7 @@
 
 -- Accounts table (Salesforce standard - most widely used)
 CREATE TABLE accounts (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
     name VARCHAR(255) NOT NULL,
     domain VARCHAR(255),
     industry VARCHAR(100),
@@ -22,7 +22,7 @@ CREATE TABLE accounts (
     status ENUM('active', 'inactive', 'prospect') DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    created_by BIGINT,
+    created_by CHAR(36),
     INDEX idx_domain (domain),
     INDEX idx_industry (industry),
     INDEX idx_status (status)
@@ -30,8 +30,8 @@ CREATE TABLE accounts (
 
 -- Contacts table
 CREATE TABLE contacts (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    account_id BIGINT,
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    account_id CHAR(36),
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
     email VARCHAR(255) UNIQUE,
@@ -46,7 +46,7 @@ CREATE TABLE contacts (
     last_contacted_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    created_by BIGINT,
+    created_by CHAR(36),
     FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE SET NULL,
     INDEX idx_email (email),
     INDEX idx_account (account_id),
@@ -56,7 +56,7 @@ CREATE TABLE contacts (
 
 -- Users/Team members table
 CREATE TABLE users (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
     email VARCHAR(255) UNIQUE NOT NULL,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
@@ -68,10 +68,10 @@ CREATE TABLE users (
 
 -- Deals/Opportunities table
 CREATE TABLE opportunities (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    account_id BIGINT NOT NULL,
-    contact_id BIGINT,
-    owner_id BIGINT NOT NULL,
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    account_id CHAR(36) NOT NULL,
+    contact_id CHAR(36),
+    owner_id CHAR(36) NOT NULL,
     name VARCHAR(255) NOT NULL,
     value DECIMAL(15,2),
     currency VARCHAR(3) DEFAULT 'USD',
@@ -95,14 +95,14 @@ CREATE TABLE opportunities (
 
 -- Activities table (calls, emails, meetings, tasks)
 CREATE TABLE activities (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
     type ENUM('call', 'email', 'meeting', 'task', 'note') NOT NULL,
     subject VARCHAR(255) NOT NULL,
     description TEXT,
-    contact_id BIGINT,
-    account_id BIGINT,
-    opportunity_id BIGINT,
-    owner_id BIGINT NOT NULL,
+    contact_id CHAR(36),
+    account_id CHAR(36),
+    opportunity_id CHAR(36),
+    owner_id CHAR(36) NOT NULL,
     status ENUM('completed', 'scheduled', 'cancelled') DEFAULT 'scheduled',
     scheduled_at TIMESTAMP,
     completed_at TIMESTAMP,
@@ -122,7 +122,7 @@ CREATE TABLE activities (
 
 -- Email campaigns table
 CREATE TABLE campaigns (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
     name VARCHAR(255) NOT NULL,
     type ENUM('email', 'cold_outreach', 'nurture', 'event') NOT NULL,
     status ENUM('draft', 'active', 'paused', 'completed') DEFAULT 'draft',
@@ -132,7 +132,7 @@ CREATE TABLE campaigns (
     opened_count INT DEFAULT 0,
     clicked_count INT DEFAULT 0,
     replied_count INT DEFAULT 0,
-    created_by BIGINT,
+    created_by CHAR(36),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (created_by) REFERENCES users(id),
@@ -142,9 +142,9 @@ CREATE TABLE campaigns (
 
 -- Campaign recipients/tracking
 CREATE TABLE campaign_contacts (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    campaign_id BIGINT NOT NULL,
-    contact_id BIGINT NOT NULL,
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    campaign_id CHAR(36) NOT NULL,
+    contact_id CHAR(36) NOT NULL,
     status ENUM('pending', 'sent', 'opened', 'clicked', 'replied', 'bounced') DEFAULT 'pending',
     sent_at TIMESTAMP NULL,
     opened_at TIMESTAMP NULL,
@@ -158,7 +158,7 @@ CREATE TABLE campaign_contacts (
 
 -- Tags for flexible categorization
 CREATE TABLE tags (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
     name VARCHAR(100) UNIQUE NOT NULL,
     color VARCHAR(7), -- hex color code
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -166,9 +166,9 @@ CREATE TABLE tags (
 
 -- Tag associations (polymorphic)
 CREATE TABLE taggables (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    tag_id BIGINT NOT NULL,
-    taggable_id BIGINT NOT NULL,
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    tag_id CHAR(36) NOT NULL,
+    taggable_id CHAR(36) NOT NULL,
     taggable_type ENUM('contact', 'account', 'opportunity', 'lead') NOT NULL,
     FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE,
     UNIQUE KEY unique_tag_association (tag_id, taggable_id, taggable_type),
@@ -179,7 +179,7 @@ CREATE TABLE taggables (
 
 -- Leads table (Salesforce standard - prospects not yet converted)
 CREATE TABLE leads (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
     email VARCHAR(255) UNIQUE,
@@ -191,13 +191,13 @@ CREATE TABLE leads (
     status ENUM('new', 'working', 'nurturing', 'qualified', 'unqualified') DEFAULT 'new',
     rating ENUM('hot', 'warm', 'cold') DEFAULT 'cold',
     converted BOOLEAN DEFAULT FALSE,
-    converted_account_id BIGINT,
-    converted_contact_id BIGINT,
-    converted_opportunity_id BIGINT,
+    converted_account_id CHAR(36),
+    converted_contact_id CHAR(36),
+    converted_opportunity_id CHAR(36),
     converted_date TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    created_by BIGINT,
+    created_by CHAR(36),
     FOREIGN KEY (converted_account_id) REFERENCES accounts(id) ON DELETE SET NULL,
     FOREIGN KEY (converted_contact_id) REFERENCES contacts(id) ON DELETE SET NULL,
     FOREIGN KEY (converted_opportunity_id) REFERENCES opportunities(id) ON DELETE SET NULL,
