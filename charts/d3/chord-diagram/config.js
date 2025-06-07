@@ -97,7 +97,7 @@ function updateColorScale(numSectors) {
 
 function fetchModelData() {
   // Fetch the data from the model based on dynamic model setup
-  const model = getModel();
+ //const model = getModel(); //already declared
   model.load().then(() => {
     console.log("Model loaded successfully.");
     // Additional logic after the model is loaded
