@@ -48,8 +48,8 @@ changed root password from blank (enter) to admin2
 
     ./suite.sh --version 8.8.0 --subfolder account
 
-Take note of the user and password of the MariaDB database that will be requested.
-
+Take note of the user and password of the MariaDB database that will be requested.  
+On your initial run, you'll also create a root MariaDB database password to take note of.
 
 **Resulting Apache site:** [http://localhost:8080](http://localhost:8080/)
 
@@ -62,50 +62,6 @@ TO DO: Add/test DOCUMENT_ROOT for Windows.
 <!--
 TO DO: Possible [fix for PHP install](https://claude.ai/share/645e14b8-78ed-4130-8907-9b8f3ddbf671) from Claude.
 -->
-
-## Update Apache Config
-
-Steps to update the port point at profile/crm/account - Lokesh
-
-1. Edit https.config on DocumentRoot with this code :
-
-DocumentRoot "/Users/lokesh/Desktop/Model_Earth/profile/crm/account/public"
-<Directory "/Users/lokesh/Desktop/Model_Earth/profile/crm/account/public">
-    Options -Indexes +FollowSymLinks
-    AllowOverride All
-    Require all granted
-</Directory>
-
-2. Updating the httpd-vhosts.conf with only one host
-
-Replacing whole file with this if we have other than this host
-
-<VirtualHost *:8080>
-    ServerAdmin admin@example.com
-    DocumentRoot "/Users/lokesh/Desktop/Model_Earth/profile/crm/account/public"
-    ServerName localhost
-
-    <Directory "/Users/lokesh/Desktop/Model_Earth/profile/crm/account/public">
-        Options -Indexes +FollowSymLinks +MultiViews
-        AllowOverride All
-        Require all granted
-    </Directory>
-
-    ErrorLog /opt/homebrew/var/log/httpd/crm-error_log
-    CustomLog /opt/homebrew/var/log/httpd/crm-access_log combined
-
-    Header always set X-Content-Type-Options "nosniff"
-    Header always set X-XSS-Protection "1; mode=block"
-    Header always set X-Frame-Options "SAMEORIGIN"
-</VirtualHost>
-
-3. Giving permission for apache to access our folder
-
-	sudo chmod +x /Users/lokesh/Desktop/Model_Earth/profile/crm/account
-
-4. Then restart Apache
-
-	brew services restart httpd
 
 
 ## PHP and link to SuiteCRM site

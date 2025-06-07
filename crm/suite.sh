@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Developed by Loren Heyns and Claude, extending Linux 10-min install by Chris.
+# Developed by Loren Heyns (with Claude) and Lokesh Reddy, extending Linux 10-min install by Chris.
 
 # Parse command line arguments
 VERSION="8.8.0"  # Default version
@@ -114,34 +114,59 @@ restart_services() {
 # Function to check MariaDB root password status
 check_mysql_root_status() {
     echo "🔍 Checking MariaDB root access..."
-    
-    # Try to connect without password first
-    if mysql -u root -e "SELECT 1" &>/dev/null; then
-        echo "✅ MariaDB root access confirmed (no password set)."
-        ROOT_PASS_SET=false
-        MYSQL_ROOT_PASS=""
-        MYSQL_SECURE_NEEDED=true
-    else
-        # Try with empty password explicitly
-        if mysql -u root -p'' -e "SELECT 1" &>/dev/null; then
-            echo "✅ MariaDB root access confirmed (empty password)."
-            ROOT_PASS_SET=false
-            MYSQL_ROOT_PASS=""
-            MYSQL_SECURE_NEEDED=true
+    local retries=5
+    local attempt=1
+    local reset_attempted=false
+
+    while [[ $attempt -le $retries ]]; do
+        read -sp "Enter MariaDB root password (leave empty if none) [attempt $attempt/$retries]: " MYSQL_ROOT_PASS
+        echo ""
+
+        if mysql -u root -p"$MYSQL_ROOT_PASS" -e "SELECT 1" &>/dev/null; then
+            if [[ -z "$MYSQL_ROOT_PASS" ]]; then
+                echo "✅ MariaDB root access confirmed (empty password)."
+                ROOT_PASS_SET=false
+                MYSQL_SECURE_NEEDED=true
+            else
+                echo "✅ MariaDB root password verified."
+                ROOT_PASS_SET=true
+                MYSQL_SECURE_NEEDED=false
+            fi
+            return 0
         else
-            echo "🔑 MariaDB root password appears to be set. (It's not empty.)"
+            echo "❌ Invalid root password (attempt $attempt/$retries)."
+            ((attempt++))
+            if [[ $attempt -le $retries ]]; then
+                echo "Please try again."
+            fi
+        fi
+    done
+
+    # Offer password reset after max retries
+    echo "❌ Max retries reached."
+    read -p "Would you like to reset the MariaDB root password? [y/N]: " reset_choice
+    if [[ "$reset_choice" =~ ^[Yy]$ ]]; then
+        echo "🔧 Attempting to reset MariaDB root password..."
+        read -sp "Enter new MariaDB root password: " NEW_ROOT_PASS
+        echo ""
+        if mysqladmin -u root -p"$MYSQL_ROOT_PASS" password "$NEW_ROOT_PASS" &>/dev/null; then
+            echo "✅ Root password reset successfully."
+            MYSQL_ROOT_PASS="$NEW_ROOT_PASS"
             ROOT_PASS_SET=true
             MYSQL_SECURE_NEEDED=false
-            read -sp "Enter MariaDB root password: " MYSQL_ROOT_PASS
-            echo ""
-            
-            # Test the password
-            if ! mysql -u root -p"$MYSQL_ROOT_PASS" -e "SELECT 1" &>/dev/null; then
-                echo "❌ Invalid root password. Database configuration failed."
-                exit 1
+            # Re-check access with new password
+            if mysql -u root -p"$MYSQL_ROOT_PASS" -e "SELECT 1" &>/dev/null; then
+                echo "✅ MariaDB root access confirmed with new password."
+                return 0
+            else
+                echo "❌ Failed to verify new root password."
             fi
-            echo "✅ MariaDB root password verified."
+        else
+            echo "❌ Failed to reset root password. Please reset manually using:"
+            echo "   mysqladmin -u root password"
+            echo "   Then re-run the script or try again below."
         fi
+        reset_attempted=true
     fi
 }
 
@@ -175,7 +200,8 @@ configure_database_enhanced() {
     # Tried both $db_pass and $MYSQL_ROOT_PASS with "admin" (Failed to configure database.))
     # "admin" is prbobably correct for root password. Because hitting Enter returned "Invalid root password. Database configuration failed."
     # Could Failed message be because database already exists?
-    MYSQL_CMD="$MYSQL_CMD ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$MYSQL_ROOT_PASS'; FLUSH PRIVILEGES; EXIT;"
+    
+
 
     # Create database and user with comprehensive permissions
     if ! $MYSQL_CMD <<EOF
@@ -256,11 +282,19 @@ setup_mysql_security() {
     echo "🔒 Setting up MySQL security..."
     
     # Re-check root password status after potential mysql_secure_installation
-    check_mysql_root_status
+    if [[ -z "$MYSQL_ROOT_PASS" ]]; then
+        check_mysql_root_status
+    else
+        echo "🔁 Reusing previously verified MariaDB root password."
+    fi
     
     if [[ "$MYSQL_SECURE_NEEDED" == true ]]; then
-        echo "⚠️ MariaDB root password is not set. This is a security risk."
-        read -p "Would you like to run mysql_secure_installation now? [Y/n]: " run_secure
+        echo "⚠️ MariaDB root password is not set. Setting it automatically..."
+mysql -u root <<EOF
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$DEFAULT_ROOT_PASSWORD';
+FLUSH PRIVILEGES;
+EOF
+MYSQL_SECURE_NEEDED=false
         
         if [[ ! "$run_secure" =~ ^[Nn]$ ]]; then
             echo "🔒 Running mysql_secure_installation..."
@@ -674,15 +708,38 @@ if [[ "$os" == "macos" ]]; then
         fi
         
         # Add PHP handling if not already configured
-        if ! grep -q "FilesMatch \\.php$" "$HTTPD_CONF"; then
-            cat << EOF >> "$HTTPD_CONF"
+        if ! grep -q "SetHandler application/x-httpd-php" "$HTTPD_CONF"; then
+    cat << EOF >> "$HTTPD_CONF"
 <FilesMatch \.php$>
     SetHandler application/x-httpd-php
 </FilesMatch>
 DirectoryIndex index.php index.html
 EOF
-            echo "✅ PHP handler configuration added."
-        fi
+    echo "✅ PHP handler configuration added."
+else
+    echo "✅ PHP handler already exists — skipping addition."
+fi
+
+    PHP_MODULE_LINE="LoadModule php_module /opt/homebrew/opt/php@8.2/lib/httpd/modules/libphp.so"
+
+# Add PHP module line if not present
+if ! grep -q "^LoadModule php_module" "$HTTPD_CONF"; then
+    echo "🔧 Adding PHP module to httpd.conf..."
+    # Add after the last LoadModule line
+    awk -v newline="$PHP_MODULE_LINE" '
+        /^LoadModule/ { last=NR }
+        { lines[NR]=$0 }
+        END {
+            for (i=1; i<=last; i++) print lines[i]
+            print newline
+            for (i=last+1; i<=NR; i++) print lines[i]
+        }
+    ' "$HTTPD_CONF" > "${HTTPD_CONF}.tmp" && mv "${HTTPD_CONF}.tmp" "$HTTPD_CONF"
+    echo "✅ PHP module line added."
+else
+    echo "✅ PHP module already present — skipping."
+fi
+
         
         # Disable directory listing globally
         sed -i '' 's/Options Indexes FollowSymLinks/Options -Indexes +FollowSymLinks/g' "$HTTPD_CONF"
@@ -704,6 +761,10 @@ EOF
     # Get current user and group
     CURRENT_USER=$(whoami)
     GROUP=$(id -gn)
+
+    # Construct full path to the SuiteCRM public directory
+    CRM_PUBLIC_DIR="$DOCUMENT_ROOT/$INSTANCE_FOLDER/public"
+    echo "📁 SuiteCRM public path: $CRM_PUBLIC_DIR"
     
     # Create directories if they don't exist with proper ownership
     echo "🔧 Creating CRM directories..."
@@ -746,37 +807,51 @@ EOF
             echo "⚠️ Failed to enable vhosts in Apache config. Manual configuration may be required."
         }
     }
+
+    # ----------- PATCH httpd.conf (Global Apache Config) ------------
+    if [ -f "$HTTPD_CONF" ]; then
+        echo "🛠️ Updating httpd.conf..."
+        # Set DocumentRoot
+        sed -i '' "s|^DocumentRoot \".*\"|DocumentRoot \"$CRM_PUBLIC_DIR\"|" "$HTTPD_CONF"
+        # Update the Directory block following DocumentRoot
+        sed -i '' "/<Directory \".*www\"/,/<\/Directory>/c\\
+    <Directory \"$CRM_PUBLIC_DIR\">\\
+        Options -Indexes +FollowSymLinks\\
+        AllowOverride All\\
+        Require all granted\\
+    </Directory>" "$HTTPD_CONF"
+    fi
+
     
     # Create VirtualHost configuration with security headers
+    echo "🛠️ Writing new httpd-vhosts.conf..."
     cat << EOF > "$HTTPD_VHOSTS"
-# Default virtual host (respond to any unmatched requests)
-<VirtualHost *:8080>
-    DocumentRoot "$DOCUMENT_ROOT"
-    ServerName localhost
-</VirtualHost>
-
-# CRM virtual host
-<VirtualHost *:8080>
-    ServerAdmin admin@example.com
-    DocumentRoot "$DOCUMENT_ROOT/$INSTANCE_FOLDER/public"
-    ServerName $server_ip
-    
-    <Directory "$DOCUMENT_ROOT/$INSTANCE_FOLDER/public">
-        Options -Indexes +FollowSymLinks +MultiViews
-        AllowOverride All
-        Require all granted
-    </Directory>
-    
-    ErrorLog /opt/homebrew/var/log/httpd/crm-error_log
-    CustomLog /opt/homebrew/var/log/httpd/crm-access_log combined
-    
-    # Security headers
-    Header always set X-Content-Type-Options "nosniff"
-    Header always set X-XSS-Protection "1; mode=block"
-    Header always set X-Frame-Options "SAMEORIGIN"
-</VirtualHost>
+    <VirtualHost *:8080>
+        ServerAdmin admin@example.com
+        DocumentRoot "$CRM_PUBLIC_DIR"
+        ServerName localhost
+        <Directory "$CRM_PUBLIC_DIR">
+            Options -Indexes +FollowSymLinks +MultiViews
+            AllowOverride All
+            Require all granted
+        </Directory>
+        ErrorLog /opt/homebrew/var/log/httpd/crm-error_log
+        CustomLog /opt/homebrew/var/log/httpd/crm-access_log combined
+        Header always set X-Content-Type-Options "nosniff"
+        Header always set X-XSS-Protection "1; mode=block"
+        Header always set X-Frame-Options "SAMEORIGIN"
+    </VirtualHost>
 EOF
 
+    echo "🔐 Fixing folder permissions for Apache..."
+    PARENT="$CRM_PUBLIC_DIR"
+    while [[ "$PARENT" != "/" ]]; do
+        chmod +x "$PARENT" 2>/dev/null || true
+        PARENT=$(dirname "$PARENT")
+    done
+    chmod -R 755 "$CRM_PUBLIC_DIR"
+    chown -R "$CURRENT_USER:$GROUP" "$CRM_PUBLIC_DIR"
+    
     # Enable headers module for security headers
     sed -i '' 's/#LoadModule headers_module/LoadModule headers_module/g' "$HTTPD_CONF" || {
         echo "⚠️ Failed to enable headers module in Apache config."

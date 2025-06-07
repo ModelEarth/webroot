@@ -10,6 +10,10 @@
 
 <link type="text/css" rel="stylesheet" href="https://model.earth/localsite/css/base.css"
     id="/localsite/css/base.css" />
+
+<!-- Quick fix since localsite.js did not load D3 in time. -->
+<script type="text/javascript" src="../../localsite/js/d3.v5.min.js" id="/localsite/js/d3.v5.min.js"></script>
+
 <script type="text/javascript"
     src="https://model.earth/localsite/js/localsite.js?showheader=true&showsearch=true"></script>
 
@@ -71,6 +75,17 @@
     .settings-icon {
         cursor: pointer;
     }
+    #txtcty {
+    font-size: 18px;
+    padding: 10px 15px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    outline: none;
+    font-family: inherit;
+    width: 200px; /* match width to your select box */
+    box-sizing: border-box;
+}
+
 </style>
 
 </head>
@@ -552,6 +567,10 @@
     <script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js"></script>
  
 
+
+        <!-- Tabulator Section      
+        -->
+
 <h2>Select a Table</h2>
     <select id="numberSelect">
         <option value="">-- Choose a Table --</option>
@@ -560,10 +579,18 @@
     <br />
     <br />
     <br />
+<h3>Select a Table</h3>
+
+    <input type="text" id="txtcty">
+    <br />
     <div id="tabulator-table"></div>
 
 
      <script>
+
+        const params = new URLSearchParams(window.location.search);
+const p_country = params.get('country');
+
         // Data: key = number, value = name
         const numberMap = {
         'Commodity' : 'https://raw.githubusercontent.com/ModelEarth/profile/refs/heads/main/impacts/json/commodity.json',
@@ -571,28 +598,27 @@
         'Industry' : 'https://raw.githubusercontent.com/ModelEarth/profile/refs/heads/main/impacts/json/industry.json'
  };
        
+        const textCity = document.getElementById('txtcty');
+
         const select = document.getElementById('numberSelect');
         let selectedValue = "";
         tbl = document.getElementById('tabulator-table')
 
-        // Populate the select
-        for (const [name, jsonurl] of Object.entries(numberMap)) {
-            const option = document.createElement('option');
-            option.value = name;
-            option.textContent = `${name}`;
-            select.appendChild(option);
-        }
 
-        // Add change event listener
-        select.addEventListener('change', function () {
-            selectedValue = this.value;
-           
+         function fetchTableData () 
+          {
+            selectedValue = select.value;
+           const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      cityValue = hashParams.get("country") || "";
 
         
       fetch(numberMap[selectedValue])
       .then(response => response.text())
       .then(text => {
-        const data = text.trim().split("\n").map(line => JSON.parse(line));
+        const originalData = text.trim().split("\n").map(line => JSON.parse(line));
+        const data = cityValue
+  ? originalData.filter(d => d.country && d.country.toLowerCase().includes(cityValue.toLowerCase()))
+  : originalData;
 
 
         
@@ -605,11 +631,38 @@
             });
 
         });
+    }
             
-   });
+
+        // Populate the select
+        for (const [name, jsonurl] of Object.entries(numberMap)) {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = `${name}`;
+            select.appendChild(option);
+        }
+
+
+
+        // Add change event listener
+        select.addEventListener('change', fetchTableData);
+        textCity.addEventListener("input", function () {
+    const typedValue = this.value.trim();
+    window.location.hash = "country=" + encodeURIComponent(typedValue);
+    fetchTableData();
+  });
+
+
+
     </script>
 
+         
 
+
+        
+
+        <!-- Tabulator Section      
+        -->
 
     TO DO: Default to loading <a href="json">json files</a>. 
     (Supabase has to be restarted every 14 days to avoid error.)
