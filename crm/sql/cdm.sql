@@ -1,3 +1,4 @@
+-- Prompted with:
 -- Convert the following two Microsoft CDM json entity definitions into a .sql file containing the core CDM entities with proper database design principles such as a primary key where appropriate, foreign keys, constraints, indexes, stored procedures, user defined types/functions.
 -- Using the lowercase plural table naming conventions (accounts, contacts, leads, opportunities, products, activities) 
 -- After the core entities, include relation tables with an underscore like: accounts_contacts, accounts_opportunities

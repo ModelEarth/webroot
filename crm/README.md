@@ -3,7 +3,9 @@
 
 <!-- Under Development - SQL table CREATE script for Azure -->
 
-[SuiteCRM](https://SuiteCRM.com) provides a standardized partner admin [database schema](https://schema--suitecrm-docs.netlify.app/schema) with a [large developer community](https://community.SuiteCRM.com).
+[SuiteCRM](https://SuiteCRM.com) and [Microsoft's Common Data Model (CDM)](https://learn.microsoft.com/en-us/common-data-model) provides a standardized partner admin [database schema](https://schema--suitecrm-docs.netlify.app/schema) with a [large developer community](https://community.SuiteCRM.com).
+
+Here's the [common Database install SQL](https://github.com/ModelEarth/profile/blob/main/crm/sql/cdm.sql).
 
 The original .sh [Linux install](https://github.com/motaviegas/SuiteCRM_Script) script was developed by Chris for his 10-minute  .sh file [video and steps](https://community.suitecrm.com/t/how-to-install-suitecrm-8-6-1-under-10-minutes/93252). 
 
@@ -22,6 +24,21 @@ Some coders may prefere to work in the default Apache www root:
 
 As you run the suite.sh install, you may want to also check the [steps below video](https://community.suitecrm.com/t/how-to-install-suitecrm-8-6-1-under-10-minutes/93252).
 
+
+<!--
+After 2pm
+Provide the most recent Microsoft Dynamics CDM SQL Schema .sql file with primary key, foreign keys, constraints, indexes, stored procedures, user defined types/functions
+
+If you're using an Intel Mac packages are installed in /usr/local instead of /opt/homebrew. 
+
+# Just restarting wasn't enough
+brew services start httpd
+
+# Start Apache manually to test
+/usr/local/bin/httpd -D FOREGROUND
+
+sudo brew services start httpd
+-->
 
 
 1.) Open a terminal in the "profile/crm" folder and grant the suite.sh file permission within the folder:
