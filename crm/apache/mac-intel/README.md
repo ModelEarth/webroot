@@ -115,7 +115,7 @@ Both of these work when pointed at brew services start httpd )
 
 
 
-brew services start httpd
+    brew services start httpd
 
 tail -f /usr/local/var/log/httpd/error_log
 

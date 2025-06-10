@@ -750,7 +750,11 @@ fi
             sed -i '' 's/Listen 80$/Listen 8080/' "$HTTPD_CONF"
             echo "✅ Apache configured to listen on port 8080."
         else
-            echo "⚠️ Apache is NOT configured to listen on port 8080."
+            echo "⚠️ Apache is NOT yet configured to listen on port 8080. Run: brew services start httpd"
+
+            # Add Listen 8080 directive - NO EFFECT
+            #echo "Listen 8080" >> "$HTTPD_CONF"
+            #echo "✅ Apache configured to listen on port 8080."
         fi
     fi
 
@@ -821,7 +825,8 @@ fi
         Require all granted\\
     </Directory>" "$HTTPD_CONF"
     fi
-
+    # </Directory>" "$HTTPD_CONF"
+    # BUGBUG - $HTTPD_CONF was above and added # after </Directory> which broke start command.
     
     # Create VirtualHost configuration with security headers
     echo "🛠️ Writing new httpd-vhosts.conf..."
