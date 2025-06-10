@@ -34,22 +34,6 @@ Some coders may prefere to work in the default Apache www root:
 As you run the suite.sh install, you may want to also check the [steps below video](https://community.suitecrm.com/t/how-to-install-suitecrm-8-6-1-under-10-minutes/93252).
 
 
-<!--
-After 2pm
-Provide the most recent Microsoft Dynamics CDM SQL Schema .sql file with primary key, foreign keys, constraints, indexes, stored procedures, user defined types/functions
-
-If you're using an Intel Mac packages are installed in /usr/local instead of /opt/homebrew. 
-
-# Just restarting wasn't enough
-brew services start httpd
-
-# Start Apache manually to test
-/usr/local/bin/httpd -D FOREGROUND
-
-sudo brew services start httpd
--->
-
-
 1.) Open a terminal in the "profile/crm" folder and grant the suite.sh file permission within the folder:
 
     sudo chmod +x ./suite.sh
