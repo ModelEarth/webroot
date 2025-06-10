@@ -32,7 +32,7 @@ Some coders may prefere to work in the default Apache www root:
 ## 10-Minute SuiteCRM Setup
 
 As you run the suite.sh install, you may want to also check the [steps below video](https://community.suitecrm.com/t/how-to-install-suitecrm-8-6-1-under-10-minutes/93252).
-
+suite.sh will modify your httpd-vhosts and httpd.conf files. For file locations, see [apache/mac-intel](apache/mac-intel).
 
 1.) Open a terminal in the "profile/crm" folder and grant the suite.sh file permission within the folder:
 
