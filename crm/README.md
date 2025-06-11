@@ -3,7 +3,7 @@
 
 <!-- Under Development - SQL table CREATE script for Azure -->
 
-[SuiteCRM](https://SuiteCRM.com) provides a standardized partner admin [database schema](https://schema--suitecrm-docs.netlify.app/schema) with a [large developer community](https://community.SuiteCRM.com). Our [common Database install SQL](https://github.com/ModelEarth/profile/blob/main/crm/sql/cdm.sql) for the [Bolt AI hackathon](https://hackathon.dev/) collaboration with [Equity Forge](https://docs.google.com/document/d/1oDnM8cskc2ZpPWeI87X9tLL_jGFGiGzUf0MF4bqaESE/edit?usp=sharing) using Salesforce-like tables that match [Microsoft's Common Data Model (CDM)](https://learn.microsoft.com/en-us/common-data-model):
+[SuiteCRM](https://SuiteCRM.com) provides a standardized partner admin [database schema](https://schema--suitecrm-docs.netlify.app/schema) with a [large developer community](https://community.SuiteCRM.com). We're using the same common data structure as our [Database SQL (MemberCommons)](https://github.com/ModelEarth/profile/blob/main/crm/sql/cdm.sql) for the [Bolt AI hackathon](https://hackathon.dev/) collaboration with [Equity Forge](https://docs.google.com/document/d/1oDnM8cskc2ZpPWeI87X9tLL_jGFGiGzUf0MF4bqaESE/edit?usp=sharing) using Salesforce-like tables that match [Microsoft's Common Data Model (CDM)](https://learn.microsoft.com/en-us/common-data-model):
 
 accounts
 contacts
@@ -16,9 +16,10 @@ tags
 taggables
 leads
 
-The original 10-minute .sh [Linux install](https://github.com/motaviegas/SuiteCRM_Script) script was developed by Chris for his [video and steps](https://community.suitecrm.com/t/how-to-install-suitecrm-8-6-1-under-10-minutes/93252).
+The initial 10-minute SuiteCRM .sh [Linux install](https://github.com/motaviegas/SuiteCRM_Script) script was developed by Chris for his [video and steps](https://community.suitecrm.com/t/how-to-install-suitecrm-8-6-1-under-10-minutes/93252).
 
-Current install is MariaDB. [Send a PR](https://github.com/ModelEarth/profile/tree/main/crm) with updates to include Azure for our [SQL install script](https://github.com/ModelEarth/profile/blob/main/crm/sql/cdm.sql).
+Our updated suite.sh script runs MariaDB on MacOS and PC with PHP.  
+[Send a PR](https://github.com/ModelEarth/profile/tree/main/crm) with your updates adding Azure and the [MemberCommons SQL install script](https://github.com/ModelEarth/profile/blob/main/crm/sql/cdm.sql).
 
 <!--
 Some coders may prefere to work in the default Apache www root:
