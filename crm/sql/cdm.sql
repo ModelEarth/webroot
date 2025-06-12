@@ -1,6 +1,8 @@
+-- TO DO: Add users tabla and include securitygroups and Access Control Lists (ACL) as used in SuiteCRM
+
 -- Prompted with:
 -- Convert the following two Microsoft CDM json entity definitions into a .sql file containing the core CDM entities with proper database design principles such as a primary key where appropriate, foreign keys, constraints, indexes, stored procedures, user defined types/functions.
--- Using the lowercase plural table naming conventions (accounts, contacts, leads, opportunities, products, activities) 
+-- Using the lowercase plural table naming conventions (users, accounts, contacts, leads, opportunities, products, activities) 
 -- After the core entities, include relation tables with an underscore like: accounts_contacts, accounts_opportunities
 -- https://github.com/microsoft/CDM/blob/master/schemaDocuments/core/applicationCommon/foundationCommon/crmCommon/Account.cdm.json
 -- https://github.com/microsoft/CDM/blob/master/docs/schema/examples/OrdersProductsCustomersLinked/model.json
