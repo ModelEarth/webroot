@@ -8,13 +8,16 @@
 accounts
 contacts
 users
-opportunities
-activities
-campaigns
-campaign_contacts
+opportunities - projects
+activities - tasks
 tags
 taggables
+
+<!--
+campaigns
+campaign_contacts
 leads
+-->
 
 The initial 10-minute SuiteCRM .sh [Linux install](https://github.com/motaviegas/SuiteCRM_Script) script was developed by Chris for his [video and steps](https://community.suitecrm.com/t/how-to-install-suitecrm-8-6-1-under-10-minutes/93252).
 
