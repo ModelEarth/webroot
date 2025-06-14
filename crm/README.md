@@ -24,7 +24,7 @@ leads
 The initial 10-minute SuiteCRM .sh [Linux install](https://github.com/motaviegas/SuiteCRM_Script) script was developed by Chris for his [video and steps](https://community.suitecrm.com/t/how-to-install-suitecrm-8-6-1-under-10-minutes/93252).
 
 Our updated suite.sh script below runs MariaDB on MacOS and PC with PHP.  
-[Send a PR](https://github.com/ModelEarth/profile/tree/main/crm) with your updates adding Azure and the [MemberCommons SQL install script](https://github.com/ModelEarth/profile/blob/main/crm/sql/cdm.sql).
+[Send a PR](https://github.com/ModelEarth/profile/tree/main/crm) with your updates adding Azure below.
 
 <!--
 Some coders may prefere to work in the default Apache www root:
