@@ -163,7 +163,7 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
-        .decidim { background: linear-gradient(135deg, #68d391, #38a169); }
+        .decidim { background: linear-gradient(135deg, #e53e3e, #c53030); }
         .policykit { background: linear-gradient(135deg, #63b3ed, #3182ce); }
         .solid { background: linear-gradient(135deg, #f6ad55, #ed8936); }
         .mydata { background: linear-gradient(135deg, #9f7aea, #805ad5); }
@@ -557,7 +557,7 @@
                             Your Preferences
                         </h2>
                         <button class="primary-btn" onclick="showSyncSection()" id="sync-btn" style="display: none;">
-                            Sync Updates
+                            Save
                         </button>
                     </div>
                     <div id="preferences-list">
@@ -630,7 +630,7 @@
                         </div>
                         <div class="platform-status" id="solid-status">Not connected</div>
                         <div class="login-methods">
-                            <button class="login-btn" onclick="connectSolid()">Connect WebID</button>
+                            <button class="login-btn" onclick="connectSolid()" id="solid-webid-btn">Connect WebID</button>
                         </div>
                         <div class="api-note">
                             Solid uses WebID-OIDC for decentralized authentication. Will redirect to your Solid Identity Provider.
@@ -672,7 +672,7 @@
         <!-- Sync Modal -->
         <div class="sync-section" id="sync-section">
             <div class="sync-modal">
-                <h3>Sync Preferences Back to Platforms</h3>
+                <h3>Sync Preferences to Platforms</h3>
                 <p>Select which platforms you'd like to sync your updated preferences to:</p>
                 
                 <div class="sync-platforms" id="sync-platforms">
@@ -716,8 +716,13 @@ const platformAPIs = {
         }
     },
     solid: {
-        name: 'Solid',
+        name: 'Solid Project',
         authType: 'webid-oidc',
+        decentralized: true
+    },
+    mydata: {
+        name: 'MyData',
+        authType: 'various',
         decentralized: true
     }
 };
@@ -961,10 +966,11 @@ function updatePreferencesDisplay() {
     let html = '';
     for (const [prefId, pref] of Object.entries(userPreferences)) {
         const isChanged = pref.value !== pref.original;
+        const platformDisplayName = pref.platform === 'solid' ? 'Solid Project' : pref.platform;
         html += `
             <div class="preference-item">
                 <div class="preference-meta">
-                    <span class="preference-source">${pref.platform}</span>
+                    <span class="preference-source">${platformDisplayName}</span>
                     ${isChanged ? '<span class="preference-changed">●</span>' : ''}
                 </div>
                 <div class="preference-content">
@@ -995,17 +1001,25 @@ function showSyncSection() {
     syncSection.style.display = 'flex';
     
     let html = '';
-    for (const platform of connectedPlatforms) {
+    
+    // Add all 4 platforms to the sync modal
+    const allPlatforms = ['decidim', 'policykit', 'solid', 'mydata'];
+    
+    for (const platform of allPlatforms) {
         const hasChanges = Object.values(userPreferences).some(
             pref => pref.platform === platform && pref.value !== pref.original
         );
         
+        const isConnected = connectedPlatforms.has(platform);
+        const platformDisplayName = platformAPIs[platform]?.name || platform.charAt(0).toUpperCase() + platform.slice(1);
+        
         html += `
             <div class="sync-platform">
-                <input type="checkbox" id="sync-${platform}" ${hasChanges ? 'checked' : ''}>
+                <input type="checkbox" id="sync-${platform}" ${hasChanges ? 'checked' : ''} ${!isConnected ? 'disabled' : ''}>
                 <label for="sync-${platform}">
-                    ${platform.charAt(0).toUpperCase() + platform.slice(1)}
+                    ${platformDisplayName}
                     ${hasChanges ? '<span style="color: #f6ad55;"> (changes pending)</span>' : ''}
+                    ${!isConnected ? '<span style="color: #718096;"> (not connected)</span>' : ''}
                 </label>
             </div>
         `;
@@ -1022,15 +1036,16 @@ async function commitSync() {
     const selectedPlatforms = [];
     
     // Get selected platforms
-    for (const platform of connectedPlatforms) {
+    const allPlatforms = ['decidim', 'policykit', 'solid', 'mydata'];
+    for (const platform of allPlatforms) {
         const checkbox = document.getElementById(`sync-${platform}`);
-        if (checkbox && checkbox.checked) {
+        if (checkbox && checkbox.checked && !checkbox.disabled) {
             selectedPlatforms.push(platform);
         }
     }
     
     if (selectedPlatforms.length === 0) {
-        showSyncStatus('Please select at least one platform to sync to.', 'error');
+        showSyncStatus('Please select at least one connected platform to sync to.', 'error');
         return;
     }
     
@@ -1132,6 +1147,14 @@ function showSyncStatus(message, type) {
 // Handle OAuth callback on page load
 document.addEventListener('DOMContentLoaded', function() {
     updatePreferencesDisplay();
+    
+    // Automatically trigger the Connect WebID button on page load
+    setTimeout(() => {
+        const solidWebIdBtn = document.getElementById('solid-webid-btn');
+        if (solidWebIdBtn) {
+            solidWebIdBtn.click();
+        }
+    }, 1000); // Delay of 1 second to let the page fully load
     
     // Check for OAuth callback parameters
     const urlParams = new URLSearchParams(window.location.search);
