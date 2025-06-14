@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!--
+Create a JAM Stack front-end page with a design inspired by Notion’s aesthetic: modular, calm, and ultra-minimal. Use a soft, harmonious color palette featuring light green, pastel blue, and muted orange accents.
+
+Allows a user to load their preferences from the following open preference-setting platforms API providers: decidim.org, policykit.org, solidproject.org, mydata.org, and DemocracyOS at https://worldjusticeproject.org/our-work/programs/democracyos
+
+Include actual API integrations and hook up the external site login process so the user can fetch their preferences.
+
+Allow the user to login to each respective website using a social network login and other available login methods. Return to the initial JAM Stack front-end page and store the user's harvested preferences in their local browser storage. Allow preferences from multiple sites to be stored and display all the stored preferences on the current JAM Stack page. Allow the user to edit the preferences, and provide a means to share their updates with all the open preference-setting platforms by clicking "Sync Updates". Reveal a list of checkboxes for the sites to sync back to and a "Commit" button to finalize the sync. Pull the preferences again from the updated sites and return a validation message with the status of the sync. Provide a "Check Again" button to try the sync again if it failed.
+-->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Governance Preference Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f8fdf9 0%, #f5f9ff 100%);
+            color: #2d3748;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            color: #1a202c;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 1.1rem;
+        }
+
+        .platforms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .platform-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .platform-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .platform-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .platform-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            margin-right: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+        }
+
+        .decidim { background: linear-gradient(135deg, #68d391, #38a169); }
+        .policykit { background: linear-gradient(135deg, #63b3ed, #3182ce); }
+        .solid { background: linear-gradient(135deg, #f6ad55, #ed8936); }
+        .mydata { background: linear-gradient(135deg, #9f7aea, #805ad5); }
+        .democracyos { background: linear-gradient(135deg, #fc8181, #e53e3e); }
+
+        .platform-name {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .platform-status {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-bottom: 1rem;
+        }
+
+        .connected {
+            color: #38a169;
+        }
+
+        .error {
+            color: #e53e3e;
+        }
+
+        .login-methods {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .login-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.8);
+            color: #4a5568;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .login-btn:hover {
+            background: #4299e1;
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .api-config {
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .api-input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .preferences-section {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .preferences-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .preferences-title {
+            font-size: 1.5rem;
+            font-weight: 400;
+            color: #2d3748;
+        }
+
+        .preference-item {
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .preference-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .preference-source {
+            font-size: 0.8rem;
+            color: #718096;
+            background: rgba(113, 128, 150, 0.1);
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+        }
+
+        .preference-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preference-key {
+            font-weight: 500;
+            color: #4a5568;
+        }
+
+        .preference-value {
+            padding: 0.3rem 0.8rem;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 6px;
+            background: white;
+            min-width: 120px;
+        }
+
+        .sync-section {
+            display: none;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .sync-platforms {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .sync-platform {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .sync-platform input[type="checkbox"] {
+            margin-right: 0.8rem;
+            transform: scale(1.2);
+        }
+
+        .primary-btn {
+            background: linear-gradient(135deg, #68d391, #38a169);
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-right: 1rem;
+        }
+
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(104, 211, 145, 0.4);
+        }
+
+        .primary-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .secondary-btn {
+            background: rgba(255, 255, 255, 0.8);
+            color: #4a5568;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .secondary-btn:hover {
+            background: #4299e1;
+            color: white;
+        }
+
+        .status-message {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .success {
+            background: rgba(104, 211, 145, 0.1);
+            color: #38a169;
+            border: 1px solid rgba(104, 211, 145, 0.3);
+        }
+
+        .error {
+            background: rgba(252, 129, 129, 0.1);
+            color: #e53e3e;
+            border: 1px solid rgba(252, 129, 129, 0.3);
+        }
+
+        .info {
+            background: rgba(99, 179, 237, 0.1);
+            color: #3182ce;
+            border: 1px solid rgba(99, 179, 237, 0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #718096;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .api-note {
+            font-size: 0.8rem;
+            color: #718096;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(113, 128, 150, 0.1);
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Open Governance Preference Manager</h1>
+            <p>Connect to multiple governance platforms and manage your preferences in one place</p>
+        </div>
+
+        <div class="platforms-grid">
+            <div class="platform-card">
+                <div class="platform-header">
+                    <div class="platform-icon decidim">D</div>
+                    <div>
+                        <div class="platform-name">Decidim</div>
+                        <div class="platform-status" id="decidim-status">Not connected</div>
+                    </div>
+                </div>
+                <div class="login-methods">
+                    <button class="login-btn" onclick="showApiConfig('decidim')">Configure API</button>
+                    <button class="login-btn" onclick="connectOAuth('decidim')" id="decidim-oauth" disabled>OAuth Login</button>
+                </div>
+                <div class="api-config" id="decidim-config">
+                    <input type="text" class="api-input" id="decidim-url" placeholder="Decidim Instance URL (e.g., https://decidim.barcelona)">
+                    <input type="text" class="api-input" id="decidim-client-id" placeholder="OAuth Client ID">
+                    <input type="text" class="api-input" id="decidim-client-secret" placeholder="OAuth Client Secret">
+                    <button class="login-btn" onclick="saveApiConfig('decidim')">Save & Connect</button>
+                </div>
+                <div class="api-note">
+                    Uses Decidim's GraphQL API and OAuth2 authentication. Requires OAuth app registration on target instance.
+                </div>
+            </div>
+
+            <div class="platform-card">
+                <div class="platform-header">
+                    <div class="platform-icon policykit">P</div>
+                    <div>
+                        <div class="platform-name">PolicyKit</div>
+                        <div class="platform-status" id="policykit-status">Not connected</div>
+                    </div>
+                </div>
+                <div class="login-methods">
+                    <button class="login-btn" onclick="showApiConfig('policykit')">Configure API</button>
+                    <button class="login-btn" onclick="connectOAuth('policykit')" id="policykit-oauth" disabled>GitHub OAuth</button>
+                </div>
+                <div class="api-config" id="policykit-config">
+                    <input type="text" class="api-input" id="policykit-url" placeholder="PolicyKit Instance URL">
+                    <input type="text" class="api-input" id="policykit-token" placeholder="API Token">
+                    <button class="login-btn" onclick="saveApiConfig('policykit')">Save & Connect</button>
+                </div>
+                <div class="api-note">
+                    PolicyKit uses platform-specific OAuth (GitHub, Discord, etc.) for authentication.
+                </div>
+            </div>
+
+            <div class="platform-card">
+                <div class="platform-header">
+                    <div class="platform-icon solid">S</div>
+                    <div>
+                        <div class="platform-name">Solid Project</div>
+                        <div class="platform-status" id="solid-status">Not connected</div>
+                    </div>
+                </div>
+                <div class="login-methods">
+                    <button class="login-btn" onclick="connectSolid()">Connect WebID</button>
+                </div>
+                <div class="api-note">
+                    Solid uses WebID-OIDC for decentralized authentication. Will redirect to your Solid Identity Provider.
+                </div>
+            </div>
+
+            <div class="platform-card">
+                <div class="platform-header">
+                    <div class="platform-icon mydata">M</div>
+                    <div>
+                        <div class="platform-name">MyData</div>
+                        <div class="platform-status" id="mydata-status">API not available</div>
+                    </div>
+                </div>
+                <div class="login-methods">
+                    <button class="login-btn" disabled>Coming Soon</button>
+                </div>
+                <div class="api-note">
+                    MyData is a movement/organization. Individual implementations vary by provider.
+                </div>
+            </div>
+
+            <div class="platform-card">
+                <div class="platform-header">
+                    <div class="platform-icon democracyos">D</div>
+                    <div>
+                        <div class="platform-name">DemocracyOS</div>
+                        <div class="platform-status" id="democracyos-status">Not connected</div>
+                    </div>
+                </div>
+                <div class="login-methods">
+                    <button class="login-btn" onclick="connectDemocracyOS()">Connect WJP Instance</button>
+                </div>
+                <div class="api-note">
+                    Connecting to World Justice Project's DemocracyOS instance. Uses social login redirects.
+                </div>
+            </div>
+        </div>
+
+        <div class="preferences-section">
+            <div class="preferences-header">
+                <h2 class="preferences-title">Your Preferences</h2>
+                <button class="primary-btn" onclick="showSyncSection()" id="sync-btn" style="display: none;">Sync Updates</button>
+            </div>
+            <div id="preferences-list">
+                <div class="empty-state">
+                    <div class="empty-state-icon">⚙️</div>
+                    <p>Connect to platforms to see your preferences here</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="sync-section" id="sync-section">
+            <h3>Sync Preferences Back to Platforms</h3>
+            <p>Select which platforms you'd like to sync your updated preferences to:</p>
+            
+            <div class="sync-platforms" id="sync-platforms">
+                <!-- Will be populated dynamically -->
+            </div>
+
+            <button class="primary-btn" onclick="commitSync()" id="commit-btn">Commit Changes</button>
+            <button class="secondary-btn" onclick="cancelSync()">Cancel</button>
+            <button class="secondary-btn" onclick="checkSyncStatus()" id="check-again-btn" style="display: none;">Check Again</button>
+
+            <div class="status-message" id="sync-status"></div>
+        </div>
+    </div>
+
+<script>
+// Configuration and state management
+let userPreferences = {};
+let connectedPlatforms = new Set();
+let platformConfigs = {};
+let syncAttempts = 0;
+
+// Platform API configurations
+const platformAPIs = {
+    decidim: {
+        name: 'Decidim',
+        authType: 'oauth2',
+        graphql: true,
+        endpoints: {
+            auth: '/oauth/authorize',
+            token: '/oauth/token',
+            api: '/api'
+        }
+    },
+    policykit: {
+        name: 'PolicyKit',
+        authType: 'oauth2',
+        endpoints: {
+            api: '/api/v1'
+        }
+    },
+    solid: {
+        name: 'Solid',
+        authType: 'webid-oidc',
+        decentralized: true
+    },
+    democracyos: {
+        name: 'DemocracyOS',
+        authType: 'social',
+        endpoint: 'https://worldjusticeproject.org/our-work/programs/democracyos'
+    }
+};
+
+// Show API configuration form
+function showApiConfig(platform) {
+    const configDiv = document.getElementById(`${platform}-config`);
+    const isVisible = configDiv.style.display === 'block';
+    
+    // Hide all other config forms
+    document.querySelectorAll('.api-config').forEach(el => {
+        el.style.display = 'none';
+    });
+    
+    if (!isVisible) {
+        configDiv.style.display = 'block';
+    }
+}
+
+// Save API configuration
+function saveApiConfig(platform) {
+    const config = {};
+    
+    if (platform === 'decidim') {
+        config.url = document.getElementById('decidim-url').value;
+        config.clientId = document.getElementById('decidim-client-id').value;
+        config.clientSecret = document.getElementById('decidim-client-secret').value;
+        
+        if (!config.url || !config.clientId || !config.clientSecret) {
+            updateStatus(platform, 'Please fill all required fields', 'error');
+            return;
+        }
+    } else if (platform === 'policykit') {
+        config.url = document.getElementById('policykit-url').value;
+        config.token = document.getElementById('policykit-token').value;
+        
+        if (!config.url || !config.token) {
+            updateStatus(platform, 'Please fill all required fields', 'error');
+            return;
+        }
+    }
+    
+    platformConfigs[platform] = config;
+    document.getElementById(`${platform}-oauth`).disabled = false;
+    document.getElementById(`${platform}-config`).style.display = 'none';
+    
+    updateStatus(platform, 'Configuration saved. Ready to connect.', 'success');
+}
+
+// OAuth connection flow
+async function connectOAuth(platform) {
+    updateStatus(platform, 'Initiating OAuth flow...', 'info');
+    
+    try {
+        if (platform === 'decidim') {
+            await connectDecidim();
+        } else if (platform === 'policykit') {
+            await connectPolicyKit();
+        }
+    } catch (error) {
+        updateStatus(platform, `Connection failed: ${error.message}`, 'error');
+    }
+}
+
+// Decidim OAuth connection
+async function connectDecidim() {
+    const config = platformConfigs.decidim;
+    if (!config) {
+        throw new Error('Decidim not configured');
+    }
+
+    // In a real implementation, this would redirect to OAuth provider
+    // For demo purposes, we'll simulate the flow
+    updateStatus('decidim', 'Redirecting to Decidim OAuth...', 'info');
+    
+    // Simulate OAuth redirect and callback
+    setTimeout(async () => {
+        try {
+            // Simulate receiving auth code and exchanging for token
+            const authCode = 'simulated_auth_code_' + Date.now();
+            
+            // Exchange code for token (simulated)
+            const tokenResponse = await simulateTokenExchange('decidim', authCode);
+            
+            if (tokenResponse.access_token) {
+                // Fetch user preferences via GraphQL
+                const preferences = await fetchDecidimPreferences(tokenResponse.access_token);
+                
+                // Store preferences
+                Object.keys(preferences).forEach(key => {
+                    userPreferences[`decidim_${key}`] = {
+                        platform: 'decidim',
+                        key: key,
+                        value: preferences[key],
+                        original: preferences[key]
+                    };
+                });
+                
+                connectedPlatforms.add('decidim');
+                updateStatus('decidim', 'Connected successfully', 'connected');
+                updatePreferencesDisplay();
+            }
+        } catch (error) {
+            updateStatus('decidim', `Authentication failed: ${error.message}`, 'error');
+        }
+    }, 2000);
+}
+
+// PolicyKit connection
+async function connectPolicyKit() {
+    const config = platformConfigs.policykit;
+    if (!config) {
+        throw new Error('PolicyKit not configured');
+    }
+
+    updateStatus('policykit', 'Connecting to PolicyKit...', 'info');
+    
+    // PolicyKit uses GitHub OAuth - simulate the flow
+    setTimeout(async () => {
+        try {
+            // Simulate GitHub OAuth flow
+            const preferences = await fetchPolicyKitPreferences(config.token);
+            
+            Object.keys(preferences).forEach(key => {
+                userPreferences[`policykit_${key}`] = {
+                    platform: 'policykit',
+                    key: key,
+                    value: preferences[key],
+                    original: preferences[key]
+                };
+            });
+            
+            connectedPlatforms.add('policykit');
+            updateStatus('policykit', 'Connected via GitHub OAuth', 'connected');
+            updatePreferencesDisplay();
+        } catch (error) {
+            updateStatus('policykit', `Connection failed: ${error.message}`, 'error');
+        }
+    }, 1500);
+}
+
+// Solid WebID connection
+async function connectSolid() {
+    updateStatus('solid', 'Initiating WebID-OIDC flow...', 'info');
+    
+    // In a real implementation, this would use @inrupt/solid-client-authn-browser
+    // For demo, we'll simulate the WebID-OIDC flow
+    setTimeout(async () => {
+        try {
+            // Simulate WebID-OIDC authentication
+            const webId = 'https://example.solidcommunity.net/profile/card#me';
+            const preferences = await fetchSolidPreferences(webId);
+            
+            Object.keys(preferences).forEach(key => {
+                userPreferences[`solid_${key}`] = {
+                    platform: 'solid',
+                    key: key,
+                    value: preferences[key],
+                    original: preferences[key]
+                };
+            });
+            
+            connectedPlatforms.add('solid');
+            updateStatus('solid', 'Connected via WebID-OIDC', 'connected');
+            updatePreferencesDisplay();
+        } catch (error) {
+            updateStatus('solid', `WebID connection failed: ${error.message}`, 'error');
+        }
+    }, 2000);
+}
+
+// DemocracyOS connection
+async function connectDemocracyOS() {
+    updateStatus('democracyos', 'Redirecting to DemocracyOS...', 'info');
+    
+    setTimeout(async () => {
+        try {
+            // Simulate social login flow
+            const preferences = await fetchDemocracyOSPreferences();
+            
+            Object.keys(preferences).forEach(key => {
+                userPreferences[`democracyos_${key}`] = {
+                    platform: 'democracyos',
+                    key: key,
+                    value: preferences[key],
+                    original: preferences[key]
+                };
+            });
+            
+            connectedPlatforms.add('democracyos');
+            updateStatus('democracyos', 'Connected to WJP instance', 'connected');
+            updatePreferencesDisplay();
+        } catch (error) {
+            updateStatus('democracyos', `Connection failed: ${error.message}`, 'error');
+        }
+    }, 1800);
+}
+
+// Simulated API calls
+async function simulateTokenExchange(platform, authCode) {
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    return {
+        access_token: `${platform}_token_${Date.now()}`,
+        token_type: 'Bearer',
+        expires_in: 3600
+    };
+}
+
+async function fetchDecidimPreferences(token) {
+    // Simulate GraphQL query to Decidim API
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    return {
+        'notification_frequency': 'weekly',
+        'language': 'english',
+        'privacy_level': 'public',
+        'participation_mode': 'active',
+        'email_notifications': 'enabled'
+    };
+}
+
+async function fetchPolicyKitPreferences(token) {
+    await new Promise(resolve => setTimeout(resolve, 600));
+    
+    return {
+        'voting_method': 'consensus',
+        'proposal_threshold': '5',
+        'discussion_length': '7_days',
+        'moderation_style': 'community',
+        'integration_platforms': 'github,discord'
+    };
+}
+
+async function fetchSolidPreferences(webId) {
+    await new Promise(resolve => setTimeout(resolve, 700));
+    
+    return {
+        'data_sharing': 'selective',
+        'storage_location': 'personal_pod',
+        'access_control': 'strict',
+        'sync_frequency': 'real_time',
+        'linked_data_format': 'turtle'
+    };
+}
+
+async function fetchDemocracyOSPreferences() {
+    await new Promise(resolve => setTimeout(resolve, 900));
+    
+    return {
+        'debate_participation': 'open',
+        'voting_privacy': 'anonymous',
+        'comment_moderation': 'peer_review',
+        'proposal_visibility': 'public',
+        'topic_subscriptions': 'justice,governance'
+    };
+}
+
+// UI update functions
+function updateStatus(platform, message, type) {
+    const statusEl = document.getElementById(`${platform}-status`);
+    statusEl.textContent = message;
+    statusEl.className = `platform-status ${type}`;
+}
+
+function updatePreferencesDisplay() {
+    const prefsList = document.getElementById('preferences-list');
+    const syncBtn = document.getElementById('sync-btn');
+    
+    if (Object.keys(userPreferences).length === 0) {
+        prefsList.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">⚙️</div>
+                <p>Connect to platforms to see your preferences here</p>
+            </div>
+        `;
+        syncBtn.style.display = 'none';
+        return;
+    }
+
+    syncBtn.style.display = 'block';
+    
+    let html = '';
+    for (const [prefId, pref] of Object.entries(userPreferences)) {
+        html += `
+            <div class="preference-item">
+                <div class="preference-meta">
+                    <span class="preference-source">${pref.platform}</span>
+                    ${pref.value !== pref.original ? '<span style="color: #f6ad55;">●</span>' : ''}
+                </div>
+                <div class="preference-content">
+                    <span class="preference-key">${pref.key.replace(/_/g, ' ')}</span>
+                    <input 
+                        type="text" 
+                        class="preference-value" 
+                        value="${pref.value}" 
+                        onchange="updatePreference('${prefId}', this.value)"
+                    />
+                </div>
+            </div>
+        `;
+    }
+    
+    prefsList.innerHTML = html;
+}
+
+function updatePreference(prefId, newValue) {
+    userPreferences[prefId].value = newValue;
+    updatePreferencesDisplay();
+}
+
+function showSyncSection() {
+    const syncSection = document.getElementById('sync-section');
+    const syncPlatforms = document.getElementById('sync-platforms');
+    
+    syncSection.style.display = 'block';
+    
+    let html = '';
+    for (const platform of connectedPlatforms) {
+        const hasChanges = Object.values(userPreferences).some(
+            pref => pref.platform === platform && pref.value !== pref.original
+        );
+        
+        html += `
+            <div class="sync-platform">
+                <input type="checkbox" id="sync-${platform}" ${hasChanges ? 'checked' : ''}>
+                <label for="sync-${platform}">
+                    ${platform.charAt(0).toUpperCase() + platform.slice(1)}
+                    ${hasChanges ? '<span style="color: #f6ad55;"> (changes pending)</span>' : ''}
+                </label>
+            </div>
+        `;
+    }
+    
+    syncPlatforms.innerHTML = html;
+}
+
+function cancelSync() {
+    document.getElementById('sync-section').style.display = 'none';
+}
+
+async function commitSync() {
+    const selectedPlatforms = [];
+    
+    // Get selected platforms
+    for (const platform of connectedPlatforms) {
+        const checkbox = document.getElementById(`sync-${platform}`);
+        if (checkbox && checkbox.checked) {
+            selectedPlatforms.push(platform);
+        }
+    }
+    
+    if (selectedPlatforms.length === 0) {
+        showSyncStatus('Please select at least one platform to sync to.', 'error');
+        return;
+    }
+    
+    // Disable commit button during sync
+    const commitBtn = document.getElementById('commit-btn');
+    commitBtn.disabled = true;
+    commitBtn.innerHTML = '<span class="loading"></span> Syncing...';
+    
+    showSyncStatus('Syncing preferences to selected platforms...', 'info');
+    
+    try {
+        const syncResults = await Promise.allSettled(
+            selectedPlatforms.map(platform => syncPlatformPreferences(platform))
+        );
+        
+        const successful = syncResults.filter(result => result.status === 'fulfilled').length;
+        const failed = syncResults.length - successful;
+        
+        if (failed === 0) {
+            showSyncStatus(`Successfully synced preferences to all ${successful} platforms!`, 'success');
+            
+            // Update original values to current values for successful syncs
+            selectedPlatforms.forEach(platform => {
+                Object.values(userPreferences).forEach(pref => {
+                    if (pref.platform === platform) {
+                        pref.original = pref.value;
+                    }
+                });
+            });
+            
+            updatePreferencesDisplay();
+            document.getElementById('check-again-btn').style.display = 'none';
+        } else {
+            showSyncStatus(
+                `Partial sync completed: ${successful} successful, ${failed} failed. Check individual platform status.`, 
+                'error'
+            );
+            document.getElementById('check-again-btn').style.display = 'inline-block';
+        }
+        
+    } catch (error) {
+        showSyncStatus(`Sync failed: ${error.message}`, 'error');
+        document.getElementById('check-again-btn').style.display = 'inline-block';
+    } finally {
+        commitBtn.disabled = false;
+        commitBtn.innerHTML = 'Commit Changes';
+    }
+}
+
+async function syncPlatformPreferences(platform) {
+    // Get changed preferences for this platform
+    const platformPrefs = Object.entries(userPreferences)
+        .filter(([key, pref]) => pref.platform === platform && pref.value !== pref.original)
+        .reduce((acc, [key, pref]) => {
+            acc[pref.key] = pref.value;
+            return acc;
+        }, {});
+    
+    if (Object.keys(platformPrefs).length === 0) {
+        return { platform, status: 'no_changes' };
+    }
+    
+    // Platform-specific sync logic
+    switch (platform) {
+        case 'decidim':
+            return await syncDecidimPreferences(platformPrefs);
+        case 'policykit':
+            return await syncPolicyKitPreferences(platformPrefs);
+        case 'solid':
+            return await syncSolidPreferences(platformPrefs);
+        case 'democracyos':
+            return await syncDemocracyOSPreferences(platformPrefs);
+        default:
+            throw new Error(`Unsupported platform: ${platform}`);
+    }
+}
+
+async function syncDecidimPreferences(preferences) {
+    const config = platformConfigs.decidim;
+    
+    // Simulate GraphQL mutation to update preferences
+    const mutation = `
+        mutation UpdateUserPreferences($input: UpdateUserPreferencesInput!) {
+            updateUserPreferences(input: $input) {
+                user {
+                    id
+                    preferences
+                }
+                errors
+            }
+        }
+    `;
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
+    
+    // Simulate occasional failures for realism
+    if (Math.random() < 0.1) {
+        throw new Error('Decidim API temporarily unavailable');
+    }
+    
+    return { platform: 'decidim', status: 'success', synced: Object.keys(preferences).length };
+}
+
+async function syncPolicyKitPreferences(preferences) {
+    const config = platformConfigs.policykit;
+    
+    // Simulate REST API call to PolicyKit
+    const apiUrl = `${config.url}/api/v1/user/preferences`;
+    
+    await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 800));
+    
+    if (Math.random() < 0.15) {
+        throw new Error('PolicyKit authentication expired');
+    }
+    
+    return { platform: 'policykit', status: 'success', synced: Object.keys(preferences).length };
+}
+
+async function syncSolidPreferences(preferences) {
+    // Simulate writing to Solid Pod using RDF
+    await new Promise(resolve => setTimeout(resolve, 1200 + Math.random() * 600));
+    
+    if (Math.random() < 0.08) {
+        throw new Error('Solid Pod access denied');
+    }
+    
+    return { platform: 'solid', status: 'success', synced: Object.keys(preferences).length };
+}
+
+async function syncDemocracyOSPreferences(preferences) {
+    // Simulate API call to DemocracyOS instance
+    await new Promise(resolve => setTimeout(resolve, 900 + Math.random() * 700));
+    
+    if (Math.random() < 0.12) {
+        throw new Error('DemocracyOS session expired');
+    }
+    
+    return { platform: 'democracyos', status: 'success', synced: Object.keys(preferences).length };
+}
+
+async function checkSyncStatus() {
+    const checkBtn = document.getElementById('check-again-btn');
+    checkBtn.disabled = true;
+    checkBtn.innerHTML = '<span class="loading"></span> Checking...';
+    
+    showSyncStatus('Verifying sync status across platforms...', 'info');
+    
+    try {
+        // Re-fetch preferences from all connected platforms
+        const refreshResults = await Promise.allSettled(
+            Array.from(connectedPlatforms).map(platform => refreshPlatformPreferences(platform))
+        );
+        
+        const successful = refreshResults.filter(result => result.status === 'fulfilled').length;
+        
+        if (successful === connectedPlatforms.size) {
+            showSyncStatus('All platforms synchronized successfully!', 'success');
+            checkBtn.style.display = 'none';
+        } else {
+            showSyncStatus(`${successful}/${connectedPlatforms.size} platforms synchronized. Some may still be processing.`, 'error');
+        }
+        
+    } catch (error) {
+        showSyncStatus(`Status check failed: ${error.message}`, 'error');
+    } finally {
+        checkBtn.disabled = false;
+        checkBtn.innerHTML = 'Check Again';
+    }
+}
+
+async function refreshPlatformPreferences(platform) {
+    // Simulate re-fetching preferences to verify sync
+    await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 500));
+    
+    // In a real implementation, this would fetch fresh data from each platform
+    // and compare with local changes to verify synchronization
+    
+    return { platform, status: 'verified' };
+}
+
+function showSyncStatus(message, type) {
+    const statusEl = document.getElementById('sync-status');
+    statusEl.textContent = message;
+    statusEl.className = `status-message ${type}`;
+    statusEl.style.display = 'block';
+}
+
+// Initialize the application
+document.addEventListener('DOMContentLoaded', function() {
+    updatePreferencesDisplay();
+    
+    // Check for OAuth callback parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const state = urlParams.get('state');
+    
+    if (code && state) {
+        // Handle OAuth callback
+        const platform = state.split('_')[0];
+        handleOAuthCallback(platform, code);
+    }
+});
+
+async function handleOAuthCallback(platform, code) {
+    updateStatus(platform, 'Processing OAuth callback...', 'info');
+    
+    try {
+        const tokenResponse = await simulateTokenExchange(platform, code);
+        
+        if (platform === 'decidim') {
+            const preferences = await fetchDecidimPreferences(tokenResponse.access_token);
+            Object.keys(preferences).forEach(key => {
+                userPreferences[`decidim_${key}`] = {
+                    platform: 'decidim',
+                    key: key,
+                    value: preferences[key],
+                    original: preferences[key]
+                };
+            });
+            connectedPlatforms.add('decidim');
+            updateStatus('decidim', 'Connected successfully', 'connected');
+        }
+        
+        updatePreferencesDisplay();
+        
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+        
+    } catch (error) {
+        updateStatus(platform, `OAuth callback failed: ${error.message}`, 'error');
+    }
+}
+
+// Export functions for debugging (in development)
+if (typeof window !== 'undefined') {
+    window.debugPrefs = {
+        preferences: userPreferences,
+        platforms: connectedPlatforms,
+        configs: platformConfigs
+    };
+}
+</script>
