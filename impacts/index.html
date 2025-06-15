@@ -157,7 +157,8 @@
 
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
         <script>
-            // Ocassionally you'll need to turn on US-2020-17schema in mesupabase... account.
+            // Waited over 90 days, so data would need to be downloaded and restored from a backup.
+            // Ocassionally you'll need to turn on US-2020-17schema in suo... account.
             let supabaseUrl = 'https://wovjoodfvamzysoxamdb.supabase.co';
             let supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indvdmpvb2RmdmFtenlzb3hhbWRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjE3NzQ1MDYsImV4cCI6MjAzNzM1MDUwNn0.hHM2aiNfHQe5Z9u-bKDYf7rImf4FnKCoMyoIc3j2uuk';
             const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -573,7 +574,7 @@
 
 <h2>Select a Table</h2>
     <select id="numberSelect">
-        <option value="">-- Choose a Table --</option>
+        <option value="">Choose a json file...</option>
     </select>
 
     <br />
@@ -665,7 +666,6 @@ const p_country = params.get('country');
         -->
 
     TO DO: Default to loading <a href="json">json files</a>. 
-    (Supabase has to be restarted every 14 days to avoid error.)
     </div>
 </body>
 

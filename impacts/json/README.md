@@ -1,12 +1,17 @@
 [Trade Flow](/profile/trade/)
 # Trade File Pipeline - to json and parquet
 
+<!--
 Colab that creates tables in pandas and sends tables to Supabase.  
 The last colab sends to Github from Supabase.
 
 First we move data from the Exiobase API into Supabase...
+-->
 
 [Fetch tables](https://colab.research.google.com/drive/1Zg9gq4WnEknW6hHGA3aP2BBlneGCqRx5?usp=sharing) - Table names: Import, ImportContributions, Commodity, Industry
+
+Data is pulled from the Exiobase API into Azure
+
 <!--
 [ImportContributions table](https://colab.research.google.com/drive/1Ms-gDn4U7XdmCRs7zBpmmpSMuoaB-zgU)
 
