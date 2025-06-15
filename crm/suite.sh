@@ -3,7 +3,7 @@
 # Developed by Loren Heyns (with Claude) and Lokesh Reddy, extending Linux 10-min install by Chris.
 
 # Parse command line arguments
-VERSION="8.8.0"  # Default version
+VERSION="8.9.0"  # New version
 INSTANCE_FOLDER="account"  # Default subfolder
 
 # Parse arguments
@@ -19,7 +19,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         -h|--help)
             echo "Usage: $0 [--version VERSION] [--subfolder INSTANCE_FOLDER]"
-            echo "  --version    SuiteCRM version (default: 8.8.0)"
+            echo "  --version    SuiteCRM version (new version: 8.9.0)"
             echo "  --subfolder  Installation subfolder (default: account)"
             echo "Example: $0 --version 8.8.0 --subfolder account"
             exit 0
@@ -77,6 +77,80 @@ if [[ "$EUID" -eq 0 ]]; then
     echo ""
     exit 1
 fi
+
+# Function to backup configuration files
+backup_config_files() {
+    local httpd_conf="$1"
+    local httpd_vhosts="$2"
+    local os_type="$3"
+    
+    echo "🔧 Creating backups of Apache configuration files for $os_type..."
+    
+    # Backup httpd.conf if it exists and backup doesn't already exist
+    if [ -f "$httpd_conf" ]; then
+        if [ ! -f "${httpd_conf%.conf}.bkup" ]; then
+            cp "$httpd_conf" "${httpd_conf%.conf}.bkup" || {
+                echo "⚠️ Failed to create backup of httpd.conf"
+                return 1
+            }
+            echo "✅ Created backup: ${httpd_conf%.conf}.bkup"
+        else
+            echo "✅ Backup already exists: ${httpd_conf%.conf}.bkup"
+        fi
+    else
+        echo "⚠️ httpd.conf not found at: $httpd_conf"
+    fi
+    
+    # Backup httpd-vhosts.conf if it exists and backup doesn't already exist
+    if [ -f "$httpd_vhosts" ]; then
+        if [ ! -f "${httpd_vhosts%.conf}.bkup" ]; then
+            cp "$httpd_vhosts" "${httpd_vhosts%.conf}.bkup" || {
+                echo "⚠️ Failed to create backup of httpd-vhosts.conf"
+                return 1
+            }
+            echo "✅ Created backup: ${httpd_vhosts%.conf}.bkup"
+        else
+            echo "✅ Backup already exists: ${httpd_vhosts%.conf}.bkup"
+        fi
+    else
+        echo "⚠️ httpd-vhosts.conf not found at: $httpd_vhosts"
+    fi
+    
+    return 0
+}
+
+# Function to update paths in httpd-vhosts.conf to use same variables as httpd.conf
+update_vhosts_paths() {
+    local httpd_vhosts="$1"
+    local document_root="$2"
+    local instance_folder="$3"
+    local os_type="$4"
+    
+    echo "🔧 Updating paths in httpd-vhosts.conf for $os_type..."
+    
+    if [ ! -f "$httpd_vhosts" ]; then
+        echo "⚠️ httpd-vhosts.conf not found at: $httpd_vhosts"
+        return 1
+    fi
+    
+    # Define the CRM public directory path
+    local crm_public_dir="$document_root/$instance_folder/public"
+    
+    # Update DocumentRoot paths in vhosts file
+    sed -i.tmp "s|DocumentRoot \".*\"|DocumentRoot \"$crm_public_dir\"|g" "$httpd_vhosts" && rm -f "${httpd_vhosts}.tmp" || {
+        echo "⚠️ Failed to update DocumentRoot in httpd-vhosts.conf"
+        return 1
+    }
+    
+    # Update Directory paths in vhosts file
+    sed -i.tmp "s|<Directory \".*\">|<Directory \"$crm_public_dir\">|g" "$httpd_vhosts" && rm -f "${httpd_vhosts}.tmp" || {
+        echo "⚠️ Failed to update Directory paths in httpd-vhosts.conf"
+        return 1
+    }
+    
+    echo "✅ Updated paths in httpd-vhosts.conf to use consistent path variables"
+    return 0
+}
 
 # Function to request user input
 get_input() {
@@ -680,15 +754,7 @@ if [[ "$os" == "macos" ]]; then
     fi
 
     # Create backups of configuration files
-    if [ -f "$HTTPD_CONF" ]; then
-      echo "🔧 Creating backup of Apache configuration..."
-      cp "$HTTPD_CONF" "${HTTPD_CONF}.bak" || {
-        echo "⚠️ Failed to create backup of Apache configuration."
-      }
-    else
-      echo "❌ Apache configuration file not found at $HTTPD_CONF"
-      exit 1
-    fi
+    backup_config_files "$HTTPD_CONF" "$HTTPD_VHOSTS" "macOS"
 
     # Configure Apache modules and PHP integration
     echo "🔧 Configuring Apache modules..."
@@ -825,8 +891,6 @@ fi
         Require all granted\\
     </Directory>" "$HTTPD_CONF"
     fi
-    # </Directory>" "$HTTPD_CONF"
-    # BUGBUG - $HTTPD_CONF was above and added # after </Directory> which broke start command.
     
     # Create VirtualHost configuration with security headers
     echo "🛠️ Writing new httpd-vhosts.conf..."
@@ -847,6 +911,9 @@ fi
         Header always set X-Frame-Options "SAMEORIGIN"
     </VirtualHost>
 EOF
+
+    # Update paths in httpd-vhosts.conf to use consistent variables
+    update_vhosts_paths "$HTTPD_VHOSTS" "$DOCUMENT_ROOT" "$INSTANCE_FOLDER" "macOS"
 
     echo "🔐 Fixing folder permissions for Apache..."
     PARENT="$CRM_PUBLIC_DIR"
@@ -957,6 +1024,151 @@ EOF
     echo "  - Consider setting up SSL/TLS certificates for production use"
     echo "  - Review and customize Apache security settings as needed"
 
+elif [[ "$os" == "linux" ]]; then
+
+    echo "Platform detected: Linux - Beginning setup process..."
+
+    # Define Apache and PHP paths for Linux
+    HTTPD_CONF="/etc/apache2/apache2.conf"
+    HTTPD_VHOSTS="/etc/apache2/sites-available/000-default.conf"
+    PHP_INI="/etc/php/8.2/apache2/php.ini"
+    
+    # Alternative paths for different Linux distributions
+    if [ ! -f "$HTTPD_CONF" ]; then
+        # Try CentOS/RHEL paths
+        HTTPD_CONF="/etc/httpd/conf/httpd.conf"
+        HTTPD_VHOSTS="/etc/httpd/conf.d/vhost.conf"
+        PHP_INI="/etc/php.ini"
+    fi
+
+    # Create backups of configuration files
+    backup_config_files "$HTTPD_CONF" "$HTTPD_VHOSTS" "Linux"
+
+    # Update package repositories
+    echo "🔄 Updating package repositories..."
+    if command -v apt-get &> /dev/null; then
+        sudo apt-get update || {
+            echo "⚠️ Failed to update package repositories."
+        }
+    elif command -v yum &> /dev/null; then
+        sudo yum update -y || {
+            echo "⚠️ Failed to update package repositories."
+        }
+    elif command -v dnf &> /dev/null; then
+        sudo dnf update -y || {
+            echo "⚠️ Failed to update package repositories."
+        }
+    fi
+
+    # Install essential packages
+    echo "📦 Installing essential packages..."
+    if command -v apt-get &> /dev/null; then
+        sudo apt-get install -y wget unzip apache2 php8.2 php8.2-mysql php8.2-curl php8.2-gd php8.2-mbstring php8.2-xml php8.2-soap mariadb-server || {
+            echo "❌ Failed to install packages via apt-get."
+            exit 1
+        }
+    elif command -v yum &> /dev/null; then
+        sudo yum install -y wget unzip httpd php php-mysql php-curl php-gd php-mbstring php-xml php-soap mariadb-server || {
+            echo "❌ Failed to install packages via yum."
+            exit 1
+        }
+    elif command -v dnf &> /dev/null; then
+        sudo dnf install -y wget unzip httpd php php-mysql php-curl php-gd php-mbstring php-xml php-soap mariadb-server || {
+            echo "❌ Failed to install packages via dnf."
+            exit 1
+        }
+    else
+        echo "❌ No supported package manager found (apt-get, yum, or dnf)."
+        exit 1
+    fi
+
+    # Set document root and instance folder
+    DOCUMENT_ROOT="/var/www/html"
+    CRM_PUBLIC_DIR="$DOCUMENT_ROOT/$INSTANCE_FOLDER/public"
+
+    # Configure Apache
+    echo "🔧 Configuring Apache..."
+    if [ -f "$HTTPD_CONF" ]; then
+        # Enable required modules
+        if command -v a2enmod &> /dev/null; then
+            sudo a2enmod rewrite headers || {
+                echo "⚠️ Failed to enable Apache modules."
+            }
+        fi
+        
+        # Update DocumentRoot in main config or vhost
+        if [ -f "$HTTPD_VHOSTS" ]; then
+            sudo sed -i "s|DocumentRoot.*|DocumentRoot $CRM_PUBLIC_DIR|" "$HTTPD_VHOSTS" || {
+                echo "⚠️ Failed to update DocumentRoot in vhost config."
+            }
+        fi
+    fi
+
+    # Create directories and download SuiteCRM
+    echo "🔧 Creating directories and downloading SuiteCRM..."
+    sudo mkdir -p "$DOCUMENT_ROOT/$INSTANCE_FOLDER" || {
+        echo "❌ Failed to create CRM directory."
+        exit 1
+    }
+    
+    cd "$DOCUMENT_ROOT/$INSTANCE_FOLDER" || {
+        echo "❌ Failed to change to CRM directory."
+        exit 1
+    }
+    
+    # Download and extract SuiteCRM
+    DOWNLOAD_URL="https://suitecrm.com/download/148/suite87/564667/$ZIP_FILENAME"
+    download_and_extract_suitecrm "$DOWNLOAD_URL" "$DOCUMENT_ROOT/$INSTANCE_FOLDER"
+
+    # Update paths in httpd-vhosts.conf to use consistent variables
+    update_vhosts_paths "$HTTPD_VHOSTS" "$DOCUMENT_ROOT" "$INSTANCE_FOLDER" "Linux"
+
+    # Set proper permissions
+    echo "🔧 Setting permissions..."
+    sudo chown -R www-data:www-data "$DOCUMENT_ROOT/$INSTANCE_FOLDER" || {
+        sudo chown -R apache:apache "$DOCUMENT_ROOT/$INSTANCE_FOLDER" || {
+            echo "⚠️ Failed to set ownership. Using generic permissions."
+            sudo chmod -R 755 "$DOCUMENT_ROOT/$INSTANCE_FOLDER"
+        }
+    }
+
+    # Configure MariaDB
+    echo "🔧 Configuring MariaDB..."
+    sudo systemctl start mariadb || sudo service mariadb start || {
+        echo "❌ Failed to start MariaDB."
+        exit 1
+    }
+    
+    sudo systemctl enable mariadb || sudo chkconfig mariadb on || {
+        echo "⚠️ Failed to enable MariaDB auto-start."
+    }
+
+    # Create database and user
+    if ! mysql -u root <<EOF
+CREATE DATABASE IF NOT EXISTS CRM CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS '$db_user'@'localhost' IDENTIFIED BY '$db_pass';
+GRANT ALL PRIVILEGES ON CRM.* TO '$db_user'@'localhost';
+FLUSH PRIVILEGES;
+EOF
+    then
+        echo "❌ Failed to configure database."
+        exit 1
+    fi
+
+    # Start Apache
+    echo "🔄 Starting Apache..."
+    sudo systemctl start apache2 || sudo systemctl start httpd || sudo service apache2 start || sudo service httpd start || {
+        echo "❌ Failed to start Apache."
+        exit 1
+    }
+    
+    sudo systemctl enable apache2 || sudo systemctl enable httpd || sudo chkconfig httpd on || {
+        echo "⚠️ Failed to enable Apache auto-start."
+    }
+
+    echo "✅ Linux setup completed successfully!"
+    echo "📝 You can now complete the installation of your CRM at: http://$server_ip"
+
 elif [[ "$os" == "windows" ]]; then
 
     echo "Platform detected: Windows (Git Bash or Cygwin) - Beginning setup process..."
@@ -989,6 +1201,9 @@ elif [[ "$os" == "windows" ]]; then
     APACHE_VHOSTS="$APACHE_PATH/conf/extra/httpd-vhosts.conf"
     PHP_INI="$PHP_PATH/php.ini"
     PHP_INI_DEVELOPMENT="$PHP_PATH/php.ini-development"
+
+    # Create backups of configuration files
+    backup_config_files "$APACHE_CONF" "$APACHE_VHOSTS" "Windows"
 
     # Install essential packages with error handling
     echo "📦 Installing essential tools..."
@@ -1028,11 +1243,6 @@ elif [[ "$os" == "windows" ]]; then
     # Configure PHP for Apache
     echo "🔧 Configuring PHP with Apache..."
     if [ -f "$APACHE_CONF" ]; then
-        # Create backup of Apache config
-        cp "$APACHE_CONF" "${APACHE_CONF}.bak" || {
-            echo "⚠️ Failed to create backup of Apache config."
-        }
-        
         # Check if PHP module is already configured
         if ! grep -q "LoadModule php_module" "$APACHE_CONF"; then
             echo "LoadModule php_module \"$PHP_PATH/php8apache2_4.dll\"" >> "$APACHE_CONF" || {
@@ -1278,6 +1488,8 @@ EOF
         exit 1
     fi
 
+    # Update paths in httpd-vhosts.conf to use consistent variables
+    update_vhosts_paths "$APACHE_VHOSTS" "$DOCUMENT_ROOT" "$INSTANCE_FOLDER" "Windows"
 
     # Set permissions with Windows compatibility
     echo "🔧 Setting permissions..."
