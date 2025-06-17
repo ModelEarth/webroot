@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Computational Democracy & DFC Projects</title>
+    <meta name="description" content="Vote on Development Finance Corporation projects using computational democracy principles">
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+        }
+        .star-icon {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .star-icon.filled {
+            fill: currentColor;
+        }
+        .icon {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .icon-sm {
+            width: 16px;
+            height: 16px;
+        }
+        .icon-xs {
+            width: 12px;
+            height: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useMemo, useEffect } = React;
+
+        // Mock data representing DFC projects
+        const mockProjects = [
+            {
+                id: 1,
+                title: "Solar Energy Infrastructure - Ghana",
+                description: "Expanding renewable energy access in rural communities through solar panel installations and micro-grid systems.",
+                country: "Ghana",
+                sector: "Energy",
+                amount: 25000000,
+                status: "Active",
+                impact: "Expected to provide clean energy to 50,000 households",
+                tags: ["renewable energy", "rural development", "sustainability", "infrastructure"]
+            },
+            {
+                id: 2,
+                title: "Small Business Lending Platform - Colombia",
+                description: "Digital lending platform to support small and medium enterprises with microfinance solutions.",
+                country: "Colombia",
+                sector: "Financial Services",
+                amount: 15000000,
+                status: "Active",
+                impact: "Supporting 1,200+ small businesses",
+                tags: ["fintech", "microfinance", "entrepreneurship", "digital innovation"]
+            },
+            {
+                id: 3,
+                title: "Agricultural Technology Hub - Kenya",
+                description: "Modern farming techniques and technology training center for sustainable agriculture.",
+                country: "Kenya",
+                sector: "Agriculture",
+                amount: 18000000,
+                status: "Proposed",
+                impact: "Training 5,000 farmers annually",
+                tags: ["agriculture", "technology", "training", "food security"]
+            },
+            {
+                id: 4,
+                title: "Healthcare Access Initiative - Bangladesh",
+                description: "Mobile health clinics and telemedicine infrastructure for underserved communities.",
+                country: "Bangladesh",
+                sector: "Healthcare",
+                amount: 22000000,
+                status: "Active",
+                impact: "Serving 100,000 patients annually",
+                tags: ["healthcare", "telemedicine", "rural access", "medical technology"]
+            },
+            {
+                id: 5,
+                title: "Water Infrastructure Project - Morocco",
+                description: "Clean water distribution systems and waste management solutions for urban areas.",
+                country: "Morocco",
+                sector: "Infrastructure",
+                amount: 30000000,
+                status: "Under Review",
+                impact: "Providing clean water to 200,000 residents",
+                tags: ["water infrastructure", "sanitation", "urban development", "public health"]
+            },
+            {
+                id: 6,
+                title: "Digital Education Platform - Philippines",
+                description: "Online learning platform and digital literacy programs for remote education access.",
+                country: "Philippines",
+                sector: "Education",
+                amount: 12000000,
+                status: "Active",
+                impact: "Connecting 25,000 students to quality education",
+                tags: ["education", "digital literacy", "remote learning", "technology access"]
+            }
+        ];
+
+        // Voting preferences categories
+        const votingPreferences = [
+            "Renewable Energy", "Healthcare Access", "Education", "Financial Inclusion",
+            "Rural Development", "Technology Innovation", "Women's Empowerment", "Youth Programs",
+            "Environmental Sustainability", "Infrastructure Development", "Agriculture", "Water & Sanitation",
+            "Digital Inclusion", "Small Business Support", "Community Development", "Food Security",
+            "Climate Resilience", "Economic Growth", "Social Impact", "Governance & Transparency"
+        ];
+
+        // Local storage keys
+        const STORAGE_KEYS = {
+            VOTES: 'dfc_project_votes',
+            PREFERENCES: 'dfc_user_preferences'
+        };
+
+        // Icon components
+        const StarIcon = ({ filled, className, onClick, onMouseEnter, onMouseLeave }) => (
+            <svg 
+                className={`star-icon cursor-pointer transition-colors duration-150 ${filled ? 'filled text-yellow-400' : 'text-gray-300 hover:text-yellow-300'} ${className}`}
+                onClick={onClick}
+                onMouseEnter={onMouseEnter}
+                onMouseLeave={onMouseLeave}
+                viewBox="0 0 24 24"
+            >
+                <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
+            </svg>
+        );
+
+        const SearchIcon = ({ className }) => (
+            <svg className={`icon ${className}`} viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.35-4.35" />
+            </svg>
+        );
+
+        const SettingsIcon = ({ className }) => (
+            <svg className={`icon ${className}`} viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1m17-4a4 4 0 0 1-8 0 4 4 0 0 1 8 0zM7 21a4 4 0 0 1-8 0 4 4 0 0 1 8 0z" />
+            </svg>
+        );
+
+        const ChevronDownIcon = ({ className }) => (
+            <svg className={`icon ${className}`} viewBox="0 0 24 24">
+                <polyline points="6,9 12,15 18,9" />
+            </svg>
+        );
+
+        const ChevronUpIcon = ({ className }) => (
+            <svg className={`icon ${className}`} viewBox="0 0 24 24">
+                <polyline points="18,15 12,9 6,15" />
+            </svg>
+        );
+
+        const FilterIcon = ({ className }) => (
+            <svg className={`icon ${className}`} viewBox="0 0 24 24">
+                <polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46" />
+            </svg>
+        );
+
+        const Building2Icon = ({ className }) => (
+            <svg className={`icon ${className}`} viewBox="0 0 24 24">
+                <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
+                <path d="M6 12h4v6h4v-6h4" />
+            </svg>
+        );
+
+        const GlobeIcon = ({ className }) => (
+            <svg className={`icon ${className}`} viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="2" y1="12" x2="22" y2="12" />
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+            </svg>
+        );
+
+        const UsersIcon = ({ className }) => (
+            <svg className={`icon ${className}`} viewBox="0 0 24 24">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+        );
+
+        const DollarSignIcon = ({ className }) => (
+            <svg className={`icon ${className}`} viewBox="0 0 24 24">
+                <line x1="12" y1="1" x2="12" y2="23" />
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+            </svg>
+        );
+
+        const XIcon = ({ className }) => (
+            <svg className={`icon ${className}`} viewBox="0 0 24 24">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+        );
+
+        const MessageSquareIcon = ({ className }) => (
+            <svg className={`icon ${className}`} viewBox="0 0 24 24">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+        );
+
+        const StarRating = ({ rating, onRatingChange, size = 'md' }) => {
+            const [hoverRating, setHoverRating] = useState(0);
+            const starSize = size === 'sm' ? 'w-4 h-4' : 'w-5 h-5';
+
+            return (
+                <div className="flex space-x-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                        <StarIcon
+                            key={star}
+                            filled={star <= (hoverRating || rating)}
+                            className={starSize}
+                            onClick={() => onRatingChange(star)}
+                            onMouseEnter={() => setHoverRating(star)}
+                            onMouseLeave={() => setHoverRating(0)}
+                        />
+                    ))}
+                </div>
+            );
+        };
+
+        const ProjectCard = ({ project, userVote, onVote, onCommentChange }) => {
+            const [showCommentBox, setShowCommentBox] = useState(false);
+            const [comment, setComment] = useState(userVote?.comment || '');
+
+            // Show comment box if there's a rating or existing comment
+            useEffect(() => {
+                if (userVote?.rating || userVote?.comment) {
+                    setShowCommentBox(true);
+                }
+            }, [userVote]);
+
+            const handleRatingChange = (rating) => {
+                onVote(project.id, rating);
+                setShowCommentBox(true);
+            };
+
+            const handleCommentChange = (newComment) => {
+                setComment(newComment);
+                onCommentChange(project.id, newComment);
+            };
+
+            const getSectorIcon = (sector) => {
+                switch (sector.toLowerCase()) {
+                    case 'energy': return <Building2Icon className="w-5 h-5 text-green-600" />;
+                    case 'healthcare': return <UsersIcon className="w-5 h-5 text-blue-600" />;
+                    case 'education': return <GlobeIcon className="w-5 h-5 text-purple-600" />;
+                    default: return <DollarSignIcon className="w-5 h-5 text-orange-600" />;
+                }
+            };
+
+            const getStatusColor = (status) => {
+                switch (status.toLowerCase()) {
+                    case 'active': return 'bg-green-100 text-green-800';
+                    case 'proposed': return 'bg-blue-100 text-blue-800';
+                    case 'under review': return 'bg-yellow-100 text-yellow-800';
+                    default: return 'bg-gray-100 text-gray-800';
+                }
+            };
+
+            return (
+                <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:border-green-200 transition-all duration-200">
+                    <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                            {getSectorIcon(project.sector)}
+                            <div>
+                                <h3 className="font-semibold text-gray-900 text-lg">{project.title}</h3>
+                                <p className="text-sm text-gray-600">{project.country} • {project.sector}</p>
+                            </div>
+                        </div>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}>
+                            {project.status}
+                        </span>
+                    </div>
+                    
+                    <p className="text-gray-700 mb-4 leading-relaxed">{project.description}</p>
+                    
+                    <div className="mb-4">
+                        <div className="flex items-center justify-between text-sm mb-2">
+                            <span className="text-gray-600">Funding Amount</span>
+                            <span className="font-semibold text-gray-900">${project.amount.toLocaleString()}</span>
+                        </div>
+                        <div className="text-sm text-gray-600">
+                            <span className="font-medium">Impact:</span> {project.impact}
+                        </div>
+                    </div>
+
+                    <div className="mb-4">
+                        <div className="flex flex-wrap gap-2">
+                            {project.tags.map((tag) => (
+                                <span key={tag} className="px-2 py-1 bg-gray-100 text-gray-700 rounded-md text-xs">
+                                    {tag}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-gray-100">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-sm font-medium text-gray-700">Your Vote:</span>
+                            <StarRating 
+                                rating={userVote?.rating || 0} 
+                                onRatingChange={handleRatingChange}
+                            />
+                        </div>
+
+                        {showCommentBox && (
+                            <div className="mt-4">
+                                <div className="flex items-center space-x-2 mb-2">
+                                    <MessageSquareIcon className="w-4 h-4 text-gray-500" />
+                                    <label className="text-sm font-medium text-gray-700">Your Comment:</label>
+                                </div>
+                                <textarea
+                                    value={comment}
+                                    onChange={(e) => handleCommentChange(e.target.value)}
+                                    placeholder="Share your thoughts about this project..."
+                                    className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none text-sm"
+                                    rows={3}
+                                />
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        function App() {
+            const [votes, setVotes] = useState([]);
+            const [preferences, setPreferences] = useState({});
+            const [showPreferences, setShowPreferences] = useState(false);
+            const [searchTerm, setSearchTerm] = useState('');
+
+            // Load data from localStorage on component mount
+            useEffect(() => {
+                try {
+                    const savedVotes = localStorage.getItem(STORAGE_KEYS.VOTES);
+                    const savedPreferences = localStorage.getItem(STORAGE_KEYS.PREFERENCES);
+
+                    if (savedVotes) {
+                        setVotes(JSON.parse(savedVotes));
+                    }
+
+                    if (savedPreferences) {
+                        setPreferences(JSON.parse(savedPreferences));
+                    }
+                } catch (error) {
+                    console.error('Error loading data from localStorage:', error);
+                }
+            }, []);
+
+            // Save votes to localStorage whenever votes change
+            useEffect(() => {
+                try {
+                    localStorage.setItem(STORAGE_KEYS.VOTES, JSON.stringify(votes));
+                } catch (error) {
+                    console.error('Error saving votes to localStorage:', error);
+                }
+            }, [votes]);
+
+            // Save preferences to localStorage whenever preferences change
+            useEffect(() => {
+                try {
+                    localStorage.setItem(STORAGE_KEYS.PREFERENCES, JSON.stringify(preferences));
+                } catch (error) {
+                    console.error('Error saving preferences to localStorage:', error);
+                }
+            }, [preferences]);
+
+            const handleVote = (projectId, rating) => {
+                setVotes(prev => {
+                    const existingVote = prev.find(v => v.projectId === projectId);
+                    if (existingVote) {
+                        return prev.map(v => v.projectId === projectId ? { ...v, rating } : v);
+                    }
+                    return [...prev, { projectId, rating }];
+                });
+            };
+
+            const handleCommentChange = (projectId, comment) => {
+                setVotes(prev => {
+                    const existingVote = prev.find(v => v.projectId === projectId);
+                    if (existingVote) {
+                        return prev.map(v => v.projectId === projectId ? { ...v, comment } : v);
+                    }
+                    return [...prev, { projectId, rating: 0, comment }];
+                });
+            };
+
+            const handlePreferenceChange = (preference, checked) => {
+                setPreferences(prev => ({
+                    ...prev,
+                    [preference]: checked
+                }));
+            };
+
+            const removePreference = (preference) => {
+                setPreferences(prev => ({
+                    ...prev,
+                    [preference]: false
+                }));
+            };
+
+            const activePreferences = Object.keys(preferences).filter(key => preferences[key]);
+
+            const filteredProjects = useMemo(() => {
+                let filtered = mockProjects;
+
+                // Filter by search term
+                if (searchTerm) {
+                    filtered = filtered.filter(project =>
+                        project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        project.country.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        project.sector.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        project.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+                    );
+                }
+
+                // Filter by preferences (simplified matching based on tags and sectors)
+                if (activePreferences.length > 0) {
+                    filtered = filtered.filter(project => {
+                        return activePreferences.some(pref => 
+                            project.tags.some(tag => tag.toLowerCase().includes(pref.toLowerCase())) ||
+                            project.sector.toLowerCase().includes(pref.toLowerCase()) ||
+                            project.title.toLowerCase().includes(pref.toLowerCase()) ||
+                            project.description.toLowerCase().includes(pref.toLowerCase())
+                        );
+                    });
+                }
+
+                return filtered;
+            }, [searchTerm, activePreferences]);
+
+            const votedProjects = votes.filter(vote => vote.rating > 0);
+
+            return (
+                <div className="min-h-screen bg-gray-50">
+                    <div className="max-w-6xl mx-auto px-4 py-8">
+                        {/* Header */}
+                        <div className="mb-8">
+                            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                                Computational Democracy & DFC Projects
+                            </h1>
+                            <p className="text-gray-600">
+                                Vote on Development Finance Corporation projects using democratic principles
+                            </p>
+                        </div>
+
+                        {/* My Project Selections */}
+                        {votedProjects.length > 0 && (
+                            <div className="bg-white rounded-lg p-6 mb-8 shadow-sm border border-gray-100">
+                                <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                                    <StarIcon filled={true} className="w-5 h-5 mr-2 text-yellow-500" />
+                                    My Project Selections ({votedProjects.length})
+                                </h2>
+                                <div className="grid gap-4">
+                                    {votedProjects.map(vote => {
+                                        const project = mockProjects.find(p => p.id === vote.projectId);
+                                        return project ? (
+                                            <div key={vote.projectId} className="p-4 bg-gray-50 rounded-lg">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="flex-1">
+                                                        <h3 className="font-medium text-gray-900">{project.title}</h3>
+                                                        <p className="text-sm text-gray-600">{project.country} • {project.sector}</p>
+                                                    </div>
+                                                    <StarRating 
+                                                        rating={vote.rating} 
+                                                        onRatingChange={(rating) => handleVote(vote.projectId, rating)}
+                                                        size="sm"
+                                                    />
+                                                </div>
+                                                {vote.comment && (
+                                                    <div className="mt-2 p-3 bg-white rounded border border-gray-200">
+                                                        <div className="flex items-center space-x-2 mb-1">
+                                                            <MessageSquareIcon className="w-3 h-3 text-gray-500" />
+                                                            <span className="text-xs font-medium text-gray-600">Your Comment:</span>
+                                                        </div>
+                                                        <p className="text-sm text-gray-700">{vote.comment}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : null;
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Search and Preferences */}
+                        <div className="mb-8 space-y-4">
+                            {/* Search Bar */}
+                            <div className="relative">
+                                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                <input
+                                    type="text"
+                                    placeholder="Search projects by title, country, sector, or tags..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                />
+                            </div>
+
+                            {/* Preferences Toggle */}
+                            <div className="flex items-center justify-between">
+                                <button
+                                    onClick={() => setShowPreferences(!showPreferences)}
+                                    className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                                >
+                                    <SettingsIcon className="w-4 h-4" />
+                                    <span>My Preferences</span>
+                                    {showPreferences ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />}
+                                </button>
+                                
+                                {activePreferences.length > 0 && (
+                                    <div className="flex items-center space-x-2">
+                                        <FilterIcon className="w-4 h-4 text-green-600" />
+                                        <span className="text-sm text-gray-600">
+                                            {activePreferences.length} preference{activePreferences.length !== 1 ? 's' : ''} active
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Preferences Panel */}
+                            {showPreferences && (
+                                <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Voting Preferences</h3>
+                                    <p className="text-sm text-gray-600 mb-4">
+                                        Select your areas of interest to filter projects that align with your preferences:
+                                    </p>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                        {votingPreferences.map(preference => (
+                                            <label key={preference} className="flex items-center space-x-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={preferences[preference] || false}
+                                                    onChange={(e) => handlePreferenceChange(preference, e.target.checked)}
+                                                    className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                                />
+                                                <span className="text-sm text-gray-700">{preference}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Active Preference Filter Links */}
+                        {activePreferences.length > 0 && (
+                            <div className="mb-6">
+                                <div className="flex items-center space-x-2 mb-3">
+                                    <FilterIcon className="w-4 h-4 text-gray-500" />
+                                    <span className="text-sm font-medium text-gray-700">Active Filters:</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {activePreferences.map(preference => (
+                                        <button
+                                            key={preference}
+                                            onClick={() => removePreference(preference)}
+                                            className="inline-flex items-center space-x-2 px-3 py-1.5 bg-green-100 text-green-800 rounded-full text-sm font-medium hover:bg-green-200 transition-colors group"
+                                        >
+                                            <span>{preference}</span>
+                                            <XIcon className="w-3 h-3 opacity-60 group-hover:opacity-100" />
+                                        </button>
+                                    ))}
+                                    <button
+                                        onClick={() => setPreferences({})}
+                                        className="px-3 py-1.5 text-gray-500 hover:text-gray-700 text-sm font-medium underline"
+                                    >
+                                        Clear all
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Projects Grid */}
+                        <div className="space-y-6">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-xl font-semibold text-gray-900">
+                                    DFC Projects ({filteredProjects.length})
+                                </h2>
+                                {searchTerm && (
+                                    <button
+                                        onClick={() => setSearchTerm('')}
+                                        className="text-sm text-gray-500 hover:text-gray-700"
+                                    >
+                                        Clear search
+                                    </button>
+                                )}
+                            </div>
+
+                            {filteredProjects.length === 0 ? (
+                                <div className="text-center py-12">
+                                    <div className="text-gray-400 mb-4">
+                                        <SearchIcon className="w-12 h-12 mx-auto" />
+                                    </div>
+                                    <h3 className="text-lg font-medium text-gray-900 mb-2">No projects found</h3>
+                                    <p className="text-gray-600">Try adjusting your search terms or preferences</p>
+                                </div>
+                            ) : (
+                                <div className="grid gap-6">
+                                    {filteredProjects.map(project => (
+                                        <ProjectCard
+                                            key={project.id}
+                                            project={project}
+                                            userVote={votes.find(v => v.projectId === project.id)}
+                                            onVote={handleVote}
+                                            onCommentChange={handleCommentChange}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="mt-12 pt-8 border-t border-gray-200">
+                            <div className="text-center text-sm text-gray-500">
+                                <p>
+                                    Powered by Computational Democracy principles and DFC transaction data
+                                </p>
+                                <p className="mt-1">
+                                    Your votes contribute to democratic decision-making processes
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
