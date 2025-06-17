@@ -71,8 +71,6 @@ On your initial run, you'll also create a root MariaDB database password to take
 TO DO: Apache port 8080 still points at the default /usr/local/var/www/.  
 Document how to point it at [webroot]/profile/crm/account instead.
 
-TO DO: Try opening MariaDB with [DBeaver](https://dbeaver.io) and adjust permissions.
-
 TO DO: Add/test DOCUMENT_ROOT for Windows.
 <!--
 TO DO: Possible [fix for PHP install](https://claude.ai/share/645e14b8-78ed-4130-8907-9b8f3ddbf671) from Claude.
