@@ -1,5 +1,4 @@
-[Profile Tools](../)
-# SuiteCRM - Partner Database for Azure
+# Partner Database
 
 <!-- Under Development - SQL table CREATE script for Azure -->
 
