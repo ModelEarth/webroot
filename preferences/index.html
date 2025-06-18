@@ -7,8 +7,11 @@
 <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
+
 <link type="text/css" rel="stylesheet" href="/localsite/css/base.css" id="/localsite/css/base.css" />
+<!-- Debug: Preventing 3-dot popup
 <script type="text/javascript" src="/localsite/js/localsite.js?showheader=true&showsearch=false"></script>
+-->
 
 <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
@@ -47,6 +50,33 @@
         width: 12px;
         height: 12px;
     }
+    .dropdown-menu {
+        position: absolute;
+        right: 0;
+        top: 100%;
+        z-index: 50;
+        min-width: 12rem;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        padding: 0.5rem 0;
+    }
+    .dropdown-item {
+        display: block;
+        width: 100%;
+        padding: 0.5rem 1rem;
+        text-align: left;
+        font-size: 0.875rem;
+        color: #374151;
+        background: none;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.15s ease-in-out;
+    }
+    .dropdown-item:hover {
+        background-color: #f3f4f6;
+    }
 </style>
 </head>
 <body>
@@ -54,7 +84,7 @@
         <div id="root"></div>
     </div>
     <script type="text/babel">
-        const { useState, useMemo, useEffect } = React;
+        const { useState, useMemo, useEffect, useRef } = React;
 
         // Mock data representing DFC projects
         const mockProjects = [
@@ -67,7 +97,9 @@
                 amount: 25000000,
                 status: "Active",
                 impact: "Expected to provide clean energy to 50,000 households",
-                tags: ["renewable energy", "rural development", "sustainability", "infrastructure"]
+                tags: ["renewable energy", "rural development", "sustainability", "infrastructure"],
+                starred: false,
+                comment: ""
             },
             {
                 id: 2,
@@ -78,7 +110,9 @@
                 amount: 15000000,
                 status: "Active",
                 impact: "Supporting 1,200+ small businesses",
-                tags: ["fintech", "microfinance", "entrepreneurship", "digital innovation"]
+                tags: ["fintech", "microfinance", "entrepreneurship", "digital innovation"],
+                starred: false,
+                comment: ""
             },
             {
                 id: 3,
@@ -89,7 +123,9 @@
                 amount: 18000000,
                 status: "Proposed",
                 impact: "Training 5,000 farmers annually",
-                tags: ["agriculture", "technology", "training", "food security"]
+                tags: ["agriculture", "technology", "training", "food security"],
+                starred: false,
+                comment: ""
             },
             {
                 id: 4,
@@ -100,7 +136,9 @@
                 amount: 22000000,
                 status: "Active",
                 impact: "Serving 100,000 patients annually",
-                tags: ["healthcare", "telemedicine", "rural access", "medical technology"]
+                tags: ["healthcare", "telemedicine", "rural access", "medical technology"],
+                starred: false,
+                comment: ""
             },
             {
                 id: 5,
@@ -111,7 +149,9 @@
                 amount: 30000000,
                 status: "Under Review",
                 impact: "Providing clean water to 200,000 residents",
-                tags: ["water infrastructure", "sanitation", "urban development", "public health"]
+                tags: ["water infrastructure", "sanitation", "urban development", "public health"],
+                starred: false,
+                comment: ""
             },
             {
                 id: 6,
@@ -122,7 +162,9 @@
                 amount: 12000000,
                 status: "Active",
                 impact: "Connecting 25,000 students to quality education",
-                tags: ["education", "digital literacy", "remote learning", "technology access"]
+                tags: ["education", "digital literacy", "remote learning", "technology access"],
+                starred: false,
+                comment: ""
             }
         ];
 
@@ -138,7 +180,8 @@
         // Local storage keys
         const STORAGE_KEYS = {
             VOTES: 'dfc_project_votes',
-            PREFERENCES: 'dfc_user_preferences'
+            PREFERENCES: 'dfc_user_preferences',
+            STARRED_PROJECTS: 'dfc_starred_projects'
         };
 
         // Icon components
@@ -230,6 +273,105 @@
             </svg>
         );
 
+        const MoreVerticalIcon = ({ className }) => (
+            <svg className={`icon ${className}`} viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="1" />
+                <circle cx="12" cy="5" r="1" />
+                <circle cx="12" cy="19" r="1" />
+            </svg>
+        );
+
+        const PlusIcon = ({ className }) => (
+            <svg className={`icon ${className}`} viewBox="0 0 24 24">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+        );
+
+        const MinusIcon = ({ className }) => (
+            <svg className={`icon ${className}`} viewBox="0 0 24 24">
+                <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+        );
+
+        const EditIcon = ({ className }) => (
+            <svg className={`icon ${className}`} viewBox="0 0 24 24">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+        );
+
+        // Dropdown Menu Component
+        const DropdownMenu = ({ projectId, isStarred, hasComment, onToggleStar, onToggleComment }) => {
+            const [isOpen, setIsOpen] = useState(false);
+            const dropdownRef = useRef(null);
+
+            useEffect(() => {
+                const handleClickOutside = (event) => {
+                    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                        setIsOpen(false);
+                    }
+                };
+
+                document.addEventListener('mousedown', handleClickOutside);
+                return () => document.removeEventListener('mousedown', handleClickOutside);
+            }, []);
+
+            return (
+                <div className="relative" ref={dropdownRef}>
+                    <button
+                        onClick={() => setIsOpen(!isOpen)}
+                        className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                        <MoreVerticalIcon className="w-5 h-5 text-gray-400" />
+                    </button>
+                    
+                    {isOpen && (
+                        <div className="dropdown-menu">
+                            <button
+                                onClick={() => {
+                                    onToggleStar(projectId);
+                                    setIsOpen(false);
+                                }}
+                                className="dropdown-item flex items-center space-x-2"
+                            >
+                                {isStarred ? (
+                                    <>
+                                        <MinusIcon className="w-4 h-4" />
+                                        <span>Remove from List</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <PlusIcon className="w-4 h-4" />
+                                        <span>Add to List</span>
+                                    </>
+                                )}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    onToggleComment(projectId);
+                                    setIsOpen(false);
+                                }}
+                                className="dropdown-item flex items-center space-x-2"
+                            >
+                                {hasComment ? (
+                                    <>
+                                        <EditIcon className="w-4 h-4" />
+                                        <span>Edit Comment</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <MessageSquareIcon className="w-4 h-4" />
+                                        <span>Add Comment</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
         const StarRating = ({ rating, onRatingChange, size = 'md' }) => {
             const [hoverRating, setHoverRating] = useState(0);
             const starSize = size === 'sm' ? 'w-4 h-4' : 'w-5 h-5';
@@ -250,16 +392,16 @@
             );
         };
 
-        const ProjectCard = ({ project, userVote, onVote, onCommentChange }) => {
+        const ProjectCard = ({ project, userVote, onVote, onCommentChange, onToggleStar, isStarred, showCommentForced, onToggleComment }) => {
             const [showCommentBox, setShowCommentBox] = useState(false);
             const [comment, setComment] = useState(userVote?.comment || '');
 
-            // Show comment box if there's a rating or existing comment
+            // Show comment box if there's a rating, existing comment, or forced to show
             useEffect(() => {
-                if (userVote?.rating || userVote?.comment) {
+                if (userVote?.rating || userVote?.comment || showCommentForced) {
                     setShowCommentBox(true);
                 }
-            }, [userVote]);
+            }, [userVote, showCommentForced]);
 
             const handleRatingChange = (rating) => {
                 onVote(project.id, rating);
@@ -329,10 +471,19 @@
                     <div className="pt-4 border-t border-gray-100">
                         <div className="flex items-center justify-between mb-3">
                             <span className="text-sm font-medium text-gray-700">Your Vote:</span>
-                            <StarRating 
-                                rating={userVote?.rating || 0} 
-                                onRatingChange={handleRatingChange}
-                            />
+                            <div className="flex items-center space-x-2">
+                                <StarRating 
+                                    rating={userVote?.rating || 0} 
+                                    onRatingChange={handleRatingChange}
+                                />
+                                <DropdownMenu
+                                    projectId={project.id}
+                                    isStarred={isStarred}
+                                    hasComment={!!userVote?.comment}
+                                    onToggleStar={onToggleStar}
+                                    onToggleComment={onToggleComment}
+                                />
+                            </div>
                         </div>
 
                         {showCommentBox && (
@@ -360,22 +511,39 @@
             const [preferences, setPreferences] = useState({});
             const [showPreferences, setShowPreferences] = useState(false);
             const [searchTerm, setSearchTerm] = useState('');
+            const [starredProjects, setStarredProjects] = useState(new Set());
+            const [forceShowComment, setForceShowComment] = useState(new Set());
 
             // Load data from localStorage on component mount
             useEffect(() => {
                 try {
                     const savedVotes = localStorage.getItem(STORAGE_KEYS.VOTES);
                     const savedPreferences = localStorage.getItem(STORAGE_KEYS.PREFERENCES);
+                    const savedStarred = localStorage.getItem(STORAGE_KEYS.STARRED_PROJECTS);
 
                     if (savedVotes) {
                         setVotes(JSON.parse(savedVotes));
                     }
 
                     if (savedPreferences) {
-                        setPreferences(JSON.parse(savedPreferences));
+                        const prefs = JSON.parse(savedPreferences);
+                        setPreferences(prefs);
+                        // Show preferences panel if no preferences are set
+                        if (Object.keys(prefs).length === 0 || !Object.values(prefs).some(Boolean)) {
+                            setShowPreferences(true);
+                        }
+                    } else {
+                        // No preferences saved, show the panel
+                        setShowPreferences(true);
+                    }
+
+                    if (savedStarred) {
+                        setStarredProjects(new Set(JSON.parse(savedStarred)));
                     }
                 } catch (error) {
                     console.error('Error loading data from localStorage:', error);
+                    // Show preferences panel on error as well
+                    setShowPreferences(true);
                 }
             }, []);
 
@@ -397,6 +565,15 @@
                 }
             }, [preferences]);
 
+            // Save starred projects to localStorage
+            useEffect(() => {
+                try {
+                    localStorage.setItem(STORAGE_KEYS.STARRED_PROJECTS, JSON.stringify([...starredProjects]));
+                } catch (error) {
+                    console.error('Error saving starred projects to localStorage:', error);
+                }
+            }, [starredProjects]);
+
             const handleVote = (projectId, rating) => {
                 setVotes(prev => {
                     const existingVote = prev.find(v => v.projectId === projectId);
@@ -405,6 +582,11 @@
                     }
                     return [...prev, { projectId, rating }];
                 });
+
+                // Add to starred projects if rating is 4 or 5
+                if (rating >= 4) {
+                    setStarredProjects(prev => new Set([...prev, projectId]));
+                }
             };
 
             const handleCommentChange = (projectId, comment) => {
@@ -429,6 +611,30 @@
                     ...prev,
                     [preference]: false
                 }));
+            };
+
+            const handleToggleStar = (projectId) => {
+                setStarredProjects(prev => {
+                    const newSet = new Set(prev);
+                    if (newSet.has(projectId)) {
+                        newSet.delete(projectId);
+                    } else {
+                        newSet.add(projectId);
+                    }
+                    return newSet;
+                });
+            };
+
+            const handleToggleComment = (projectId) => {
+                setForceShowComment(prev => {
+                    const newSet = new Set(prev);
+                    if (newSet.has(projectId)) {
+                        newSet.delete(projectId);
+                    } else {
+                        newSet.add(projectId);
+                    }
+                    return newSet;
+                });
             };
 
             const activePreferences = Object.keys(preferences).filter(key => preferences[key]);
@@ -462,7 +668,15 @@
                 return filtered;
             }, [searchTerm, activePreferences]);
 
-            const votedProjects = votes.filter(vote => vote.rating > 0);
+            // Get projects that are in the starred list (My Project Selections)
+            const starredProjectsList = mockProjects.filter(project => starredProjects.has(project.id));
+            
+            // Calculate total dollar value of filtered projects
+            const totalValue = filteredProjects.reduce((sum, project) => sum + project.amount, 0);
+
+            const closePreferences = () => {
+                setShowPreferences(false);
+            };
 
             return (
                 <div className="min-h-screen bg-gray-50">
@@ -476,29 +690,38 @@
                         </div>
 
                         {/* My Project Selections */}
-                        {votedProjects.length > 0 && (
+                        {starredProjectsList.length > 0 && (
                             <div className="bg-white rounded-lg p-6 mb-8 shadow-sm border border-gray-100">
                                 <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                                     <StarIcon filled={true} className="w-5 h-5 mr-2 text-yellow-500" />
-                                    My Project Selections ({votedProjects.length})
+                                    My Project Selections ({starredProjectsList.length})
                                 </h2>
                                 <div className="grid gap-4">
-                                    {votedProjects.map(vote => {
-                                        const project = mockProjects.find(p => p.id === vote.projectId);
-                                        return project ? (
-                                            <div key={vote.projectId} className="p-4 bg-gray-50 rounded-lg">
+                                    {starredProjectsList.map(project => {
+                                        const vote = votes.find(v => v.projectId === project.id);
+                                        return (
+                                            <div key={project.id} className="p-4 bg-gray-50 rounded-lg">
                                                 <div className="flex items-center justify-between mb-2">
                                                     <div className="flex-1">
                                                         <h3 className="font-medium text-gray-900">{project.title}</h3>
                                                         <p className="text-sm text-gray-600">{project.country} • {project.sector}</p>
                                                     </div>
-                                                    <StarRating 
-                                                        rating={vote.rating} 
-                                                        onRatingChange={(rating) => handleVote(vote.projectId, rating)}
-                                                        size="sm"
-                                                    />
+                                                    <div className="flex items-center space-x-2">
+                                                        <StarRating 
+                                                            rating={vote?.rating || 0} 
+                                                            onRatingChange={(rating) => handleVote(project.id, rating)}
+                                                            size="sm"
+                                                        />
+                                                        <DropdownMenu
+                                                            projectId={project.id}
+                                                            isStarred={starredProjects.has(project.id)}
+                                                            hasComment={!!vote?.comment}
+                                                            onToggleStar={handleToggleStar}
+                                                            onToggleComment={handleToggleComment}
+                                                        />
+                                                    </div>
                                                 </div>
-                                                {vote.comment && (
+                                                {vote?.comment && (
                                                     <div className="mt-2 p-3 bg-white rounded border border-gray-200">
                                                         <div className="flex items-center space-x-2 mb-1">
                                                             <MessageSquareIcon className="w-3 h-3 text-gray-500" />
@@ -508,70 +731,56 @@
                                                     </div>
                                                 )}
                                             </div>
-                                        ) : null;
+                                        );
                                     })}
                                 </div>
                             </div>
                         )}
 
-                        {/* Search and Preferences */}
-                        <div className="mb-8 space-y-4">
-                            {/* Search Bar */}
-                            <div className="relative">
-                                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                <input
-                                    type="text"
-                                    placeholder="Search projects by title, country, sector, or tags..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                />
-                            </div>
-
-                            {/* Preferences Toggle */}
-                            <div className="flex items-center justify-between">
+                        {/* Preferences Toggle (hidden when panel is shown) */}
+                        {!showPreferences && (
+                            <div className="mb-6">
                                 <button
-                                    onClick={() => setShowPreferences(!showPreferences)}
+                                    onClick={() => setShowPreferences(true)}
                                     className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                                 >
                                     <SettingsIcon className="w-4 h-4" />
                                     <span>My Preferences</span>
-                                    {showPreferences ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />}
+                                    <ChevronDownIcon className="w-4 h-4" />
                                 </button>
-                                
-                                {activePreferences.length > 0 && (
-                                    <div className="flex items-center space-x-2">
-                                        <FilterIcon className="w-4 h-4 text-green-600" />
-                                        <span className="text-sm text-gray-600">
-                                            {activePreferences.length} preference{activePreferences.length !== 1 ? 's' : ''} active
-                                        </span>
-                                    </div>
-                                )}
                             </div>
+                        )}
 
-                            {/* Preferences Panel */}
-                            {showPreferences && (
-                                <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Voting Preferences</h3>
-                                    <p className="text-sm text-gray-600 mb-4">
-                                        Select your areas of interest to filter projects that align with your preferences:
-                                    </p>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                                        {votingPreferences.map(preference => (
-                                            <label key={preference} className="flex items-center space-x-2 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={preferences[preference] || false}
-                                                    onChange={(e) => handlePreferenceChange(preference, e.target.checked)}
-                                                    className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                                                />
-                                                <span className="text-sm text-gray-700">{preference}</span>
-                                            </label>
-                                        ))}
-                                    </div>
+                        {/* Preferences Panel */}
+                        {showPreferences && (
+                            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100 mb-8">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-lg font-semibold text-gray-900">Voting Preferences</h3>
+                                    <button
+                                        onClick={closePreferences}
+                                        className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                                    >
+                                        <XIcon className="w-5 h-5 text-gray-500" />
+                                    </button>
                                 </div>
-                            )}
-                        </div>
+                                <p className="text-sm text-gray-600 mb-4">
+                                    Select your areas of interest to filter projects that align with your preferences:
+                                </p>
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                    {votingPreferences.map(preference => (
+                                        <label key={preference} className="flex items-center space-x-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={preferences[preference] || false}
+                                                onChange={(e) => handlePreferenceChange(preference, e.target.checked)}
+                                                className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                            />
+                                            <span className="text-sm text-gray-700">{preference}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         {/* Active Preference Filter Links */}
                         {activePreferences.length > 0 && (
@@ -601,11 +810,28 @@
                             </div>
                         )}
 
+                        {/* Search Bar */}
+                        <div className="mb-8">
+                            <div className="relative">
+                                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                <input
+                                    type="text"
+                                    placeholder="Search projects by title, country, sector, or tags..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                />
+                            </div>
+                        </div>
+
                         {/* Projects Grid */}
                         <div className="space-y-6">
                             <div className="flex items-center justify-between">
                                 <h2 className="text-xl font-semibold text-gray-900">
                                     US Development Finance Corporation Projects ({filteredProjects.length})
+                                    <span className="ml-4 text-lg font-medium text-green-600">
+                                        Total: ${totalValue.toLocaleString()}
+                                    </span>
                                 </h2>
                                 {searchTerm && (
                                     <button
@@ -634,6 +860,10 @@
                                             userVote={votes.find(v => v.projectId === project.id)}
                                             onVote={handleVote}
                                             onCommentChange={handleCommentChange}
+                                            onToggleStar={handleToggleStar}
+                                            isStarred={starredProjects.has(project.id)}
+                                            showCommentForced={forceShowComment.has(project.id)}
+                                            onToggleComment={handleToggleComment}
                                         />
                                     ))}
                                 </div>
