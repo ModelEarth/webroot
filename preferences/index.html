@@ -542,6 +542,16 @@
             const activePreferences = Object.keys(appState.preferences).filter(key => appState.preferences[key]);
             const totalValue = filteredProjects.reduce((sum, project) => sum + project.amount, 0);
 
+            // Header info
+            const headerInfo = createElement('div', 'mb-8');
+            headerInfo.innerHTML = `
+                <p class="text-gray-600">
+                    <a href="../crm">Partner Database Development</a> - 
+                    View <a href="manager.html">Preferences Manager</a> and <a href="projects">Projects from the US Development Finance Corporation (DFC)</a>.
+                </p>
+            `;
+            mainContent.appendChild(headerInfo);
+
             // Starred projects section
             if (starredProjectsList.length > 0) {
                 const starredSection = createElement('div', 'bg-white rounded-lg p-6 mb-8 shadow-sm border border-gray-100');
@@ -583,16 +593,6 @@
                 starredSection.appendChild(starredGrid);
                 mainContent.appendChild(starredSection);
             }
-
-            // Header info
-            const headerInfo = createElement('div', 'mb-8');
-            headerInfo.innerHTML = `
-                <p><b>Mockup for Bolt AI Hackathon</b></p>
-                <p class="text-gray-600">
-                    Set your preferences and indicate your enthusiasm for Development Finance Corporation projects. <a href="../crm">Partner Tools</a>
-                </p>
-            `;
-            mainContent.appendChild(headerInfo);
 
             // Preferences toggle
             if (!appState.showPreferences) {
@@ -756,7 +756,7 @@
             const footerContent = createElement('div', 'text-center text-sm text-gray-500');
             footerContent.innerHTML = `
                 <p>
-                    To be powered by <a href="https://github.com/compdemocracy">Computational Democracy tools</a> and <a href="https://www.dfc.gov/our-impact/transaction-data">DFC transaction data</a>
+                    Explore <a href="https://github.com/compdemocracy">Computational Democracy Tools</a> and <a href="https://www.dfc.gov/our-impact/transaction-data">DFC Transaction Data</a>
                 </p>
                 <p class="mt-1">
                     <b>Dev Site - Mockup for Bolt AI Hackathon</b>
