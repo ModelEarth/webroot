@@ -1,3 +1,4 @@
-**CRM and Partner Admin**  
-&bullet; [SuiteCRM - Partner Database for&nbsp;Azure](crm/)
-&bullet; [Extending Microsoft with Discord&nbsp;API](/panels/)
+**Partner Admin**  
+&bullet; [Partner Database (SuiteCRM)](crm/)
+&bullet; [Exiobase Trade Flow](/profile/trade/)  
+&bullet; [Microsoft with Discord&nbsp;API](/panels/)

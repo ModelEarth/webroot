@@ -1,4 +1,8 @@
-# OpenFootprint
+<!-- # OpenFootprint -->
+
+## Template Panel
+
+Navigation inactive
 
 [Profile YAML Object](/profile/item/) - [Food API Label Builder](/data-commons/docs/food/) - [YAML Profile Parser](/io/template/parser/)  
 <!--

@@ -9,6 +9,7 @@
 <b>Exiobase International Trade Data</b>
 Our IO Team has been generating [JSON](../impacts/json/), <a href="/profile/prep/sql/duckdb/">DuckDB Parquet</a> and <a href="/profile/prep/sql/supabase/">Supabase database inserts</a> for comparing industries and identifying imports with positive environmental impacts using [a Javascript frontend](../impacts/).
 
+<a href="https://github.com/ModelEarth/profile/tree/main/impacts">IO Data on GitHub</a> -  Includes <a href="/io/about/">US state data</a> and <a href="https://github.com/ModelEarth/profile/tree/main/impacts/exiobase/US-source">Exiobase US Trade CSV files</a>.
 
 We've also output [DuckDB parquet files from USEEIO](https://github.com/ModelEarth/profile/tree/main/impacts/useeio) - dev by Satyabrat<!-- When readme added: [DuckDB parquet files from USEEIO](../impacts/useeio) -->
 DuckDB supports SQL JOINs in any browser via [WebAssembly WASM](https://duckdb.org/docs/api/wasm/overview.html)
