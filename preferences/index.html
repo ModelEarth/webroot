@@ -15,6 +15,11 @@
     body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
     }
+    h1 {
+        font-size: 28px !important;
+        font-weight: 700 !important;
+        font-family: Roboto, Inter, -apple-system, system-ui, BlinkMacSystemFont, Segoe UI, Helvetica Neue, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
+    }
     .star-icon {
         width: 20px;
         height: 20px;
@@ -43,6 +48,9 @@
     .icon-xs {
         width: 12px;
         height: 12px;
+    }
+    .activeFiltersLabel {
+        float: left;
     }
     .dropdown-menu {
         position: absolute;
@@ -543,14 +551,32 @@
             const totalValue = filteredProjects.reduce((sum, project) => sum + project.amount, 0);
 
             // Header info
-            const headerInfo = createElement('div', 'mb-8');
+            const headerInfo = createElement('div', 'mb-4');
             headerInfo.innerHTML = `
+                <h1>Project Opportunities</h1>
                 <p class="text-gray-600">
                     <a href="../crm">Partner Database Development</a> - 
-                    View <a href="manager.html">Preferences Manager</a> and <a href="projects">Projects from the US Development Finance Corporation (DFC)</a>.
+                    View <a href="manager.html">Preferences Manager</a> and <a href="projects">Detailed Project List</a>.
                 </p>
             `;
             mainContent.appendChild(headerInfo);
+
+            // Search bar
+            const searchSection = createElement('div', 'mb-4');
+            const searchContainer = createElement('div', 'relative');
+            searchContainer.innerHTML = '<svg class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>';
+            const searchInput = createElement('input');
+            searchInput.type = 'text';
+            searchInput.placeholder = 'Search projects by title, country, sector, or tags...';
+            searchInput.className = 'w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent';
+            searchInput.value = appState.searchTerm;
+            searchInput.addEventListener('input', (e) => {
+                appState.searchTerm = e.target.value;
+                render();
+            });
+            searchContainer.appendChild(searchInput);
+            searchSection.appendChild(searchContainer);
+            mainContent.appendChild(searchSection);
 
             // Starred projects section
             if (starredProjectsList.length > 0) {
@@ -655,8 +681,8 @@
 
             // Active preference filters
             if (activePreferences.length > 0) {
-                const filtersSection = createElement('div', 'mb-6');
-                const filtersHeader = createElement('div', 'flex items-center space-x-2 mb-3');
+                const filtersSection = createElement('div', 'mb-6 flex items-center gap-6');
+                const filtersHeader = createElement('div', 'flex items-center space-x-2 flex-shrink-0');
                 filtersHeader.innerHTML = '<svg class="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46" /></svg>';
                 filtersHeader.appendChild(createElement('span', 'text-sm font-medium text-gray-700', 'Active Filters:'));
 
@@ -691,31 +717,17 @@
                 mainContent.appendChild(filtersSection);
             }
 
-            // Search bar
-            const searchSection = createElement('div', 'mb-8');
-            const searchContainer = createElement('div', 'relative');
-            searchContainer.innerHTML = '<svg class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>';
-            
-            const searchInput = createElement('input');
-            searchInput.type = 'text';
-            searchInput.placeholder = 'Search projects by title, country, sector, or tags...';
-            searchInput.className = 'w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent';
-            searchInput.value = appState.searchTerm;
-            searchInput.addEventListener('input', (e) => {
-                appState.searchTerm = e.target.value;
-                render();
-            });
-            
-            searchContainer.appendChild(searchInput);
-            searchSection.appendChild(searchContainer);
-            mainContent.appendChild(searchSection);
-
             // Projects section
             const projectsSection = createElement('div', 'space-y-6');
-            const projectsHeader = createElement('div', 'flex items-center justify-between');
-            const projectsTitle = createElement('h2', 'text-xl font-semibold text-gray-900');
-            projectsTitle.innerHTML = `US Development Finance Corporation Projects (${filteredProjects.length}) <span class="ml-4 text-lg font-medium text-green-600">Total: $${totalValue.toLocaleString()}</span>`;
+            const projectsHeader = createElement('div', 'w-full flex items-center justify-between pl-[5px] pr-[8px]');
+            const projectsTitle = createElement('h3', 'text-xl font-semibold text-gray-900');
+            projectsTitle.textContent = `US Development Finance Corporation Projects (${filteredProjects.length})`;
+
+            const totalAmount = createElement('span', 'text-lg font-medium text-gray-900');
+            totalAmount.textContent = `Total: $${totalValue.toLocaleString()}`;
+
             projectsHeader.appendChild(projectsTitle);
+            projectsHeader.appendChild(totalAmount);
 
             if (appState.searchTerm) {
                 const clearSearchButton = createElement('button', 'text-sm text-gray-500 hover:text-gray-700', 'Clear search');
