@@ -657,13 +657,23 @@ install_php_PC() {
 if [[ "$os" == "macos" ]]; then
     
     echo "Platform detected: macOS - Beginning setup process..."
-    
+    # Track installation status
+    HOMEBREW_INSTALLED=false
+    HOMEBREW_FAILED=false
+
     # Check for Homebrew installation
     echo "🔍 Checking for Homebrew..."
     if ! command -v brew &> /dev/null; then
       echo "🍺 Homebrew not found. Installing..."
       /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" || {
         echo "❌ Failed to install Homebrew. Please install it manually: https://brew.sh"
+        echo "⚠️ Without Homebrew, the following components might NOT be installed:"
+        echo "   - Apache (httpd)"
+        echo "   - PHP 8.2"
+        echo "   - MariaDB"
+        echo "   - wget, unzip utilities"
+        echo ""
+        HOMEBREW_FAILED=true
         exit 1
       }
       
@@ -675,8 +685,10 @@ if [[ "$os" == "macos" ]]; then
         echo 'eval "$(/usr/local/bin/brew shellenv)"' >> ~/.zprofile
         eval "$(/usr/local/bin/brew shellenv)"
       fi
+      HOMEBREW_INSTALLED=true
     else
       echo "✅ Homebrew is already installed."
+      HOMEBREW_INSTALLED=true
     fi
 
     # Function for installing packages
