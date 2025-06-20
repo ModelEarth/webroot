@@ -4,21 +4,25 @@
 
 [SuiteCRM](https://SuiteCRM.com) provides a standardized partner admin [database schema](https://schema--suitecrm-docs.netlify.app/schema) with a [large developer community](https://community.SuiteCRM.com). 
 
-For common module development in [Bolt AI prompts](https://hackathon.dev/) reference the [SuiteCRM SQL Schema](https://github.com/ModelEarth/profile/blob/main/crm/sql/crm.sql) which uses tables matching Salesforce and Microsoft Dynamic's [Common&nbsp;Data&nbsp;Model&nbsp;(CDM)](https://learn.microsoft.com/en-us/common-data-model). Primary table names:
+For common module development in [Bolt AI prompts](https://hackathon.dev/) reference the [SuiteCRM SQL Schema](https://github.com/ModelEarth/profile/blob/main/crm/sql/crm.sql) which uses tables matching Salesforce and Microsoft Dynamic's [Common&nbsp;Data&nbsp;Model&nbsp;(CDM)](https://learn.microsoft.com/en-us/common-data-model). Primary [table](sql/tables.md) names:
 
 users
 accounts - which include organizations
 contacts
-opportunities - which include projects
+opportunities
 activities - which include tasks
+campaigns
+documents
+events
+roles
+projects
+products
+prospects
+calls
+leads
+surveyquestionoptions
 tags
 taggables
-
-<!--
-campaigns
-campaign_contacts
-leads
--->
 
 The initial 10-minute SuiteCRM .sh [Linux install](https://github.com/motaviegas/SuiteCRM_Script) script was developed by Chris for his [video and steps](https://community.suitecrm.com/t/how-to-install-suitecrm-8-6-1-under-10-minutes/93252).
 
@@ -35,6 +39,11 @@ Some coders may prefere to work in the default Apache www root:
 -->
 
 ## 10-Minute SuiteCRM Setup
+
+Check [SuiteCRM 8.x compatibility matrix](https://docs.suitecrm.com/8.x/admin/compatibility-matrix/)
+
+    php -v
+    httpd -v
 
 As you run the suite.sh install, you may want to also check the [steps below video](https://community.suitecrm.com/t/how-to-install-suitecrm-8-6-1-under-10-minutes/93252).
 suite.sh will modify your httpd-vhosts and httpd.conf files. For file locations, see [apache/mac-intel](apache/mac-intel).
@@ -119,8 +128,8 @@ Create the missing file and update the httpd.conf file.
 -->
 
 For installations through Homebrew, files are at /usr/local/etc/httpd/httpd.conf.
-Otherwise the Apache httpd.conf file might are at /etc/apache2/httpd.conf. 
-So the following changes ot the Apache default after a Homebrew install.
+Otherwise the Apache httpd.conf file might be at /etc/apache2/httpd.conf. 
+So the following changes to the Apache default after a Homebrew install.
 
     sudo mkdir -p /opt/homebrew/etc/httpd/extra
     sudo cp /usr/local/etc/httpd/extra/httpd-vhosts.conf /opt/homebrew/etc/httpd/extra/httpd-vhosts.conf
