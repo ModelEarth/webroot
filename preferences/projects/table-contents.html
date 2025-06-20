@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
     <title>DFC Annual Project Data Viewer</title>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -222,7 +223,7 @@
         // Load and parse the Excel file
         async function loadExcelFile() {
             try {
-                const response = await fetch('FY24.xlsx');
+                const response = await fetch('DFC-FY24.xlsx');
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
