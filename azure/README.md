@@ -340,3 +340,7 @@ az account set --subscription "your-subscription-id"
 #### 4. Server name conflicts
 - Server names must be globally unique across Azure
 - Try adding random numbers or your organization prefix
+
+---
+<br>
+Also see: [Script for installing SuiteCRM](../crm/)
