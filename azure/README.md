@@ -29,13 +29,13 @@ The script will guide you through:
 ## Schema Management
 
 ### GitHub Schema URLs
-The script supports GitHub raw URLs for schema files:
+The script supports GitHub raw URLs for [SQL schema files](https://github.com/ModelEarth/profile/tree/main/crm/sql):
 ```
-https://raw.githubusercontent.com/username/repository/branch/path/to/schema.sql
+https://raw.githubusercontent.com/ModelEarth/profile/refs/heads/main/crm/sql/crm-postgres.sql
 ```
 
 ### Schema Application Process
-1. **Download**: SuiteCRM Schema is provided to Azure from the specified URL
+1. **Download**: SQL Schema is provided to Azure from the specified URL
 2. **Preview**: First 20 lines are displayed for confirmation
 3. **Confirmation**: User confirms before application
 4. **Application**: Schema is applied using appropriate database client
