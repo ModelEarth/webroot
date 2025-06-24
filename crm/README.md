@@ -1,10 +1,14 @@
-# Partner Database
+# MemberCommons
+
+## Partner database for streamlined and open partner tools
 
 <!-- Under Development - SQL table CREATE script for Azure -->
 
-[SuiteCRM](https://SuiteCRM.com) provides a standardized partner admin [database schema](https://schema--suitecrm-docs.netlify.app/schema) with a [large developer community](https://community.SuiteCRM.com). 
+MemberCommons uses the [SuiteCRM](https://SuiteCRM.com) standardized [database schema](https://schema--suitecrm-docs.netlify.app/schema) which has a [large support community](https://community.SuiteCRM.com). 
 
-Use our [Azure database management script](../azure/) for common module development using [Bolt AI prompts](https://hackathon.dev/) that reference the [SuiteCRM SQL Schema](https://github.com/ModelEarth/profile/blob/main/crm/sql/crm.sql) for tables matching Salesforce and Microsoft Dynamic's [Common&nbsp;Data&nbsp;Model&nbsp;(CDM)](https://learn.microsoft.com/en-us/common-data-model). Primary [table names](sql/tables.md) include:
+[Our Azure management script](../azure/) installs a [Common SQL Schema](https://github.com/ModelEarth/profile/tree/main/crm/sql).
+
+Tables names match Salesforce and [Microsoft Dynamics Common Data Model (CDM)](https://learn.microsoft.com/en-us/common-data-model):
 
 users
 accounts - which include organizations
@@ -23,6 +27,7 @@ leads
 surveyquestionoptions
 tags
 taggables
+[View all table names](sql/tables.md)
 
 The initial 10-minute SuiteCRM .sh [Linux install](https://github.com/motaviegas/SuiteCRM_Script) script was developed by Chris for his [video and steps](https://community.suitecrm.com/t/how-to-install-suitecrm-8-6-1-under-10-minutes/93252).
 
