@@ -2,6 +2,59 @@
 
 A user-friendly bash script for managing Azure SQL and PostgreSQL databases with configuration file support.
 
+### 1. Initial Setup
+```bash
+chmod +x azure.sh
+./azure.sh
+```
+
+### 2. Interactive Configuration
+The script will guide you through:
+- Database type selection (SQL or PostgreSQL)
+- Azure resource configuration
+- Server and database settings
+- Schema URL configuration
+- Auto-apply preferences
+
+### 3. Menu Options
+
+1. **Deploy infrastructure from config**: Creates all resources based on configuration
+2. **Update existing resources**: Updates or ensures resources exist
+3. **View current configuration**: Displays current settings (passwords hidden)
+4. **Update configuration**: Modify settings interactively
+5. **Apply schema from URL**: Download and apply schema from GitHub
+6. **Delete resources**: Remove databases, servers, or entire resource groups
+7. **Exit**: Close the application
+
+## Schema Management
+
+### GitHub Schema URLs
+The script supports GitHub raw URLs for schema files:
+```
+https://raw.githubusercontent.com/username/repository/branch/path/to/schema.sql
+```
+
+### Schema Application Process
+1. **Download**: SuiteCRM Schema is provided to Azure from the specified URL
+2. **Preview**: First 20 lines are displayed for confirmation
+3. **Confirmation**: User confirms before application
+4. **Application**: Schema is applied using appropriate database client
+
+### Auto-Apply Feature
+- Set `"auto_apply": true` in configuration
+- Schema will be automatically applied after database creation
+- Useful for CI/CD pipelines and automated deployments
+
+## Database Type Comparison
+
+| Feature | Azure SQL Database | Azure PostgreSQL |
+|---------|-------------------|------------------|
+| **Pricing Tiers** | Basic, Standard, Premium | Basic, General Purpose, Memory Optimized |
+| **Compute Sizes** | S0-S12, P1-P15 | B_Gen5_1/2, GP_Gen5_2/4/8/16/32 |
+| **Connection Port** | 1433 | 5432 |
+| **Client Tool** | sqlcmd | psql |
+| **SSL** | Encrypt=True | sslmode=require |
+
 
 ## Features
 
@@ -19,25 +72,10 @@ A user-friendly bash script for managing Azure SQL and PostgreSQL databases with
   - macOS: `brew install jq`
   - Windows: Download from [jq website](https://stedolan.github.io/jq/download/)
 
-## Quick Start
-
-1. **Make the script executable**:
-   ```bash
-   chmod +x azure.sh
-   ```
-
-2. **Run the script**:
-   ```bash
-   ./azure.sh
-   ```
-
-3. **First run setup**:
-   - The script will detect that no configuration exists
-   - Choose option 1 to create configuration interactively
-   - Or choose option 2 to create manually from template
-
 
 ## Configuration Structure
+
+When no configuration file exists, you'll be guided to create one manually or interactively.
 
 The script uses a JSON configuration file (`azure-db-config.json`) with the following structure:
 
@@ -152,14 +190,16 @@ The script uses a JSON configuration file (`azure-db-config.json`) with the foll
 ## File Structure
 
 ```
-your-project/
-├── azure.sh          # Main script
-├── azure-db-config.json           # Your configuration (not in Git)
-├── azure-db-config.template.json  # Template file (safe to commit)
-├── .gitignore                      # Excludes config files
-└── README.md                       # This file
+profile/
+├── .gitignore                         # Excludes config files
+├── azure/
+    ├── azure.sh                       # Main script
+    ├── azure-db-config.json           # Your configuration (not in Git)
+    ├── azure-db-config.template.json  # Template file (safe to commit)
+    └── README.md                      # This file
 ```
 
+<!--
 ## Usage Examples
 
 ### Initial Setup
@@ -182,6 +222,7 @@ your-project/
 # Choose option 3 to update database settings
 # Then option 1 to deploy changes
 ```
+-->
 
 ## Error Handling
 
@@ -270,61 +311,6 @@ brew install azure-cli jq curl postgresql
 # Install Azure CLI from: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli
 # Install other tools through package managers or direct downloads
 ```
-
-## Usage
-
-### 1. Initial Setup
-```bash
-chmod +x azure.sh
-./azure.sh
-```
-
-### 2. Interactive Configuration
-The script will guide you through:
-- Database type selection (SQL or PostgreSQL)
-- Azure resource configuration
-- Server and database settings
-- Schema URL configuration
-- Auto-apply preferences
-
-### 3. Menu Options
-
-1. **Deploy infrastructure from config**: Creates all resources based on configuration
-2. **Update existing resources**: Updates or ensures resources exist
-3. **View current configuration**: Displays current settings (passwords hidden)
-4. **Update configuration**: Modify settings interactively
-5. **Apply schema from URL**: Download and apply schema from GitHub
-6. **Delete resources**: Remove databases, servers, or entire resource groups
-7. **Exit**: Close the application
-
-## Schema Management
-
-### GitHub Schema URLs
-The script supports GitHub raw URLs for schema files:
-```
-https://raw.githubusercontent.com/username/repository/branch/path/to/schema.sql
-```
-
-### Schema Application Process
-1. **Download**: Schema is downloaded from the specified URL
-2. **Preview**: First 20 lines are displayed for confirmation
-3. **Confirmation**: User confirms before application
-4. **Application**: Schema is applied using appropriate database client
-
-### Auto-Apply Feature
-- Set `"auto_apply": true` in configuration
-- Schema will be automatically applied after database creation
-- Useful for CI/CD pipelines and automated deployments
-
-## Database Type Comparison
-
-| Feature | Azure SQL Database | Azure PostgreSQL |
-|---------|-------------------|------------------|
-| **Pricing Tiers** | Basic, Standard, Premium | Basic, General Purpose, Memory Optimized |
-| **Compute Sizes** | S0-S12, P1-P15 | B_Gen5_1/2, GP_Gen5_2/4/8/16/32 |
-| **Connection Port** | 1433 | 5432 |
-| **Client Tool** | sqlcmd | psql |
-| **SSL** | Encrypt=True | sslmode=require |
 
 
 ## Troubleshooting
