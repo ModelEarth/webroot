@@ -4,7 +4,7 @@
 
 [SuiteCRM](https://SuiteCRM.com) provides a standardized partner admin [database schema](https://schema--suitecrm-docs.netlify.app/schema) with a [large developer community](https://community.SuiteCRM.com). 
 
-User our [Azure database management script](../azure/) for common module development using [Bolt AI prompts](https://hackathon.dev/) that reference the [SuiteCRM SQL Schema](https://github.com/ModelEarth/profile/blob/main/crm/sql/crm.sql) for tables matching Salesforce and Microsoft Dynamic's [Common&nbsp;Data&nbsp;Model&nbsp;(CDM)](https://learn.microsoft.com/en-us/common-data-model). Primary [table names](sql/tables.md) include:
+Use our [Azure database management script](../azure/) for common module development using [Bolt AI prompts](https://hackathon.dev/) that reference the [SuiteCRM SQL Schema](https://github.com/ModelEarth/profile/blob/main/crm/sql/crm.sql) for tables matching Salesforce and Microsoft Dynamic's [Common&nbsp;Data&nbsp;Model&nbsp;(CDM)](https://learn.microsoft.com/en-us/common-data-model). Primary [table names](sql/tables.md) include:
 
 users
 accounts - which include organizations
