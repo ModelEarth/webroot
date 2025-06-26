@@ -1,6 +1,6 @@
 # MemberCommons
 
-## Partner database for streamlined and open partner tools
+## Partner Tools for Collaborative Development
 
 <!-- Under Development - SQL table CREATE script for Azure -->
 
