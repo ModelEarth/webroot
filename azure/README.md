@@ -1,6 +1,6 @@
 # Azure Database Management Script
 
-A user-friendly bash script for managing Azure SQL and PostgreSQL databases with configuration file support.
+A user-friendly bash script for managing Azure SQL and PostgreSQL databases using configuration file settings.
 
 ### 1. Initial Setup
 ```bash

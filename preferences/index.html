@@ -3,12 +3,22 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-<title>Project Opportunities</title>
+<title>Project Preferences</title>
 <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link type="text/css" rel="stylesheet" href="/localsite/css/base.css" id="/localsite/css/base.css" />
 <script type="text/javascript" src="/localsite/js/localsite.js?showheader=true&showsearch=false"></script>
+
+<style>
+  .navlink-preferences {
+    font: 600 16px/1.8 "Lato", sans-serif !important;
+    color: #222 !important;
+  }
+  .dark .navlink-preferences {
+      color: #fff !important;
+  }
+</style>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -932,10 +942,10 @@
             // Header info
             const headerInfo = createElement('div', 'mb-4');
             headerInfo.innerHTML = `
-                <h1>Project Opportunities</h1>
+                <h1>Project Preferences</h1>
                 <p class="text-gray-600">
                     ${appState.excelLoaded ? 'Data loaded' : 'Using fallback data (Excel file not found)'} - 
-                    <a href="../crm">Partner Database Development</a> - 
+                    <a href="../crm">MemberCommons</a> - 
                     View <a href="manager.html">Preference Manager</a> and <a href="projects">Detailed Project List</a>.
                 </p>
             `;
