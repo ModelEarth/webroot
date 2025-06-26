@@ -1,14 +1,14 @@
-# MemberCommons
+# Partner Tools
 
-## Partner Tools for Collaborative Development
+## MemberCommons for Collaborative Development
 
 <!-- Under Development - SQL table CREATE script for Azure -->
 
-MemberCommons uses the [SuiteCRM](https://SuiteCRM.com) standardized [database schema](https://schema--suitecrm-docs.netlify.app/schema) which has a [large support community](https://community.SuiteCRM.com). 
-
-[Our Azure management script](../azure/) installs a [Common SQL Schema](https://github.com/ModelEarth/profile/tree/main/crm/sql).
+MemberCommons uses [SuiteCRM's](https://SuiteCRM.com) standard [database schema](https://schema--suitecrm-docs.netlify.app/schema) which has a [large support community](https://community.SuiteCRM.com). 
 
 Tables names match Salesforce and [Microsoft Dynamics Common Data Model (CDM)](https://learn.microsoft.com/en-us/common-data-model):
+
+[Our Azure management script](../azure/) installs this [Common SQL Schema](https://github.com/ModelEarth/profile/tree/main/crm/sql) with table names including:
 
 users
 accounts - which include organizations
@@ -29,10 +29,12 @@ tags
 taggables
 [View all table names](sql/tables.md)
 
-The initial 10-minute SuiteCRM .sh [Linux install](https://github.com/motaviegas/SuiteCRM_Script) script was developed by Chris for his [video and steps](https://community.suitecrm.com/t/how-to-install-suitecrm-8-6-1-under-10-minutes/93252).
 
-Our updated suite.sh script below runs MariaDB on MacOS and PC with PHP.  
+## 10-Minute SuiteCRM Setup
+
+Our suite.sh script below runs MariaDB on MacOS and PC with PHP.  
 [Send a PR](https://github.com/ModelEarth/profile/tree/main/crm) with your updates adding Azure below.
+The initial 10-minute SuiteCRM .sh [Linux install](https://github.com/motaviegas/SuiteCRM_Script) script was developed by Chris for his [video and steps](https://community.suitecrm.com/t/how-to-install-suitecrm-8-6-1-under-10-minutes/93252).
 
 <!--
 Some coders may prefere to work in the default Apache www root:
@@ -42,8 +44,6 @@ Some coders may prefere to work in the default Apache www root:
 <!--
 [Our prior .sh fork for Mac and Windows - SuiteCRM 8.8.0](https://github.com/ModelEarth/SuiteCRM_Script/blob/main/SCRM_8.8.0_MacLinuxWindows.sh)  
 -->
-
-## 10-Minute SuiteCRM Setup
 
 Check [SuiteCRM 8.x compatibility matrix](https://docs.suitecrm.com/8.x/admin/compatibility-matrix/)
 
