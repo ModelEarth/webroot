@@ -1,0 +1,1 @@
+-- Resides at https://github.com/localsite/membercommons/blob/main/sql/suitecrm-postgres.sql
