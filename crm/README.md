@@ -2,7 +2,7 @@
 
 ## MemberCommons for Collaborative Development
 
-Check out our new [MemberCommons DemocracyLab 2.0 development](../../membercommons/) using [Bolt AI](https://bolt.new/)!
+Check out our new [MemberCommons](../../membercommons/) prototype for DemocracyLab 2.0 using [Bolt AI](https://bolt.new/)!
 
 <!-- Under Development - SQL table CREATE script for Azure -->
 
