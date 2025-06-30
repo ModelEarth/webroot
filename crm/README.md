@@ -2,6 +2,8 @@
 
 ## MemberCommons for Collaborative Development
 
+Check out our new [MemberCommons DemocracyLab 2.0 development](../../membercommons/) using [Bolt AI](https://bolt.new/)!
+
 <!-- Under Development - SQL table CREATE script for Azure -->
 
 MemberCommons uses [SuiteCRM's](https://SuiteCRM.com) standard [database schema](https://schema--suitecrm-docs.netlify.app/schema) which has a [large support community](https://community.SuiteCRM.com). 
