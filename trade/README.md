@@ -42,7 +42,7 @@ IDs are singular with an underscore, example: factor_id
 This is a standard used widely by Salesforce and others.
 
 We're using UUIDs for any ID that could be shared beyond the database.
-So IDs are UUIDs for factors, industries, accounts, users, projects, etc.
+So IDs are UUIDs for industries, accounts, users, projects, etc.
 
 For spreadsheets, use capitalized CamelCase for column names. 
 
