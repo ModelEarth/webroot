@@ -25,7 +25,7 @@ We're also using [Mario](https://mario-suite.readthedocs.io/en/latest/intro.html
 Each database instance (for a country-year) will contain these tables:
 
 **GOAL: Output these SQL Tables for a country and year (2020)**
-factor (includes factor_id and flow_id)
+factors (includes factor_id and flow_id)
 industries (5-char sector)
 industry_factor
 commodities (6-char product)
@@ -36,6 +36,15 @@ importcontributions
 importmultiplier_factor
 
 The Industry is 5-char and the Commodity is 6-char.
+
+Table names are plural, unless they relate entities.
+IDs are singular with an underscore, example: factor_id
+This is a standard used widely by Salesforce and others.
+
+We're using UUIDs for any ID that could be shared beyond the database.
+So IDs are UUIDs for accounts, users, projects, etc.
+
+For spreadsheets, use capitalized CamelCase for column names. 
 
 **Contribute to these CoLabs:**   
 <!-- these 2 also reside on DuckDB page -->
