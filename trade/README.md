@@ -35,7 +35,7 @@ Importcommodity_factor
 importcontributions
 importmultiplier_factor
 
-The Industry is 5-char and the Commodity is 6-char.
+The Industry is a 5-char sector ID, and the Commodity is 6-char.
 
 Table names are plural, unless they relate entities.
 IDs are singular with an underscore, example: factor_id
