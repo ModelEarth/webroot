@@ -10,7 +10,7 @@ MemberCommons uses [SuiteCRM's](https://SuiteCRM.com) standard [database schema]
 
 Tables names match Salesforce and [Microsoft Dynamics Common Data Model (CDM)](https://learn.microsoft.com/en-us/common-data-model):
 
-[Our Azure management script](../azure/) installs this [Common SQL Schema](https://github.com/ModelEarth/profile/tree/main/crm/sql) with table names including:
+[Our Azure management script](../azure/) installs this [Common SQL Schema](https://github.com/localsite/membercommons/blob/main/admin/sql/suitecrm-postgres.sql) [[Maria and SQL versions](https://github.com/ModelEarth/profile/tree/main/crm/sql)] with table names including:
 
 users
 accounts - which include organizations

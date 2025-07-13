@@ -1,1 +1,1 @@
--- Resides at https://github.com/localsite/membercommons/blob/main/sql/suitecrm-postgres.sql
+-- Resides at https://github.com/localsite/membercommons/blob/main/admin/sql/suitecrm-postgres.sql

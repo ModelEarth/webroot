@@ -25,15 +25,15 @@ We're also using [Mario](https://mario-suite.readthedocs.io/en/latest/intro.html
 Each database instance (for a country-year) will contain these tables:
 
 **GOAL: Output these SQL Tables for a country and year (2020)**
-Factor (includes FactorID and FlowUUID)
-Industry (5-char sector)
-IndustryFactor
-Commodity (6-char product)
-CommodityFactor
-ImportIndustryFactor
-ImportCommodityFactor
-ImportContributions
-ImportMultiplierFactor
+factor (includes factor_id and flow_id)
+industries (5-char sector)
+industry_factor
+commodities (6-char product)
+commodity_factor
+importindustry_factor
+Importcommodity_factor
+importcontributions
+importmultiplier_factor
 
 The Industry is 5-char and the Commodity is 6-char.
 
