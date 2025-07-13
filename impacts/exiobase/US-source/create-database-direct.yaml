@@ -1,4 +1,4 @@
-Factor:
+factor:
   index: FactorID
   indextype: 1-based
   columns:
@@ -8,11 +8,11 @@ Factor:
     Unit: Unit
     Context: Context
 
-Industry:
+industry:
   IndustryID: Sector
   IndustryName: SectorName
 
-IndustryFactor:
+industry_factor:
   similar: US_summary_import_factors_exio_2020_17sch.csv
   index: IndustryID, FactorID
   indextype: 1-based
@@ -30,11 +30,11 @@ IndustryFactor:
     - Context
     - BaseIOLevel
 
-Commodity:
+commodity:
   CommodityID: Sector
   CommodityName: SectorName
 
-CommodityFactor:
+commodity_factor:
   similar: US_detail_import_factors_exio_2020_17sch.csv
   index: CommodityID, FactorID
   indextype: 1-based
@@ -52,7 +52,7 @@ CommodityFactor:
     - Context
     - BaseIOLevel
 
-ImportIndustryFactor:
+importindustry_factor:
   similar: Regional_summary_import_factors_exio_2020_17sch.csv
   index: FactorID
   indextype: 1-based
@@ -70,7 +70,7 @@ ImportIndustryFactor:
     - Context
     - BaseIOLevel
 
-ImportCommodityFactor:
+importcommodity_factor:
   similar: Regional_detail_import_factors_exio_2020_17sch.csv
   index: FactorID
   indextype: 1-based
@@ -88,7 +88,7 @@ ImportCommodityFactor:
     - Context
     - BaseIOLevel
 
-ImportContributions:
+importcontributions:
   similar: country_contributions_by_sector_2020.csv
   columns:
     CountryCode: CountryCode
@@ -106,7 +106,7 @@ ImportContributions:
     - BEA Summary
     - Region
 
-ImportMultiplierFactor:
+importmultiplier_factor:
   similar: multiplier_df_exio_2020_17sch.csv
   columns:
     CountryCode: CountryCode
