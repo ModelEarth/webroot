@@ -13,7 +13,7 @@ industry:
   IndustryName: SectorName
 
 industry_factor:
-  similar: US_summary_import_factors_exio_2020_17sch.csv
+  similar: US_summary_import_factors_exiobase_2019_17sch.csv
   index: IndustryID, FactorID
   indextype: 1-based
   columns:
@@ -35,7 +35,7 @@ commodity:
   CommodityName: SectorName
 
 commodity_factor:
-  similar: US_detail_import_factors_exio_2020_17sch.csv
+  similar: US_detail_import_factors_exiobase_2019_17sch.csv
   index: CommodityID, FactorID
   indextype: 1-based
   columns:
@@ -53,7 +53,7 @@ commodity_factor:
     - BaseIOLevel
 
 importindustry_factor:
-  similar: Regional_summary_import_factors_exio_2020_17sch.csv
+  similar: Regional_summary_import_factors_exiobase_2019_17sch.csv
   index: FactorID
   indextype: 1-based
   columns:
@@ -71,7 +71,7 @@ importindustry_factor:
     - BaseIOLevel
 
 importcommodity_factor:
-  similar: Regional_detail_import_factors_exio_2020_17sch.csv
+  similar: Regional_detail_import_factors_exiobase_2019_17sch.csv
   index: FactorID
   indextype: 1-based
   columns:

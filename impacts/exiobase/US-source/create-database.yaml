@@ -39,7 +39,7 @@ Factor:
     - PriceType
 
 Factor:
-  source: US_summary_import_factors_exio_2020_17sch.csv
+  source: US_summary_import_factors_exiobase_2019_17sch.csv
   index: FactorID
   indextype: 1-based
   columns:
@@ -56,7 +56,7 @@ Factor:
     - BaseIOLevel
     
 Factor:
-  source: US_detail_import_factors_exio_2020_17sch.csv
+  source: US_detail_import_factors_exiobase_2019_17sch.csv
   index: FactorID
   indextype: 1-based
   columns:
@@ -73,7 +73,7 @@ Factor:
     - BaseIOLevel
     
 Factor:
-  source: Regional_summary_import_factors_exio_2020_17sch.csv
+  source: Regional_summary_import_factors_exiobase_2019_17sch.csv
   index: FactorID
   indextype: 1-based
   columns:
@@ -91,7 +91,7 @@ Factor:
     - BaseIOLevel
 
 Factor:
-  source: Regional_detail_import_factors_exio_2020_17sch.csv
+  source: Regional_detail_import_factors_exiobase_2019_17sch.csv
   index: FactorID
   indextype: 1-based
   columns:
@@ -110,7 +110,7 @@ Factor:
 
     
 SectorFactor:
-  source: US_summary_import_factors_exio_2020_17sch.csv
+  source: US_summary_import_factors_exiobase_2019_17sch.csv
   index: FactorID
   indextype: 1-based
   columns:
@@ -127,7 +127,7 @@ SectorFactor:
     - BaseIOLevel
 
 CommodityFactor:
-  source: US_detail_import_factors_exio_2020_17sch.csv
+  source: US_detail_import_factors_exiobase_2019_17sch.csv
   index: FactorID
   indextype: 1-based
   columns:
@@ -144,7 +144,7 @@ CommodityFactor:
     - BaseIOLevel
 
 ImportSectorFactor:
-  source: Regional_summary_import_factors_exio_2020_17sch.csv
+  source: Regional_summary_import_factors_exiobase_2019_17sch.csv
   index: FactorID
   indextype: 1-based
   columns:
@@ -162,7 +162,7 @@ ImportSectorFactor:
     - BaseIOLevel
 
 ImportCommodityFactor:
-  source: Regional_detail_import_factors_exio_2020_17sch.csv
+  source: Regional_detail_import_factors_exiobase_2019_17sch.csv
   index: FactorID
   indextype: 1-based
   columns:

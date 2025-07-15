@@ -1,4 +1,4 @@
-## 4. US_summary_import_factors_exio_2020_17sch.csv
+## 4. US_summary_import_factors_exiobase_2019_17sch.csv
 
 
 import duckdb
