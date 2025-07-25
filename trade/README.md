@@ -40,9 +40,8 @@ We're also using [Mario](https://mario-suite.readthedocs.io/en/latest/intro.html
 -->
 
 
-
+**About country-year database instances**
 The Industry is a 5-char sector ID, and the Commodity is 6-char.
-
 Table names are plural, unless they relate entities.
 IDs are singular with an underscore, example: factor_id
 This is a standard used widely by Salesforce and others.
