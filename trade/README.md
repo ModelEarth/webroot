@@ -1,6 +1,25 @@
 [Active Projects](../../projects/)
-# Trade Flow
+# Trade Flow SQL
 
+We're using Azure PostgrSQL databases with data from Exiobase similar to [generate\_import\_factors.py](https://github.com/ModelEarth/USEEIO/tree/master/import_emission_factors). 
+
+Each country-year database instance will represent a country and year from Exiobase.
+
+**country-year dataset**
+factors (includes factor\_id<!-- and flow\_id-->)  
+industries (5-char sectors)  
+industry\_factor  
+commodities (6-char products)  
+commodity\_factor  
+importindustry\_factor  
+importcommodity\_factor  
+importcontributions  
+importmultiplier\_factor  
+
+Unless we find a better structure in [Open CEDA](https://watershed.com/solutions/ceda)
+About our [Data Pipeline](../../data-pipeline/)
+
+[MemberCommons Admin Dashboard](../../team/admin)  
 [SuiteCRM](../crm) - Partner Data analysis using Azure, SQL Express and MariaDB.
 [Trade Impact Colabs](../impacts/json) - Deploys Exiobase international data to GitHub as JSON
 [Global Trade - our Comtrade and Exobase API data pulls](../../global-trade)
@@ -16,24 +35,11 @@ DuckDB supports SQL JOINs in any browser via [WebAssembly WASM](https://duckdb.o
 
 There are examples of using [Apache Parquet](../impacts/useeio/parquet/) files from static html files using DuckDB-Wasm and JavaScript
 
-We're using an Azure PostgrSQL database to duplicate the data pull into .csv from Exiobase in [generate\_import\_factors.py](https://github.com/ModelEarth/USEEIO/tree/master/import_emission_factors) but we're pushing directly to json, DuckDB .parquet and Supabase.  
-
 <!--
 We're also using [Mario](https://mario-suite.readthedocs.io/en/latest/intro.html), a friendly version of Pymrio. (Mario may lack some of the functionality and/or data Pymrio provides.)
 -->
 
-Each database instance (for a country-year) will contain these tables:
 
-**GOAL: Output these SQL Tables for a country and year**
-factors (includes factor_id and flow_id)
-industries (5-char sector)
-industry_factor
-commodities (6-char product)
-commodity_factor
-importindustry_factor
-Importcommodity_factor
-importcontributions
-importmultiplier_factor
 
 The Industry is a 5-char sector ID, and the Commodity is 6-char.
 
