@@ -13,7 +13,7 @@
 <a href="../../useeio.js/footprint/sector_crosswalk.html">Sector Crosswalk</a>
 <a href="../../useeio.js/footprint/sector_purchase_impacts.html">Sector Purchase Impacts</a>
 <a href="../../useeio.js/footprint/sector_scopes.html">Sector Scopes</a>
-<a href="../../useeio.js/footprint/sector_supply_impacts.html">Sector Supply Impacts</a>
+<a href="../../useeio.js/footprint/sector_supply_impacts.html">Sector Supply - Chord<!-- Impacts--></a>
 <a href="../../useeio.js/footprint/matrix-requests.js">Matrix Requests (js)</a>
 <a href="../../useeio.js/footprint/model-requests.js">Model Requests (js)</a>
 
