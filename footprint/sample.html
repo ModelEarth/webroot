@@ -65,6 +65,47 @@
             border: 1px solid #ddd;
             border-radius: 5px;
         }
+        
+        .data-sources {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        
+        .data-sources h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #495057;
+            font-family: inherit;
+        }
+        
+        .data-path {
+            background-color: #e9ecef;
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 3px;
+            font-size: 0.9em;
+            word-break: break-all;
+            border-left: 4px solid #007bff;
+        }
+        
+        .data-path.exiobase {
+            border-left-color: #28a745;
+        }
+        
+        .data-path.fallback {
+            border-left-color: #ffc107;
+            background-color: #fff3cd;
+        }
+        
+        .data-path-label {
+            font-weight: bold;
+            color: #495057;
+            margin-right: 8px;
+        }
     </style>
 </head>
 
@@ -107,12 +148,22 @@
         <!-- Main Data Table -->
         <div id="loadingMessage" class="loading">Loading data...</div>
         <div id="table"></div>
+
+        <!-- Data Sources Display -->
+        <div id="dataSourcesContainer" class="data-sources" style="display: none;">
+            <h3>Data Sources</h3>
+            <div id="dataSourcesPaths"></div>
+        </div>
+
+        <br>
+        <a href="../../useeio.js/footprint/">State Reports</a>
     </div>
 
     <!-- JavaScript Libraries -->
     <script src="https://unpkg.com/tabulator-tables@5.2.7/dist/js/tabulator.min.js"></script>
     <script src="../../localsite/js/localsite.js"></script>
     <script src="../../useeio.js/dist/useeio.js"></script>
+    <script src="../../useeio.js/footprint/config.js"></script>
     
     <script>
         // Global variables
@@ -142,19 +193,27 @@
             'NL': 'Netherlands'
         };
         
-        // State abbreviation mapping
-        const stateAbbreviations = {
-            'California': 'CA',
-            'Texas': 'TX', 
-            'New York': 'NY',
-            'Florida': 'FL',
-            'Illinois': 'IL',
-            'Pennsylvania': 'PA',
-            'Ohio': 'OH',
-            'Georgia': 'GA',
-            'North Carolina': 'NC',
-            'New Jersey': 'NJ'
+        // State mapping
+        const stateMapping = {
+            'CA': 'California',
+            'TX': 'Texas', 
+            'NY': 'New York',
+            'FL': 'Florida',
+            'IL': 'Illinois',
+            'PA': 'Pennsylvania',
+            'OH': 'Ohio',
+            'GA': 'Georgia',
+            'NC': 'North Carolina',
+            'NJ': 'New Jersey',
+            'MI': 'Michigan',
+            'WA': 'Washington',
+            'AZ': 'Arizona',
+            'TN': 'Tennessee',
+            'IN': 'Indiana'
         };
+        
+        // Available countries in Exiobase data
+        const exiobaseCountries = ['US', 'CN', 'DE', 'JP', 'GB', 'CA', 'AU', 'IT', 'KR', 'FR', 'BR', 'IN'];
         
         // Utility functions
         function formatNumber(num) {
@@ -172,75 +231,362 @@
             return '$' + formatNumber(num);
         }
         
-        // Load US state data (simulated - using sample data)
+        // Load US state data from USEEIO.js models
         async function loadUSStateData() {
             try {
                 updateDataInfo('US state-level economic output and employment data from USEEIO models');
                 
-                // Simulate US state data (in production, this would load from useeio.js)
-                usStateData = [
-                    { state: 'California', stateName: 'California', stateAbbr: 'CA', output: 2500000000000, employment: 18500000, type: 'state' },
-                    { state: 'Texas', stateName: 'Texas', stateAbbr: 'TX', output: 1800000000000, employment: 13200000, type: 'state' },
-                    { state: 'New York', stateName: 'New York', stateAbbr: 'NY', output: 1600000000000, employment: 9500000, type: 'state' },
-                    { state: 'Florida', stateName: 'Florida', stateAbbr: 'FL', output: 900000000000, employment: 9200000, type: 'state' },
-                    { state: 'Illinois', stateName: 'Illinois', stateAbbr: 'IL', output: 750000000000, employment: 6100000, type: 'state' },
-                    { state: 'Pennsylvania', stateName: 'Pennsylvania', stateAbbr: 'PA', output: 720000000000, employment: 6000000, type: 'state' },
-                    { state: 'Ohio', stateName: 'Ohio', stateAbbr: 'OH', output: 650000000000, employment: 5400000, type: 'state' },
-                    { state: 'Georgia', stateName: 'Georgia', stateAbbr: 'GA', output: 520000000000, employment: 4700000, type: 'state' },
-                    { state: 'North Carolina', stateName: 'North Carolina', stateAbbr: 'NC', output: 500000000000, employment: 4600000, type: 'state' },
-                    { state: 'New Jersey', stateName: 'New Jersey', stateAbbr: 'NJ', output: 580000000000, employment: 4200000, type: 'state' }
-                ];
+                // States to process (those with available USEEIO models)
+                const statesToLoad = Object.keys(stateMapping).slice(0, 10); // First 10 states
+                const batchSize = 3; // Process in smaller batches to avoid overwhelming
+                usStateData = [];
                 
-                // Add formatted values
-                usStateData.forEach(row => {
-                    row.outputFormatted = formatCurrency(row.output);
-                    row.employmentFormatted = formatNumber(row.employment);
+                console.log('Loading US state data for:', statesToLoad);
+                
+                // Process states in batches (similar to useeio.js/footprint/states.html)
+                for (let i = 0; i < statesToLoad.length; i += batchSize) {
+                    const batch = statesToLoad.slice(i, i + batchSize);
+                    console.log(`Processing batch ${Math.floor(i/batchSize) + 1}:`, batch);
+                    
+                    const results = await Promise.all(batch.map(state => loadStateData(state)));
+                    const validResults = results.filter(result => result !== null);
+                    usStateData.push(...validResults);
+                    
+                    // Small delay between batches
+                    if (i + batchSize < statesToLoad.length) {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                }
+                
+                // Sort by output descending
+                usStateData.sort((a, b) => b.output - a.output);
+                
+                // Update data sources display with actual paths used
+                const statePaths = [];
+                usStateData.forEach(stateData => {
+                    if (stateData.stateAbbr) {
+                        statePaths.push({
+                            label: `${stateData.stateName} (${stateData.stateAbbr})`,
+                            path: `/useeio-json/models/2020/${stateData.stateAbbr}EEIOv1.0-s-20/`,
+                            type: 'useeio',
+                            isLink: true
+                        });
+                    }
                 });
+                updateDataSources('us', statePaths);
                 
-                console.log('Loaded US state data:', usStateData.length + ' states');
+                console.log('Successfully loaded US state data:', usStateData.length + ' states');
                 return usStateData;
                 
             } catch (error) {
                 console.error('Error loading US state data:', error);
-                return [];
+                // Fall back to simulated data if real data fails
+                const fallbackData = await loadSimulatedUSStateData();
+                
+                // Update data sources for fallback
+                const fallbackPaths = [{
+                    label: 'US States (Simulated Data)',
+                    path: 'Fallback data - USEEIO models unavailable',
+                    type: 'fallback',
+                    isLink: false
+                }];
+                updateDataSources('us', fallbackPaths);
+                
+                return fallbackData;
             }
         }
         
-        // Load international data (simulated - using sample data)
+        // Load individual state data using USEEIO.js
+        async function loadStateData(stateCode) {
+            try {
+                console.log(`Loading data for state: ${stateCode}`);
+                
+                const modelParams = {
+                    endpoint: '../../useeio-json/models/2020',
+                    asJsonFiles: true,
+                    model: `${stateCode}EEIOv1.0-s-20`
+                };
+                
+                const model = await useeio.modelOf(modelParams);
+                if (!model) {
+                    throw new Error(`Failed to get model for state ${stateCode}`);
+                }
+                
+                // Get required data
+                const sectors = await model.sectors();
+                const qMatrix = await model.matrix("q"); // Output matrix
+                const dMatrix = await model.matrix("D"); // Direct requirements matrix
+                const indicators = await model.indicators();
+                const jobs = indicators.find(i => i.code === "JOBS");
+                
+                if (!jobs) {
+                    throw new Error("Could not find jobs indicator");
+                }
+                
+                // Filter sectors for this state and calculate totals
+                const stateSectors = sectors.filter(s => s.location === `US-${stateCode}`);
+                let totalOutput = 0;
+                let totalJobs = 0;
+                
+                stateSectors.forEach(sector => {
+                    const output = qMatrix.get(sector.index, 0) || 0;
+                    const jobsPerDollar = dMatrix.get(jobs.index, sector.index) || 0;
+                    const jobCount = output * jobsPerDollar;
+                    
+                    totalOutput += output;
+                    totalJobs += jobCount;
+                });
+                
+                console.log(`State ${stateCode} data:`, { output: totalOutput, jobs: totalJobs });
+                
+                return {
+                    state: stateCode,
+                    stateName: stateMapping[stateCode],
+                    stateAbbr: stateCode,
+                    output: Math.round(totalOutput),
+                    outputFormatted: formatCurrency(Math.round(totalOutput)),
+                    employment: Math.round(totalJobs),
+                    employmentFormatted: formatNumber(Math.round(totalJobs)),
+                    type: 'state'
+                };
+                
+            } catch (error) {
+                console.error(`Error loading state ${stateCode}:`, error);
+                return null;
+            }
+        }
+        
+        // Fallback simulated data if real data fails
+        async function loadSimulatedUSStateData() {
+            console.log('Falling back to simulated US state data');
+            const simulatedData = [
+                { state: 'CA', stateName: 'California', stateAbbr: 'CA', output: 2500000000000, employment: 18500000, type: 'state' },
+                { state: 'TX', stateName: 'Texas', stateAbbr: 'TX', output: 1800000000000, employment: 13200000, type: 'state' },
+                { state: 'NY', stateName: 'New York', stateAbbr: 'NY', output: 1600000000000, employment: 9500000, type: 'state' },
+                { state: 'FL', stateName: 'Florida', stateAbbr: 'FL', output: 900000000000, employment: 9200000, type: 'state' },
+                { state: 'IL', stateName: 'Illinois', stateAbbr: 'IL', output: 750000000000, employment: 6100000, type: 'state' },
+                { state: 'PA', stateName: 'Pennsylvania', stateAbbr: 'PA', output: 720000000000, employment: 6000000, type: 'state' },
+                { state: 'OH', stateName: 'Ohio', stateAbbr: 'OH', output: 650000000000, employment: 5400000, type: 'state' },
+                { state: 'GA', stateName: 'Georgia', stateAbbr: 'GA', output: 520000000000, employment: 4700000, type: 'state' },
+                { state: 'NC', stateName: 'North Carolina', stateAbbr: 'NC', output: 500000000000, employment: 4600000, type: 'state' },
+                { state: 'NJ', stateName: 'New Jersey', stateAbbr: 'NJ', output: 580000000000, employment: 4200000, type: 'state' }
+            ];
+            
+            // Add formatted values
+            simulatedData.forEach(row => {
+                row.outputFormatted = formatCurrency(row.output);
+                row.employmentFormatted = formatNumber(row.employment);
+            });
+            
+            return simulatedData;
+        }
+        
+        // Load international data from Exiobase CSV files
         async function loadInternationalData() {
             try {
                 updateDataInfo('International trade flow data from Exiobase MRIO database (2019)');
                 
-                // Simulate international data (in production, this would load CSV files from exiobase/tradeflow)
-                // Exclude US from country data since it will be represented by individual states
-                internationalData = [
-                    { country: 'CN', countryName: 'China', output: 14000000000000, employment: 780000000, type: 'country' },
-                    { country: 'JP', countryName: 'Japan', output: 5000000000000, employment: 67000000, type: 'country' },
-                    { country: 'DE', countryName: 'Germany', output: 4000000000000, employment: 45000000, type: 'country' },
-                    { country: 'IN', countryName: 'India', output: 3000000000000, employment: 520000000, type: 'country' },
-                    { country: 'GB', countryName: 'United Kingdom', output: 2800000000000, employment: 33000000, type: 'country' },
-                    { country: 'FR', countryName: 'France', output: 2700000000000, employment: 29000000, type: 'country' },
-                    { country: 'IT', countryName: 'Italy', output: 2000000000000, employment: 26000000, type: 'country' },
-                    { country: 'BR', countryName: 'Brazil', output: 1800000000000, employment: 95000000, type: 'country' },
-                    { country: 'CA', countryName: 'Canada', output: 1700000000000, employment: 19500000, type: 'country' },
-                    { country: 'RU', countryName: 'Russia', output: 1600000000000, employment: 75000000, type: 'country' },
-                    { country: 'MX', countryName: 'Mexico', output: 1300000000000, employment: 55000000, type: 'country' },
-                    { country: 'KR', countryName: 'South Korea', output: 1600000000000, employment: 27000000, type: 'country' }
-                ];
+                // Check if we should include US data based on URL hash
+                const hash = window.location.hash.substring(1);
+                const shouldIncludeUS = hash.includes('country=US') || (!hash.includes('country=') && !hash.includes('state='));
                 
-                // Add formatted values
-                internationalData.forEach(row => {
-                    row.outputFormatted = formatCurrency(row.output);
-                    row.employmentFormatted = formatNumber(row.employment);
+                // Countries to process - include US if specifically requested
+                const countriesToLoad = shouldIncludeUS ? 
+                    exiobaseCountries : 
+                    exiobaseCountries.filter(c => c !== 'US');
+                internationalData = [];
+                
+                console.log('Loading international data for:', countriesToLoad);
+                
+                // Process countries in smaller batches
+                const batchSize = 4;
+                for (let i = 0; i < countriesToLoad.length; i += batchSize) {
+                    const batch = countriesToLoad.slice(i, i + batchSize);
+                    console.log(`Processing international batch ${Math.floor(i/batchSize) + 1}:`, batch);
+                    
+                    const results = await Promise.all(batch.map(country => loadCountryData(country)));
+                    const validResults = results.filter(result => result !== null);
+                    internationalData.push(...validResults);
+                    
+                    // Small delay between batches
+                    if (i + batchSize < countriesToLoad.length) {
+                        await new Promise(resolve => setTimeout(resolve, 200));
+                    }
+                }
+                
+                // Sort by output descending
+                internationalData.sort((a, b) => b.output - a.output);
+                
+                // Update data sources display with actual paths used
+                const countryPaths = [];
+                internationalData.forEach(countryData => {
+                    if (countryData.country) {
+                        countryPaths.push({
+                            label: `${countryData.countryName} (${countryData.country})`,
+                            path: `../../exiobase/tradeflow/year/2019/${countryData.country}/domestic/trade_impacts.csv`,
+                            type: 'exiobase',
+                            isLink: true
+                        });
+                    }
                 });
+                updateDataSources('international', countryPaths);
                 
-                console.log('Loaded international data:', internationalData.length + ' countries');
+                console.log('Successfully loaded international data:', internationalData.length + ' countries');
                 return internationalData;
                 
             } catch (error) {
                 console.error('Error loading international data:', error);
-                return [];
+                // Fall back to simulated data if real data fails
+                const fallbackData = await loadSimulatedInternationalData();
+                
+                // Update data sources for fallback
+                const fallbackPaths = [{
+                    label: 'International (Simulated Data)',
+                    path: 'Fallback data - Exiobase CSV files unavailable',
+                    type: 'fallback',
+                    isLink: false
+                }];
+                updateDataSources('international', fallbackPaths);
+                
+                return fallbackData;
             }
+        }
+        
+        // Load individual country data from Exiobase CSV
+        async function loadCountryData(countryCode) {
+            try {
+                console.log(`Loading data for country: ${countryCode}`);
+                
+                // Try to load the trade_impacts.csv file for this country
+                const csvPath = `../../exiobase/tradeflow/year/2019/${countryCode}/domestic/trade_impacts.csv`;
+                
+                const response = await fetch(csvPath);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch CSV for country ${countryCode}: ${response.status}`);
+                }
+                
+                const csvText = await response.text();
+                const rows = parseCSV(csvText);
+                
+                if (rows.length === 0) {
+                    throw new Error(`No data found for country ${countryCode}`);
+                }
+                
+                // For US specifically, capture all available columns
+                if (countryCode === 'US') {
+                    console.log(`Available columns for ${countryCode}:`, Object.keys(rows[0] || {}));
+                    console.log(`Sample row for ${countryCode}:`, rows[0]);
+                }
+                
+                // Aggregate data by summing all trade flows
+                let totals = {};
+                let transactionCount = 0;
+                
+                rows.forEach(row => {
+                    // Skip header row and invalid data
+                    if (row.amount && !isNaN(parseFloat(row.amount))) {
+                        // For each numeric column, add to totals
+                        Object.keys(row).forEach(key => {
+                            const value = parseFloat(row[key]);
+                            if (!isNaN(value)) {
+                                totals[key] = (totals[key] || 0) + value;
+                            }
+                        });
+                        transactionCount++;
+                    }
+                });
+                
+                console.log(`Country ${countryCode} data totals:`, totals);
+                
+                // Create base result object
+                const result = {
+                    country: countryCode,
+                    countryName: countryNames[countryCode] || countryCode,
+                    output: Math.round(totals.amount || 0),
+                    outputFormatted: formatCurrency(Math.round(totals.amount || 0)),
+                    employment: Math.round(totals.Employment_total || 0),
+                    employmentFormatted: formatNumber(Math.round(totals.Employment_total || 0)),
+                    transactionCount: transactionCount,
+                    type: 'country'
+                };
+                
+                // Add key environmental metrics for all countries
+                const keyMetrics = ['CO2_total', 'Energy_total', 'Water_total', 'Land_total', 'CH4_total', 'N2O_total', 'NOX_total'];
+                keyMetrics.forEach(metric => {
+                    if (totals[metric] !== undefined) {
+                        result[metric] = Math.round(totals[metric] || 0);
+                        result[metric + '_formatted'] = formatNumber(Math.round(totals[metric] || 0));
+                    }
+                });
+                
+                // For US, add all available data columns and mark for extended display
+                if (countryCode === 'US') {
+                    Object.keys(totals).forEach(key => {
+                        if (!result[key] && key !== 'amount') {
+                            result[key] = Math.round(totals[key] || 0);
+                            result[key + '_formatted'] = formatNumber(Math.round(totals[key] || 0));
+                        }
+                    });
+                    
+                    // Store all columns for potential table display
+                    result.allColumns = Object.keys(totals);
+                    result.allData = totals;
+                }
+                
+                return result;
+                
+            } catch (error) {
+                console.error(`Error loading country ${countryCode}:`, error);
+                return null;
+            }
+        }
+        
+        // Simple CSV parser for Exiobase data
+        function parseCSV(csvText) {
+            const lines = csvText.trim().split('\n');
+            if (lines.length < 2) return [];
+            
+            const headers = lines[0].split(',').map(h => h.trim());
+            const rows = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',');
+                if (values.length >= headers.length) {
+                    const row = {};
+                    headers.forEach((header, index) => {
+                        row[header] = values[index] ? values[index].trim() : '';
+                    });
+                    rows.push(row);
+                }
+            }
+            
+            return rows;
+        }
+        
+        // Fallback simulated data if real data fails
+        async function loadSimulatedInternationalData() {
+            console.log('Falling back to simulated international data');
+            const simulatedData = [
+                { country: 'CN', countryName: 'China', output: 14000000000000, employment: 780000000, type: 'country' },
+                { country: 'JP', countryName: 'Japan', output: 5000000000000, employment: 67000000, type: 'country' },
+                { country: 'DE', countryName: 'Germany', output: 4000000000000, employment: 45000000, type: 'country' },
+                { country: 'IN', countryName: 'India', output: 3000000000000, employment: 520000000, type: 'country' },
+                { country: 'GB', countryName: 'United Kingdom', output: 2800000000000, employment: 33000000, type: 'country' },
+                { country: 'FR', countryName: 'France', output: 2700000000000, employment: 29000000, type: 'country' },
+                { country: 'IT', countryName: 'Italy', output: 2000000000000, employment: 26000000, type: 'country' },
+                { country: 'BR', countryName: 'Brazil', output: 1800000000000, employment: 95000000, type: 'country' },
+                { country: 'CA', countryName: 'Canada', output: 1700000000000, employment: 19500000, type: 'country' },
+                { country: 'AU', countryName: 'Australia', output: 1400000000000, employment: 12800000, type: 'country' },
+                { country: 'KR', countryName: 'South Korea', output: 1600000000000, employment: 27000000, type: 'country' }
+            ];
+            
+            // Add formatted values
+            simulatedData.forEach(row => {
+                row.outputFormatted = formatCurrency(row.output);
+                row.employmentFormatted = formatNumber(row.employment);
+            });
+            
+            return simulatedData;
         }
         
         // Load combined data (states + countries, excluding US country row)
@@ -259,6 +605,35 @@
                 // Combine data (US country is already excluded from international data)
                 combinedData = [...usStateData, ...internationalData];
                 
+                // Update data sources display for combined view with actual paths
+                const combinedPaths = [];
+                
+                // Add US state paths
+                usStateData.forEach(stateData => {
+                    if (stateData.stateAbbr) {
+                        combinedPaths.push({
+                            label: `${stateData.stateName} (${stateData.stateAbbr})`,
+                            path: `/useeio-json/models/2020/${stateData.stateAbbr}EEIOv1.0-s-20/`,
+                            type: 'useeio',
+                            isLink: true
+                        });
+                    }
+                });
+                
+                // Add international country paths
+                internationalData.forEach(countryData => {
+                    if (countryData.country) {
+                        combinedPaths.push({
+                            label: `${countryData.countryName} (${countryData.country})`,
+                            path: `../../exiobase/tradeflow/year/2019/${countryData.country}/domestic/trade_impacts.csv`,
+                            type: 'exiobase',
+                            isLink: true
+                        });
+                    }
+                });
+                
+                updateDataSources('combined', combinedPaths);
+                
                 console.log('Loaded combined data:', combinedData.length + ' regions (states + countries)');
                 return combinedData;
                 
@@ -271,6 +646,50 @@
         // Update data information display
         function updateDataInfo(description) {
             document.getElementById('dataDescription').textContent = description;
+        }
+        
+        // Update data sources display
+        function updateDataSources(dataType, paths = []) {
+            const container = document.getElementById('dataSourcesContainer');
+            const pathsDiv = document.getElementById('dataSourcesPaths');
+            
+            // Clear previous paths
+            pathsDiv.innerHTML = '';
+            
+            if (paths.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+            
+            // Add paths based on data type
+            paths.forEach(pathInfo => {
+                const pathDiv = document.createElement('div');
+                pathDiv.className = `data-path ${pathInfo.type || ''}`;
+                
+                const label = document.createElement('span');
+                label.className = 'data-path-label';
+                label.textContent = pathInfo.label + ':';
+                
+                const pathContainer = document.createElement('span');
+                
+                if (pathInfo.isLink && pathInfo.path) {
+                    const link = document.createElement('a');
+                    link.href = pathInfo.path;
+                    link.textContent = pathInfo.path;
+                    link.target = '_blank';
+                    link.style.color = '#007bff';
+                    link.style.textDecoration = 'underline';
+                    pathContainer.appendChild(link);
+                } else {
+                    pathContainer.textContent = pathInfo.path;
+                }
+                
+                pathDiv.appendChild(label);
+                pathDiv.appendChild(pathContainer);
+                pathsDiv.appendChild(pathDiv);
+            });
+            
+            container.style.display = 'block';
         }
         
         // Update totals display
@@ -337,33 +756,94 @@
                     }
                 ];
             } else if (dataType === 'international') {
-                columns = [
-                    {
-                        title: "Country",
-                        field: "countryName",
-                        width: 200,
-                        formatter: function(cell) {
-                            const data = cell.getRow().getData();
-                            return `<a href="#country=${data.country}" style="color: #2196f3; text-decoration: none;">${data.countryName}</a>`;
+                // Check if US data is included and has extended columns
+                const hasUSData = data.find(row => row.country === 'US' && row.allColumns);
+                
+                if (hasUSData) {
+                    // Create dynamic columns based on US data structure
+                    columns = [
+                        {
+                            title: "Country",
+                            field: "countryName",
+                            width: 150,
+                            frozen: true,
+                            formatter: function(cell) {
+                                const data = cell.getRow().getData();
+                                return `<a href="#country=${data.country}" style="color: #2196f3; text-decoration: none;">${data.countryName}</a>`;
+                            }
                         }
-                    },
-                    {
-                        title: "Trade Flow Value",
-                        field: "outputFormatted",
-                        width: 150,
-                        sorter: function(a, b, aRow, bRow) {
-                            return aRow.getData().output - bRow.getData().output;
-                        }
-                    },
-                    {
-                        title: "Employment Impact",
-                        field: "employmentFormatted",
-                        width: 150,
-                        sorter: function(a, b, aRow, bRow) {
-                            return aRow.getData().employment - bRow.getData().employment;
-                        }
+                    ];
+                    
+                    // Add columns for key metrics first
+                    const keyColumns = [
+                        { field: 'outputFormatted', title: 'Trade Flow Value', dataField: 'output' },
+                        { field: 'employmentFormatted', title: 'Employment', dataField: 'employment' },
+                        { field: 'CO2_total_formatted', title: 'CO2 Total', dataField: 'CO2_total' },
+                        { field: 'Energy_total_formatted', title: 'Energy Total', dataField: 'Energy_total' },
+                        { field: 'Water_total_formatted', title: 'Water Total', dataField: 'Water_total' },
+                        { field: 'transactionCount', title: 'Transactions', dataField: 'transactionCount' }
+                    ];
+                    
+                    keyColumns.forEach(col => {
+                        columns.push({
+                            title: col.title,
+                            field: col.field,
+                            width: 120,
+                            sorter: function(a, b, aRow, bRow) {
+                                return (aRow.getData()[col.dataField] || 0) - (bRow.getData()[col.dataField] || 0);
+                            }
+                        });
+                    });
+                    
+                    // Add remaining columns from US data (excluding already added ones)
+                    if (hasUSData.allColumns) {
+                        const excludeColumns = ['trade_id', 'year', 'region1', 'region2', 'industry1', 'industry2', 
+                                               'amount', 'Employment_total', 'CO2_total', 'Energy_total', 'Water_total'];
+                        
+                        hasUSData.allColumns.forEach(colName => {
+                            if (!excludeColumns.includes(colName) && 
+                                !columns.find(c => c.field === colName + '_formatted')) {
+                                columns.push({
+                                    title: colName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                                    field: colName + '_formatted',
+                                    width: 100,
+                                    sorter: function(a, b, aRow, bRow) {
+                                        return (aRow.getData()[colName] || 0) - (bRow.getData()[colName] || 0);
+                                    }
+                                });
+                            }
+                        });
                     }
-                ];
+                } else {
+                    // Standard international columns
+                    columns = [
+                        {
+                            title: "Country",
+                            field: "countryName",
+                            width: 200,
+                            formatter: function(cell) {
+                                const data = cell.getRow().getData();
+                                return `<a href="#country=${data.country}" style="color: #2196f3; text-decoration: none;">${data.countryName}</a>`;
+                            }
+                        },
+                        {
+                            title: "Trade Flow Value",
+                            field: "outputFormatted",
+                            width: 150,
+                            sorter: function(a, b, aRow, bRow) {
+                                return aRow.getData().output - bRow.getData().output;
+                            }
+                        },
+                        {
+                            title: "Employment Impact",
+                            field: "employmentFormatted",
+                            width: 150,
+                            sorter: function(a, b, aRow, bRow) {
+                                return aRow.getData().employment - bRow.getData().employment;
+                            }
+                        }
+                    ];
+                }
             } else if (dataType === 'combined') {
                 columns = [
                     {
@@ -453,7 +933,8 @@
                 } else if (newSource === 'international') {
                     data = await loadInternationalData();
                     if (updateHash) {
-                        window.location.hash = 'country=all';
+                        // Default to country=US for international view
+                        window.location.hash = 'country=US';
                     }
                 } else if (newSource === 'combined') {
                     data = await loadCombinedData();
@@ -500,8 +981,11 @@
                 initialView = 'international';
                 document.querySelector('input[value="international"]').checked = true;
             } else {
-                // Ensure the international radio button is checked for default load
+                // Default to country=US when no specific country or state is specified
+                initialView = 'international';
                 document.querySelector('input[value="international"]').checked = true;
+                // Set the hash to country=US for default display
+                window.location.hash = 'country=US';
             }
             
             // Reset currentDataSource to force initial load
@@ -547,6 +1031,13 @@
                     // Extract country code for potential filtering
                     const countryCode = hash.split('=')[1];
                     console.log('Country view - country:', countryCode);
+                    
+                    // If country=US, reload international data to include US
+                    if (countryCode === 'US' && currentDataSource === 'international') {
+                        // Force reload to include US data
+                        internationalData = [];
+                        handleDataSourceChange('international', false);
+                    }
                 }
             }
         }
