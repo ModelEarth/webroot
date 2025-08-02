@@ -2,19 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Dual-Use Environmental Footprint Chart</title>
+    <title>Environmental Footprint Chart</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
     
     <!-- Shared CSS from localsite -->
-    <link type="text/css" rel="stylesheet" href="../../localsite/css/base.css" />
-    <link type="text/css" rel="stylesheet" href="../../localsite/css/base-tabulator.css" />
+    <script type="text/javascript" src="../../localsite/js/localsite.js?showheader=true&showsearch=false"></script>
+    <link type="text/css" rel="stylesheet" href="../../localsite/css/base.css" id="/localsite/css/base.css"/>
+    <link type="text/css" rel="stylesheet" href="../../localsite/css/base-tabulator.css" id="/localsite/css/base-tabulator.css"/>
     
     <!-- Tabulator CSS -->
     <link href="https://unpkg.com/tabulator-tables@5.2.7/dist/css/tabulator.min.css" rel="stylesheet">
     
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
     <style>
-        .toggle-container {
+        .toggle-data-container {
             margin: 20px 0;
             padding: 15px;
             background-color: #f5f5f5;
@@ -22,13 +26,13 @@
             text-align: center;
         }
         
-        .toggle-container label {
+        .toggle-data-container label {
             margin: 0 15px;
             font-weight: bold;
             cursor: pointer;
         }
         
-        .toggle-container input[type="radio"] {
+        .toggle-data-container input[type="radio"] {
             margin-right: 5px;
         }
         
@@ -90,6 +94,13 @@
             font-size: 0.9em;
             word-break: break-all;
             border-left: 4px solid #007bff;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .data-path:hover {
+            background-color: #dee2e6;
         }
         
         .data-path.exiobase {
@@ -113,16 +124,166 @@
             color: #495057;
             margin-right: 8px;
         }
+        
+        .expand-arrow {
+            display: inline-block;
+            margin-right: 8px;
+            color: #6c757d;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: transform 0.2s ease, color 0.2s;
+            vertical-align: middle;
+        }
+        
+        .expand-arrow:hover {
+            color: #495057;
+        }
+        
+        .expand-arrow.expanded {
+            transform: rotate(90deg);
+        }
+        
+        .data-path.parent-row {
+            cursor: pointer;
+        }
+        
+        .data-path.child-row {
+            margin-left: 30px;
+            border-left-color: #6c757d;
+            background-color: #f8f9fa;
+        }
+        
+        .data-path.child-row.hidden {
+            display: none;
+        }
+        
+        .data-path-menu {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 10;
+        }
+        
+        .menu-trigger {
+            display: inline-block;
+            padding: 4px;
+            color: #6c757d;
+            cursor: pointer;
+            font-size: 1.8em;
+            transition: color 0.2s;
+            border-radius: 3px;
+        }
+        
+        .menu-trigger:hover {
+            color: #495057;
+            background-color: rgba(0,0,0,0.1);
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            min-width: 150px;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .dropdown-menu.show {
+            display: block;
+        }
+        
+        .dropdown-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-size: 0.9em;
+            color: #495057;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .dropdown-item i {
+            font-size: 1.6em;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .dropdown-item:first-child {
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+        }
+        
+        .dropdown-item:last-child {
+            border-bottom-left-radius: 5px;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .dropdown-divider {
+            height: 1px;
+            background-color: #dee2e6;
+            margin: 4px 0;
+        }
+        
+        .csv-viewer-container {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .csv-viewer-table {
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            max-height: 400px;
+            overflow: auto;
+        }
+        
+        .csv-viewer-table .tabulator-paginator .tabulator-page-size::after,
+        #table .tabulator-paginator .tabulator-page-size::after {
+            display: none !important;
+        }
+        
+        .csv-viewer-table .tabulator-page-size,
+        #table .tabulator-page-size {
+            background: none !important;
+        }
+        
+        .csv-viewer-table .tabulator-page-size select,
+        #table .tabulator-page-size select {
+            background: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            appearance: none !important;
+        }
     </style>
 </head>
 
 <body>
-    <div class="content contentpadding">
+    <div class="content contentpadding" style="position: relative;">
+
+        <div style="position:absolute; z-index:2; right:40px; top:42px">
+          <a href="https://github.com/ModelEarth/MaterialScience/"><img src="../../localsite/img/icon/github/github.png" style="width:40px"></a>
+        </div>
+
         <h1>Environmental Footprint Analysis</h1>
         <p>Toggle between US state-level data and international trade data to compare environmental and economic impacts.</p>
         
         <!-- Data Source Toggle -->
-        <div class="toggle-container">
+        <div class="toggle-data-container">
             <label>
                 <input type="radio" name="dataSource" value="international" checked> Countries
             </label>
@@ -312,16 +473,20 @@
                             label: `${stateData.stateName} (${stateData.stateAbbr}) - Model Directory`,
                             path: modelDir,
                             type: 'useeio',
-                            isLink: true
+                            isLink: true,
+                            isParent: true,
+                            stateId: stateData.stateAbbr
                         });
                         // Add links to specific files used
                         const keyFiles = ['sectors.json', 'indicators.json', 'matrix/q.json', 'matrix/D.json'];
                         keyFiles.forEach(file => {
                             statePaths.push({
-                                label: `   └─ ${file}`,
+                                label: `${file}`,
                                 path: modelDir + file,
                                 type: 'useeio-file',
-                                isLink: true
+                                isLink: true,
+                                isChild: true,
+                                parentId: stateData.stateAbbr
                             });
                         });
                     }
@@ -664,11 +829,26 @@
                 // Add US state paths
                 usStateData.forEach(stateData => {
                     if (stateData.stateAbbr) {
+                        const modelDir = `/useeio-json/models/2020/${stateData.stateAbbr}EEIOv1.0-s-20/`;
                         combinedPaths.push({
-                            label: `${stateData.stateName} (${stateData.stateAbbr})`,
-                            path: `/useeio-json/models/2020/${stateData.stateAbbr}EEIOv1.0-s-20/`,
+                            label: `${stateData.stateName} (${stateData.stateAbbr}) - Model Directory`,
+                            path: modelDir,
                             type: 'useeio',
-                            isLink: true
+                            isLink: true,
+                            isParent: true,
+                            stateId: stateData.stateAbbr
+                        });
+                        // Add links to specific files used
+                        const keyFiles = ['sectors.json', 'indicators.json', 'matrix/q.json', 'matrix/D.json'];
+                        keyFiles.forEach(file => {
+                            combinedPaths.push({
+                                label: `${file}`,
+                                path: modelDir + file,
+                                type: 'useeio-file',
+                                isLink: true,
+                                isChild: true,
+                                parentId: stateData.stateAbbr
+                            });
                         });
                     }
                 });
@@ -717,11 +897,35 @@
             // Add paths based on data type
             paths.forEach(pathInfo => {
                 const pathDiv = document.createElement('div');
-                pathDiv.className = `data-path ${pathInfo.type || ''}`;
+                let pathClass = `data-path ${pathInfo.type || ''}`;
+                
+                // Add parent/child classes
+                if (pathInfo.isParent) {
+                    pathClass += ' parent-row';
+                } else if (pathInfo.isChild) {
+                    pathClass += ' child-row hidden'; // Start hidden
+                    pathDiv.setAttribute('data-parent', pathInfo.parentId);
+                }
+                
+                pathDiv.className = pathClass;
                 
                 const label = document.createElement('span');
                 label.className = 'data-path-label';
-                label.textContent = pathInfo.label + ':';
+                
+                // Add expand arrow for parent rows
+                if (pathInfo.isParent) {
+                    const arrow = document.createElement('i');
+                    arrow.className = 'expand-arrow ph ph-caret-right';
+                    arrow.onclick = (e) => {
+                        e.stopPropagation();
+                        toggleSubRows(pathInfo.stateId || pathInfo.parentId, arrow);
+                    };
+                    label.appendChild(arrow);
+                }
+                
+                const labelText = document.createElement('span');
+                labelText.textContent = pathInfo.label + ':';
+                label.appendChild(labelText);
                 
                 const pathContainer = document.createElement('span');
                 
@@ -735,6 +939,91 @@
                     pathContainer.appendChild(link);
                 } else {
                     pathContainer.textContent = pathInfo.path;
+                }
+                
+                // Add 3-dot menu for interactive files
+                if (pathInfo.isLink && (pathInfo.path.endsWith('.csv') || pathInfo.path.endsWith('.json'))) {
+                    const menuContainer = document.createElement('div');
+                    menuContainer.className = 'data-path-menu';
+                    
+                    const menuTrigger = document.createElement('i');
+                    menuTrigger.className = 'menu-trigger ph ph-dots-three-vertical';
+                    menuTrigger.title = 'File actions';
+                    
+                    const dropdownMenu = document.createElement('div');
+                    dropdownMenu.className = 'dropdown-menu';
+                    
+                    // Show/Hide Table option
+                    const tableAction = document.createElement('button');
+                    tableAction.className = 'dropdown-item';
+                    tableAction.innerHTML = '<i class="ph ph-table"></i> Show Table';
+                    tableAction.onclick = (e) => {
+                        e.stopPropagation();
+                        toggleDataViewer(pathDiv, pathInfo.path);
+                        closeAllDropdowns();
+                    };
+                    
+                    // View JSON/CSV option
+                    const viewAction = document.createElement('a');
+                    viewAction.className = 'dropdown-item';
+                    viewAction.href = pathInfo.path;
+                    viewAction.target = '_blank';
+                    const fileExt = pathInfo.path.endsWith('.csv') ? 'CSV' : 'JSON';
+                    viewAction.innerHTML = `<i class="ph ph-eye"></i> View ${fileExt}`;
+                    viewAction.onclick = (e) => {
+                        e.stopPropagation();
+                        closeAllDropdowns();
+                    };
+                    
+                    // Download option
+                    const downloadAction = document.createElement('a');
+                    downloadAction.className = 'dropdown-item';
+                    downloadAction.href = pathInfo.path;
+                    downloadAction.target = '_blank';
+                    downloadAction.download = '';
+                    downloadAction.innerHTML = `<i class="ph ph-download"></i> Download ${fileExt}`;
+                    downloadAction.onclick = (e) => {
+                        e.stopPropagation();
+                        closeAllDropdowns();
+                    };
+                    
+                    dropdownMenu.appendChild(tableAction);
+                    dropdownMenu.appendChild(viewAction);
+                    dropdownMenu.appendChild(downloadAction);
+                    
+                    menuContainer.appendChild(menuTrigger);
+                    menuContainer.appendChild(dropdownMenu);
+                    
+                    // Toggle dropdown on trigger click
+                    menuTrigger.onclick = (e) => {
+                        e.stopPropagation();
+                        closeAllDropdowns();
+                        dropdownMenu.classList.toggle('show');
+                    };
+                    
+                    pathDiv.appendChild(menuContainer);
+                }
+                
+                // Make div clickable for expand/collapse or data viewing (limited click area)
+                if (pathInfo.isParent) {
+                    pathDiv.onclick = (e) => {
+                        // Don't trigger if clicking on menu, links, or tabulator tables
+                        if (e.target.closest('.data-path-menu') || 
+                            e.target.tagName === 'A' ||
+                            e.target.closest('.csv-viewer-container') ||
+                            e.target.closest('.tabulator')) {
+                            return;
+                        }
+                        
+                        // Only trigger if clicking on the label or path text area
+                        if (e.target.closest('.data-path-label') || 
+                            e.target.classList.contains('data-path')) {
+                            const arrow = pathDiv.querySelector('.expand-arrow');
+                            toggleSubRows(pathInfo.stateId || pathInfo.parentId, arrow);
+                        }
+                    };
+                } else {
+                    makeDataPathClickable(pathDiv, pathInfo.path);
                 }
                 
                 pathDiv.appendChild(label);
@@ -1097,6 +1386,290 @@
         
         // Set up hash change listener
         window.addEventListener('hashchange', handleHashChange);
+        
+        // Global functions for dropdown management
+        function closeAllDropdowns() {
+            document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                menu.classList.remove('show');
+            });
+        }
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', closeAllDropdowns);
+        
+        // Toggle sub-rows visibility
+        function toggleSubRows(parentId, arrow) {
+            const childRows = document.querySelectorAll(`[data-parent="${parentId}"]`);
+            const isExpanded = arrow.classList.contains('expanded');
+            
+            childRows.forEach(row => {
+                if (isExpanded) {
+                    row.classList.add('hidden');
+                } else {
+                    row.classList.remove('hidden');
+                }
+            });
+            
+            // Toggle arrow direction
+            if (isExpanded) {
+                arrow.classList.remove('expanded');
+            } else {
+                arrow.classList.add('expanded');
+            }
+        }
+        
+        // Data Viewer Functions (handles both CSV and JSON)
+        function toggleDataViewer(pathDiv, filePath) {
+            const existingViewer = pathDiv.querySelector('.csv-viewer-container');
+            const menuButton = pathDiv.querySelector('.dropdown-item');
+            
+            if (existingViewer) {
+                // Toggle visibility and update button text
+                const isVisible = existingViewer.style.display !== 'none';
+                existingViewer.style.display = isVisible ? 'none' : 'block';
+                if (menuButton) {
+                    menuButton.innerHTML = isVisible ? 
+                        '<i class="ph ph-table"></i> Show Table' : 
+                        '<i class="ph ph-table"></i> Hide Table';
+                }
+                return;
+            }
+            
+            // Create new viewer container
+            const viewerContainer = document.createElement('div');
+            viewerContainer.className = 'csv-viewer-container';
+            
+            const loadingMsg = document.createElement('div');
+            const fileType = filePath.endsWith('.json') ? 'JSON' : 'CSV';
+            loadingMsg.textContent = `Loading ${fileType} data...`;
+            loadingMsg.style.textAlign = 'center';
+            loadingMsg.style.padding = '20px';
+            loadingMsg.style.fontStyle = 'italic';
+            loadingMsg.style.color = '#666';
+            
+            viewerContainer.appendChild(loadingMsg);
+            pathDiv.appendChild(viewerContainer);
+            viewerContainer.style.display = 'block';
+            
+            // Update button text
+            if (menuButton) {
+                menuButton.innerHTML = '<i class="ph ph-table"></i> Hide Table';
+            }
+            
+            // Load and display data
+            if (filePath.endsWith('.json')) {
+                loadJSONData(filePath, viewerContainer);
+            } else {
+                loadCSVData(filePath, viewerContainer);
+            }
+        }
+        
+        // Make data-path clickable for main action (limited to label/path area)
+        function makeDataPathClickable(pathDiv, filePath) {
+            if (filePath && (filePath.endsWith('.csv') || filePath.endsWith('.json'))) {
+                pathDiv.onclick = (e) => {
+                    // Don't trigger if clicking on menu, links, or tabulator tables
+                    if (e.target.closest('.data-path-menu') || 
+                        e.target.tagName === 'A' || 
+                        e.target.closest('.csv-viewer-container') ||
+                        e.target.closest('.tabulator')) {
+                        return;
+                    }
+                    
+                    // Only trigger if clicking on the label or path text area
+                    if (e.target.closest('.data-path-label') || 
+                        e.target.classList.contains('data-path')) {
+                        toggleDataViewer(pathDiv, filePath);
+                    }
+                };
+            }
+        }
+        
+        async function loadCSVData(csvPath, container) {
+            try {
+                const response = await fetch(csvPath);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch CSV: ${response.status}`);
+                }
+                
+                const csvText = await response.text();
+                const csvData = parseCSVForViewer(csvText);
+                
+                if (csvData.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; padding: 20px; color: #dc3545;">No data found in CSV file</div>';
+                    return;
+                }
+                
+                // Create table container
+                const tableContainer = document.createElement('div');
+                tableContainer.className = 'csv-viewer-table';
+                
+                // Create unique ID for this table
+                const tableId = 'csv-table-' + Date.now();
+                tableContainer.id = tableId;
+                
+                container.innerHTML = '';
+                container.appendChild(tableContainer);
+                
+                // Determine columns from first row
+                const columns = Object.keys(csvData[0]).map(key => ({
+                    title: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                    field: key,
+                    width: 120,
+                    formatter: function(cell) {
+                        const value = cell.getValue();
+                        // Format numbers
+                        if (!isNaN(value) && value !== '' && value !== null) {
+                            const num = parseFloat(value);
+                            if (num >= 1e9) {
+                                return (num / 1e9).toFixed(2) + 'B';
+                            } else if (num >= 1e6) {
+                                return (num / 1e6).toFixed(2) + 'M';
+                            } else if (num >= 1e3) {
+                                return (num / 1e3).toFixed(2) + 'K';
+                            } else if (num % 1 !== 0) {
+                                return num.toFixed(3);
+                            }
+                        }
+                        return value;
+                    }
+                }));
+                
+                // Create Tabulator table
+                new Tabulator(`#${tableId}`, {
+                    data: csvData,
+                    columns: columns,
+                    layout: "fitData",
+                    pagination: "local",
+                    paginationSize: 25,
+                    paginationSizeSelector: [10, 25, 50, 100],
+                    movableColumns: true,
+                    resizableRows: true,
+                    height: "300px",
+                    tooltips: true,
+                    headerFilterPlaceholder: "Filter...",
+                    headerFilter: true
+                });
+                
+            } catch (error) {
+                console.error('Error loading CSV:', error);
+                container.innerHTML = `<div style="text-align: center; padding: 20px; color: #dc3545;">Error loading CSV: ${error.message}</div>`;
+            }
+        }
+        
+        function parseCSVForViewer(csvText) {
+            const lines = csvText.trim().split('\n');
+            if (lines.length < 2) return [];
+            
+            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+            const rows = [];
+            
+            for (let i = 1; i < lines.length && i < 1001; i++) { // Limit to 1000 rows for performance
+                const values = lines[i].split(',');
+                if (values.length >= headers.length) {
+                    const row = {};
+                    headers.forEach((header, index) => {
+                        row[header] = values[index] ? values[index].trim().replace(/"/g, '') : '';
+                    });
+                    rows.push(row);
+                }
+            }
+            
+            return rows;
+        }
+        
+        // JSON Data Loader
+        async function loadJSONData(jsonPath, container) {
+            try {
+                const response = await fetch(jsonPath);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch JSON: ${response.status}`);
+                }
+                
+                const jsonData = await response.json();
+                
+                // Convert JSON to tabular format
+                let tableData = [];
+                
+                if (Array.isArray(jsonData)) {
+                    // If it's an array, use as-is
+                    tableData = jsonData;
+                } else if (typeof jsonData === 'object') {
+                    // If it's an object, convert to array of key-value pairs
+                    if (jsonData.data && Array.isArray(jsonData.data)) {
+                        // Handle structured data with 'data' property
+                        tableData = jsonData.data;
+                    } else {
+                        // Convert object properties to rows
+                        tableData = Object.keys(jsonData).map(key => ({
+                            key: key,
+                            value: typeof jsonData[key] === 'object' ? 
+                                JSON.stringify(jsonData[key]) : jsonData[key]
+                        }));
+                    }
+                }
+                
+                if (tableData.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; padding: 20px; color: #dc3545;">No tabular data found in JSON file</div>';
+                    return;
+                }
+                
+                // Create table container
+                const tableContainer = document.createElement('div');
+                tableContainer.className = 'csv-viewer-table';
+                
+                // Create unique ID for this table
+                const tableId = 'json-table-' + Date.now();
+                tableContainer.id = tableId;
+                
+                container.innerHTML = '';
+                container.appendChild(tableContainer);
+                
+                // Determine columns from first row
+                const columns = Object.keys(tableData[0]).map(key => ({
+                    title: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                    field: key,
+                    width: 120,
+                    formatter: function(cell) {
+                        const value = cell.getValue();
+                        // Format numbers
+                        if (!isNaN(value) && value !== '' && value !== null) {
+                            const num = parseFloat(value);
+                            if (num >= 1e9) {
+                                return (num / 1e9).toFixed(2) + 'B';
+                            } else if (num >= 1e6) {
+                                return (num / 1e6).toFixed(2) + 'M';
+                            } else if (num >= 1e3) {
+                                return (num / 1e3).toFixed(2) + 'K';
+                            } else if (num % 1 !== 0) {
+                                return num.toFixed(3);
+                            }
+                        }
+                        return value;
+                    }
+                }));
+                
+                // Create Tabulator table
+                new Tabulator(`#${tableId}`, {
+                    data: tableData,
+                    columns: columns,
+                    layout: "fitData",
+                    pagination: "local",
+                    paginationSize: 25,
+                    paginationSizeSelector: [10, 25, 50, 100],
+                    movableColumns: true,
+                    resizableRows: true,
+                    height: "300px",
+                    tooltips: true,
+                    headerFilterPlaceholder: "Filter...",
+                    headerFilter: true
+                });
+                
+            } catch (error) {
+                console.error('Error loading JSON:', error);
+                container.innerHTML = `<div style="text-align: center; padding: 20px; color: #dc3545;">Error loading JSON: ${error.message}</div>`;
+            }
+        }
         
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', initializePage);
