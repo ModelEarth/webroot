@@ -36,6 +36,49 @@
             margin-right: 5px;
         }
         
+        .file-selection-container {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            border-radius: 5px;
+        }
+        
+        .selector-row {
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+        }
+        
+        .selector-group {
+            flex: 1;
+        }
+        
+        .file-selection-container label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #1976d2;
+        }
+        
+        .file-selector,
+        .trade-type-selector {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #2196f3;
+            border-radius: 4px;
+            font-size: 0.95em;
+            background-color: white;
+            cursor: pointer;
+        }
+        
+        .file-selector:focus,
+        .trade-type-selector:focus {
+            outline: none;
+            border-color: #1976d2;
+            box-shadow: 0 0 5px rgba(33, 150, 243, 0.3);
+        }
+        
         .loading {
             text-align: center;
             padding: 20px;
@@ -295,6 +338,32 @@
             </label>
         </div>
         
+        <!-- File Selection Dropdown (for specific countries) -->
+        <div id="fileSelectionContainer" class="file-selection-container" style="display: none;">
+            <div class="selector-row">
+                <div class="selector-group">
+                    <label for="tradeTypeSelector"><strong>Trade Type:</strong></label>
+                    <select id="tradeTypeSelector" class="trade-type-selector">
+                        <option value="domestic">Domestic Trade</option>
+                        <option value="imports">Imports</option>
+                        <option value="exports">Exports</option>
+                    </select>
+                </div>
+                <div class="selector-group">
+                    <label for="fileSelector"><strong>Data File:</strong></label>
+                    <select id="fileSelector" class="file-selector">
+                        <option value="trade_impacts.csv">Environmental Impacts (trade_impacts.csv)</option>
+                        <option value="trade_employment.csv">Employment Data (trade_employment.csv)</option>
+                        <option value="trade_factors.csv">Environmental Factors (trade_factors.csv)</option>
+                        <option value="trade_factors_lite.csv">Environmental Factors - Lite (trade_factors_lite.csv)</option>
+                        <option value="trade_materials.csv">Material Flows (trade_materials.csv)</option>
+                        <option value="trade_resources.csv">Resource Usage (trade_resources.csv)</option>
+                        <option value="industryflow.csv">Industry Flow Data (industryflow.csv)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
         <!-- Data Information Display -->
         <div id="dataInfo" class="data-info">
             <strong>Current Data:</strong> <span id="dataDescription">US state-level economic output and employment data</span>
@@ -337,6 +406,8 @@
         // Global variables
         let currentTable = null;
         let currentDataSource = 'international';
+        let selectedTradeType = 'domestic'; // Default trade type
+        let selectedDataFile = 'trade_impacts.csv'; // Default file
         let usStateData = [];
         let internationalData = [];
         let combinedData = [];
@@ -641,7 +712,7 @@
                     if (countryData.country) {
                         countryPaths.push({
                             label: `${countryData.countryName} (${countryData.country})`,
-                            path: `../../exiobase/tradeflow/year/2019/${countryData.country}/domestic/trade_impacts.csv`,
+                            path: `../../exiobase/tradeflow/year/2019/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
                             type: 'exiobase',
                             isLink: true
                         });
@@ -673,10 +744,10 @@
         // Load individual country data from Exiobase CSV
         async function loadCountryData(countryCode) {
             try {
-                console.log(`Loading data for country: ${countryCode}`);
+                console.log(`Loading data for country: ${countryCode}, trade type: ${selectedTradeType}, file: ${selectedDataFile}`);
                 
-                // Try to load the trade_impacts.csv file for this country
-                const csvPath = `../../exiobase/tradeflow/year/2019/${countryCode}/domestic/trade_impacts.csv`;
+                // Use the selected trade type and data file
+                const csvPath = `../../exiobase/tradeflow/year/2019/${countryCode}/${selectedTradeType}/${selectedDataFile}`;
                 
                 const response = await fetch(csvPath);
                 if (!response.ok) {
@@ -858,7 +929,7 @@
                     if (countryData.country) {
                         combinedPaths.push({
                             label: `${countryData.countryName} (${countryData.country})`,
-                            path: `../../exiobase/tradeflow/year/2019/${countryData.country}/domestic/trade_impacts.csv`,
+                            path: `../../exiobase/tradeflow/year/2019/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
                             type: 'exiobase',
                             isLink: true
                         });
@@ -879,6 +950,98 @@
         // Update data information display
         function updateDataInfo(description) {
             document.getElementById('dataDescription').textContent = description;
+        }
+        
+        // Update data description based on selected file and trade type
+        function updateDataDescription() {
+            const fileSelector = document.getElementById('fileSelector');
+            const tradeTypeSelector = document.getElementById('tradeTypeSelector');
+            const selectedFileOption = fileSelector.options[fileSelector.selectedIndex];
+            const selectedTradeOption = tradeTypeSelector.options[tradeTypeSelector.selectedIndex];
+            const fileName = selectedFileOption.text;
+            const tradeTypeName = selectedTradeOption.text;
+            
+            if (currentDataSource === 'international') {
+                updateDataInfo(`${tradeTypeName} data from ${fileName} across countries`);
+            } else if (currentDataSource === 'combined') {
+                updateDataInfo(`Combined US state and ${tradeTypeName.toLowerCase()} data from ${fileName}`);
+            }
+        }
+        
+        // Update file options based on trade type
+        function updateFileOptions() {
+            const fileSelector = document.getElementById('fileSelector');
+            const currentValue = fileSelector.value;
+            
+            // Clear existing options
+            fileSelector.innerHTML = '';
+            
+            // Define available files for each trade type
+            const fileOptions = {
+                domestic: [
+                    {value: 'trade_impacts.csv', text: 'Environmental Impacts (trade_impacts.csv)'},
+                    {value: 'trade_employment.csv', text: 'Employment Data (trade_employment.csv)'},
+                    {value: 'trade_factors.csv', text: 'Environmental Factors (trade_factors.csv)'},
+                    {value: 'trade_factors_lite.csv', text: 'Environmental Factors - Lite (trade_factors_lite.csv)'},
+                    {value: 'trade_materials.csv', text: 'Material Flows (trade_materials.csv)'},
+                    {value: 'trade_resources.csv', text: 'Resource Usage (trade_resources.csv)'},
+                    {value: 'industryflow.csv', text: 'Industry Flow Data (industryflow.csv)'}
+                ],
+                imports: [
+                    {value: 'trade_impacts.csv', text: 'Environmental Impacts (trade_impacts.csv)'},
+                    {value: 'trade_factors.csv', text: 'Environmental Factors (trade_factors.csv)'},
+                    {value: 'trade_resources.csv', text: 'Resource Usage (trade_resources.csv)'},
+                    {value: 'industryflow.csv', text: 'Industry Flow Data (industryflow.csv)'},
+                    {value: 'industryflow_factor.csv', text: 'Industry Flow Factors (industryflow_factor.csv)'},
+                    {value: 'industryflow_finaldemand.csv', text: 'Final Demand Flow (industryflow_finaldemand.csv)'}
+                ],
+                exports: [
+                    {value: 'trade_impacts.csv', text: 'Environmental Impacts (trade_impacts.csv)'},
+                    {value: 'trade_employment.csv', text: 'Employment Data (trade_employment.csv)'},
+                    {value: 'trade_factors.csv', text: 'Environmental Factors (trade_factors.csv)'},
+                    {value: 'trade_materials.csv', text: 'Material Flows (trade_materials.csv)'},
+                    {value: 'trade_resources.csv', text: 'Resource Usage (trade_resources.csv)'},
+                    {value: 'industryflow.csv', text: 'Industry Flow Data (industryflow.csv)'}
+                ]
+            };
+            
+            // Add options for selected trade type
+            const options = fileOptions[selectedTradeType] || fileOptions.domestic;
+            options.forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option.value;
+                optionElement.textContent = option.text;
+                fileSelector.appendChild(optionElement);
+            });
+            
+            // Try to maintain previous selection if available
+            if (currentValue && [...fileSelector.options].some(opt => opt.value === currentValue)) {
+                fileSelector.value = currentValue;
+                selectedDataFile = currentValue;
+            } else {
+                // Default to first option
+                selectedDataFile = fileSelector.value;
+            }
+        }
+        
+        // Show/hide file selector based on hash
+        function updateFileSelector() {
+            const hash = window.location.hash.substring(1);
+            const fileContainer = document.getElementById('fileSelectionContainer');
+            
+            // Show file selector only for specific country views in international mode
+            if (hash.startsWith('country=') && currentDataSource === 'international') {
+                const countryCode = hash.split('=')[1];
+                if (countryCode && countryCode !== 'all' && countryCode.length === 2) {
+                    fileContainer.style.display = 'block';
+                    updateFileOptions(); // Update available files
+                    updateDataDescription();
+                    return;
+                }
+            }
+            
+            // Hide file selector for other views
+            fileContainer.style.display = 'none';
         }
         
         // Update data sources display
@@ -1256,13 +1419,20 @@
         
         // Handle data source toggle
         async function handleDataSourceChange(newSource, updateHash = true) {
-            if (newSource === currentDataSource) return;
+            if (newSource === currentDataSource && !updateHash) {
+                // Allow reloading with different file selection
+            } else if (newSource === currentDataSource) {
+                return;
+            }
             
             currentDataSource = newSource;
             document.getElementById('loadingMessage').style.display = 'block';
             document.getElementById('table').style.display = 'none';
             document.getElementById('loadingTotals').style.display = 'block';
             document.getElementById('totalsDisplay').style.display = 'none';
+            
+            // Update file selector visibility
+            updateFileSelector();
             
             try {
                 let data;
@@ -1309,6 +1479,29 @@
                 });
             });
             
+            // Set up trade type selector change listener
+            document.getElementById('tradeTypeSelector').addEventListener('change', function() {
+                selectedTradeType = this.value;
+                console.log('Trade type selection changed to:', selectedTradeType);
+                updateDataDescription();
+                updateFileOptions(); // Update available files based on trade type
+                // Reload international data if currently showing international view
+                if (currentDataSource === 'international' || currentDataSource === 'combined') {
+                    handleDataSourceChange(currentDataSource, false);
+                }
+            });
+            
+            // Set up file selector change listener
+            document.getElementById('fileSelector').addEventListener('change', function() {
+                selectedDataFile = this.value;
+                console.log('File selection changed to:', selectedDataFile);
+                updateDataDescription();
+                // Reload international data if currently showing international view
+                if (currentDataSource === 'international' || currentDataSource === 'combined') {
+                    handleDataSourceChange(currentDataSource, false);
+                }
+            });
+            
             // Check URL hash to determine initial view
             const hash = window.location.hash.substring(1);
             let initialView = 'international'; // Default to international
@@ -1333,6 +1526,9 @@
             // Reset currentDataSource to force initial load
             currentDataSource = null;
             
+            // Update file selector visibility for initial hash
+            updateFileSelector();
+            
             // Load initial data (don't update hash during initialization)
             await handleDataSourceChange(initialView, false);
             
@@ -1344,6 +1540,9 @@
             const hash = window.location.hash.substring(1);
             if (hash) {
                 console.log('Hash changed:', hash);
+                
+                // Update file selector visibility
+                updateFileSelector();
                 
                 // Handle combined view
                 if (hash.includes('country=all&state=all')) {
