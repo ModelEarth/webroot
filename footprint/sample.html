@@ -101,6 +101,13 @@
             background-color: #fff3cd;
         }
         
+        .data-path.useeio-file {
+            border-left-color: #17a2b8;
+            background-color: #efefef;
+            margin-left: 20px;
+            font-size: 0.85em;
+        }
+        
         .data-path-label {
             font-weight: bold;
             color: #495057;
@@ -193,23 +200,58 @@
             'NL': 'Netherlands'
         };
         
-        // State mapping
+        // State mapping - All 50 US states
         const stateMapping = {
-            'CA': 'California',
-            'TX': 'Texas', 
-            'NY': 'New York',
-            'FL': 'Florida',
-            'IL': 'Illinois',
-            'PA': 'Pennsylvania',
-            'OH': 'Ohio',
-            'GA': 'Georgia',
-            'NC': 'North Carolina',
-            'NJ': 'New Jersey',
-            'MI': 'Michigan',
-            'WA': 'Washington',
+            'AK': 'Alaska',
+            'AL': 'Alabama',
+            'AR': 'Arkansas',
             'AZ': 'Arizona',
+            'CA': 'California',
+            'CO': 'Colorado',
+            'CT': 'Connecticut',
+            'DE': 'Delaware',
+            'FL': 'Florida',
+            'GA': 'Georgia',
+            'HI': 'Hawaii',
+            'IA': 'Iowa',
+            'ID': 'Idaho',
+            'IL': 'Illinois',
+            'IN': 'Indiana',
+            'KS': 'Kansas',
+            'KY': 'Kentucky',
+            'LA': 'Louisiana',
+            'MA': 'Massachusetts',
+            'MD': 'Maryland',
+            'ME': 'Maine',
+            'MI': 'Michigan',
+            'MN': 'Minnesota',
+            'MO': 'Missouri',
+            'MS': 'Mississippi',
+            'MT': 'Montana',
+            'NC': 'North Carolina',
+            'ND': 'North Dakota',
+            'NE': 'Nebraska',
+            'NH': 'New Hampshire',
+            'NJ': 'New Jersey',
+            'NM': 'New Mexico',
+            'NV': 'Nevada',
+            'NY': 'New York',
+            'OH': 'Ohio',
+            'OK': 'Oklahoma',
+            'OR': 'Oregon',
+            'PA': 'Pennsylvania',
+            'RI': 'Rhode Island',
+            'SC': 'South Carolina',
+            'SD': 'South Dakota',
             'TN': 'Tennessee',
-            'IN': 'Indiana'
+            'TX': 'Texas',
+            'UT': 'Utah',
+            'VA': 'Virginia',
+            'VT': 'Vermont',
+            'WA': 'Washington',
+            'WI': 'Wisconsin',
+            'WV': 'West Virginia',
+            'WY': 'Wyoming'
         };
         
         // Available countries in Exiobase data
@@ -236,9 +278,9 @@
             try {
                 updateDataInfo('US state-level economic output and employment data from USEEIO models');
                 
-                // States to process (those with available USEEIO models)
-                const statesToLoad = Object.keys(stateMapping).slice(0, 10); // First 10 states
-                const batchSize = 3; // Process in smaller batches to avoid overwhelming
+                // States to process (all 50 states with available USEEIO models)
+                const statesToLoad = Object.keys(stateMapping); // All 50 states
+                const batchSize = 5; // Process in batches to handle all 50 states efficiently
                 usStateData = [];
                 
                 console.log('Loading US state data for:', statesToLoad);
@@ -261,15 +303,26 @@
                 // Sort by output descending
                 usStateData.sort((a, b) => b.output - a.output);
                 
-                // Update data sources display with actual paths used
+                // Update data sources display with actual paths and files used
                 const statePaths = [];
                 usStateData.forEach(stateData => {
                     if (stateData.stateAbbr) {
+                        const modelDir = `/useeio-json/models/2020/${stateData.stateAbbr}EEIOv1.0-s-20/`;
                         statePaths.push({
-                            label: `${stateData.stateName} (${stateData.stateAbbr})`,
-                            path: `/useeio-json/models/2020/${stateData.stateAbbr}EEIOv1.0-s-20/`,
+                            label: `${stateData.stateName} (${stateData.stateAbbr}) - Model Directory`,
+                            path: modelDir,
                             type: 'useeio',
                             isLink: true
+                        });
+                        // Add links to specific files used
+                        const keyFiles = ['sectors.json', 'indicators.json', 'matrix/q.json', 'matrix/D.json'];
+                        keyFiles.forEach(file => {
+                            statePaths.push({
+                                label: `   └─ ${file}`,
+                                path: modelDir + file,
+                                type: 'useeio-file',
+                                isLink: true
+                            });
                         });
                     }
                 });
