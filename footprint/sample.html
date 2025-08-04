@@ -1445,8 +1445,8 @@
                 } else if (newSource === 'international') {
                     data = await loadInternationalData();
                     if (updateHash) {
-                        // Default to country=US for international view
-                        window.location.hash = 'country=US';
+                        // Set to country=all for international view
+                        window.location.hash = 'country=all';
                     }
                 } else if (newSource === 'combined') {
                     data = await loadCombinedData();
@@ -1516,11 +1516,10 @@
                 initialView = 'international';
                 document.querySelector('input[value="international"]').checked = true;
             } else {
-                // Default to country=US when no specific country or state is specified
+                // Default to international view when no specific hash is provided
                 initialView = 'international';
                 document.querySelector('input[value="international"]').checked = true;
-                // Set the hash to country=US for default display
-                window.location.hash = 'country=US';
+                // Don't set the hash programmatically to avoid triggering hash change events
             }
             
             // Reset currentDataSource to force initial load
