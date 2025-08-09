@@ -1,7 +1,7 @@
 [Trade Flow](/profile/trade/)
 # Data Prep for Visualizations
 
-Environmentally-Extended Input-Output (EEIO) Models - Data Pulls
+Multi-Regional Input-Output (MRIO) Models - Data Pulls
 
 ### &bullet; <a href="../trade/">Trade Flow SQL</a><br>
 ### &bullet; <a href="../crm/">PartnerTools Database SQL</a><br>
