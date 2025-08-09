@@ -1,6 +1,4 @@
-# Partner Database
-
-## MemberCommons for Collaborative Development
+# PartnerTools CRM Database
 
 [Admin Dashboard](../../team/admin/) for our collaborative dev site using [SuiteCRM's](https://SuiteCRM.com) standard [database schema](https://schema--suitecrm-docs.netlify.app/schema) which has a [large support community](https://community.SuiteCRM.com). 
 
