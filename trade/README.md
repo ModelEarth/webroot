@@ -5,9 +5,12 @@ We're using [Claude Code CLI to create .CSV files](https://github.com/ModelEarth
 
 Each country-year database instance will represent a country and year from Exiobase.
 
-**country-year dataset**
-factors (includes factor\_id<!-- and flow\_id-->)  
-industries (5-char sectors)  
+**Start here:** [Explore the data structure below](../footprint/sample.html)
+
+**table names**
+[factors](https://github.com/ModelEarth/exiobase/blob/main/tradeflow/year/2019/factors.csv) (includes factor\_id<!-- and flow\_id-->)  
+[industries](https://github.com/ModelEarth/exiobase/blob/main/tradeflow/year/2019/industries.csv) (5-char sectors)  
+[progress on the following](https://github.com/ModelEarth/exiobase/tree/main/tradeflow/year/2019/US/imports) - some table names will change
 industry\_factor  
 commodities (6-char products)  
 commodity\_factor  
@@ -16,8 +19,11 @@ importcommodity\_factor
 importcontributions  
 importmultiplier\_factor  
 
-Unless we find a better structure in [Open CEDA](https://watershed.com/solutions/ceda)
-About our [Data Pipeline](../../data-pipeline/)
+For Exiobase processing into SQL, we're using spark on a limux VM rather than databricks (databricks would be really expensive). Spark is the data processing program that databricks provides, but since you can't control the costs, for now it's best to use directly on linux to be safe.  [Private doc](https://docs.google.com/document/d/1gNsPJmC8_Et3dwd1Kgg0weOSbFC3vPQ3E-S9M_ttg2k/edit?usp=sharing)
+
+
+Also see [Open CEDA](https://watershed.com/solutions/ceda)
+
 
 [MemberCommons Admin Dashboard](../../team/admin)  
 [SuiteCRM](../crm) - Partner Data analysis using Azure, SQL Express and MariaDB.
@@ -84,7 +90,7 @@ In the CoLab, add the [Sector table output](https://github.com/ModelEarth/USEEIO
 -->
 
 TO DO: Create [interactive versions](/profile/impacts/) of the [three Exiobase charts](https://exiobase.eu)  
-See our [SQL Project Overview](/profile/prep/) - Three Charts using International Exiobase Data
+See our various [Data Prep processes](/profile/prep/) - Three Charts using International Exiobase Data
 
 
 TO DO: <a href="/profile/prep/">Create International Industry Reports</a> - like Energy Consumption in Drying
