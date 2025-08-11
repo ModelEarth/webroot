@@ -67,7 +67,8 @@ For spreadsheets, use capitalized CamelCase for column names.
 [Inserting Factors and Sectors into Supabase](https://colab.research.google.com/drive/1INHz02V-cU_y_nAlS-BWxQQtz8Qg_lLi#scrollTo=KUnI-Va8M1Nl) - Invite only
 [Satwick's PYMRIO.ipynb CoLab](https://colab.research.google.com/drive/1AZPfBlG0iUKmKRZjlNxn8uOuvtAfEarn?usp=sharing)  
 
-TO DO: Send about 8 countries to unique datasets for the year 2020.
+TO DO: [Generate datasets for the year 2024](https://github.com/ModelEarth/projects/issues/30)
+
 TO DO: Send to DuckDB instances for a country and year - See DuckDB example in our [zip code processing](https://model.earth/community-zipcodes/) 
 
 
