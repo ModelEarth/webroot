@@ -7,17 +7,30 @@ Each country-year database instance will represent a country and year from Exiob
 
 **Start here:** [Explore the data structure below](../footprint/sample.html)
 
+[View table names as csv files](https://github.com/ModelEarth/trade-data/tree/main/year/2019)
+
 **table names**
-[factors](https://github.com/ModelEarth/exiobase/blob/main/tradeflow/year/2019/factors.csv) (includes factor\_id<!-- and flow\_id-->)  
-[industries](https://github.com/ModelEarth/exiobase/blob/main/tradeflow/year/2019/industries.csv) (5-char sectors)  
-[progress on the following](https://github.com/ModelEarth/exiobase/tree/main/tradeflow/year/2019/US/imports) - some table names will change
-industry\_factor  
-commodities (6-char products)  
-commodity\_factor  
+[factor](https://github.com/ModelEarth/trade-data/blob/main/year/2019/factor.csv) (includes factor\_id<!-- and flow\_id-->)  
+[industry](https://github.com/ModelEarth/trade-data/blob/main/year/2019/industry.csv) (5-char sectors) 
+trade
+trade_factor  
+trade_factor_lg
+trade_impact  
+trade_resource
+trade_material  
+trade_employment
+
+<!--
 importindustry\_factor  
 importcommodity\_factor  
 importcontributions  
-importmultiplier\_factor  
+importmultiplier\_factor 
+-->
+
+For future:
+commodities (6-char products)  
+commodity\_factor  
+ 
 
 For Exiobase processing into SQL, we're using spark on a limux VM rather than databricks (databricks would be really expensive). Spark is the data processing program that databricks provides, but since you can't control the costs, for now it's best to use directly on linux to be safe.  [Private doc](https://docs.google.com/document/d/1gNsPJmC8_Et3dwd1Kgg0weOSbFC3vPQ3E-S9M_ttg2k/edit?usp=sharing)
 

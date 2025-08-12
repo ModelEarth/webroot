@@ -352,13 +352,12 @@
                 <div class="selector-group">
                     <label for="fileSelector"><strong>Data File:</strong></label>
                     <select id="fileSelector" class="file-selector">
-                        <option value="trade_impacts.csv">Environmental Impacts (trade_impacts.csv)</option>
+                        <option value="trade_impact.csv">Environmental Impacts (trade_impact.csv)</option>
                         <option value="trade_employment.csv">Employment Data (trade_employment.csv)</option>
-                        <option value="trade_factors.csv">Environmental Factors (trade_factors.csv)</option>
-                        <option value="trade_factors_lite.csv">Environmental Factors - Lite (trade_factors_lite.csv)</option>
-                        <option value="trade_materials.csv">Material Flows (trade_materials.csv)</option>
-                        <option value="trade_resources.csv">Resource Usage (trade_resources.csv)</option>
-                        <option value="industryflow.csv">Industry Flow Data (industryflow.csv)</option>
+                        <option value="trade_factor.csv">Environmental Factors (trade_factor.csv)</option>
+                        <option value="trade_material.csv">Material Flows (trade_material.csv)</option>
+                        <option value="trade_resource.csv">Resource Usage (trade_resource.csv)</option>
+                        <option value="trade.csv">Industry Flow Data (trade.csv)</option>
                     </select>
                 </div>
             </div>
@@ -407,7 +406,7 @@
         let currentTable = null;
         let currentDataSource = 'international';
         let selectedTradeType = 'domestic'; // Default trade type
-        let selectedDataFile = 'trade_impacts.csv'; // Default file
+        let selectedDataFile = 'trade_impact.csv'; // Default file
         let usStateData = [];
         let internationalData = [];
         let combinedData = [];
@@ -712,7 +711,7 @@
                     if (countryData.country) {
                         countryPaths.push({
                             label: `${countryData.countryName} (${countryData.country})`,
-                            path: `../../exiobase/tradeflow/year/2019/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
+                            path: `../../trade-data/year/2019/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
                             type: 'exiobase',
                             isLink: true
                         });
@@ -747,7 +746,7 @@
                 console.log(`Loading data for country: ${countryCode}, trade type: ${selectedTradeType}, file: ${selectedDataFile}`);
                 
                 // Use the selected trade type and data file
-                const csvPath = `../../exiobase/tradeflow/year/2019/${countryCode}/${selectedTradeType}/${selectedDataFile}`;
+                const csvPath = `../../trade-data/year/2019/${countryCode}/${selectedTradeType}/${selectedDataFile}`;
                 
                 const response = await fetch(csvPath);
                 if (!response.ok) {
@@ -929,7 +928,7 @@
                     if (countryData.country) {
                         combinedPaths.push({
                             label: `${countryData.countryName} (${countryData.country})`,
-                            path: `../../exiobase/tradeflow/year/2019/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
+                            path: `../../trade-data/year/2019/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
                             type: 'exiobase',
                             isLink: true
                         });
@@ -979,29 +978,26 @@
             // Define available files for each trade type
             const fileOptions = {
                 domestic: [
-                    {value: 'trade_impacts.csv', text: 'Environmental Impacts (trade_impacts.csv)'},
+                    {value: 'trade_impact.csv', text: 'Environmental Impacts (trade_impact.csv)'},
                     {value: 'trade_employment.csv', text: 'Employment Data (trade_employment.csv)'},
-                    {value: 'trade_factors.csv', text: 'Environmental Factors (trade_factors.csv)'},
-                    {value: 'trade_factors_lite.csv', text: 'Environmental Factors - Lite (trade_factors_lite.csv)'},
-                    {value: 'trade_materials.csv', text: 'Material Flows (trade_materials.csv)'},
-                    {value: 'trade_resources.csv', text: 'Resource Usage (trade_resources.csv)'},
-                    {value: 'industryflow.csv', text: 'Industry Flow Data (industryflow.csv)'}
+                    {value: 'trade_factor.csv', text: 'Environmental Factors (trade_factor.csv)'},
+                    {value: 'trade_material.csv', text: 'Material Flows (trade_material.csv)'},
+                    {value: 'trade_resource.csv', text: 'Resource Usage (trade_resource.csv)'},
+                    {value: 'trade.csv', text: 'Industry Flow Data (trade.csv)'}
                 ],
                 imports: [
-                    {value: 'trade_impacts.csv', text: 'Environmental Impacts (trade_impacts.csv)'},
-                    {value: 'trade_factors.csv', text: 'Environmental Factors (trade_factors.csv)'},
-                    {value: 'trade_resources.csv', text: 'Resource Usage (trade_resources.csv)'},
-                    {value: 'industryflow.csv', text: 'Industry Flow Data (industryflow.csv)'},
-                    {value: 'industryflow_factor.csv', text: 'Industry Flow Factors (industryflow_factor.csv)'},
-                    {value: 'industryflow_finaldemand.csv', text: 'Final Demand Flow (industryflow_finaldemand.csv)'}
+                    {value: 'trade_impact.csv', text: 'Environmental Impacts (trade_impact.csv)'},
+                    {value: 'trade_factor.csv', text: 'Environmental Factors (trade_factor.csv)'},
+                    {value: 'trade_resource.csv', text: 'Resource Usage (trade_resource.csv)'},
+                    {value: 'trade.csv', text: 'Industry Flow Data (trade.csv)'},
                 ],
                 exports: [
-                    {value: 'trade_impacts.csv', text: 'Environmental Impacts (trade_impacts.csv)'},
+                    {value: 'trade_impact.csv', text: 'Environmental Impacts (trade_impact.csv)'},
                     {value: 'trade_employment.csv', text: 'Employment Data (trade_employment.csv)'},
-                    {value: 'trade_factors.csv', text: 'Environmental Factors (trade_factors.csv)'},
-                    {value: 'trade_materials.csv', text: 'Material Flows (trade_materials.csv)'},
-                    {value: 'trade_resources.csv', text: 'Resource Usage (trade_resources.csv)'},
-                    {value: 'industryflow.csv', text: 'Industry Flow Data (industryflow.csv)'}
+                    {value: 'trade_factor.csv', text: 'Environmental Factors (trade_factor.csv)'},
+                    {value: 'trade_material.csv', text: 'Material Flows (trade_material.csv)'},
+                    {value: 'trade_resource.csv', text: 'Resource Usage (trade_resource.csv)'},
+                    {value: 'trade.csv', text: 'Industry Flow Data (trade.csv)'}
                 ]
             };
             
