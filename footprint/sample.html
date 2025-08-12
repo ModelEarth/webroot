@@ -397,7 +397,6 @@
 
     <!-- JavaScript Libraries -->
     <script src="https://unpkg.com/tabulator-tables@5.2.7/dist/js/tabulator.min.js"></script>
-    <script src="../../localsite/js/localsite.js"></script>
     <script src="../../useeio.js/dist/useeio.js"></script>
     <script src="../../useeio.js/footprint/config.js"></script>
     
@@ -411,6 +410,10 @@
         let internationalData = [];
         let combinedData = [];
         
+        // Trade data path configuration
+        //const tradeData = "../../trade-data/";
+        const tradeData = "https://raw.githubusercontent.com/ModelEarth/trade-data/refs/heads/main/";
+
         // Country code to name mapping for international data
         const countryNames = {
             'US': 'United States',
@@ -711,7 +714,7 @@
                     if (countryData.country) {
                         countryPaths.push({
                             label: `${countryData.countryName} (${countryData.country})`,
-                            path: `../../trade-data/year/2019/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
+                            path: `${tradeData}year/2019/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
                             type: 'exiobase',
                             isLink: true
                         });
@@ -746,7 +749,7 @@
                 console.log(`Loading data for country: ${countryCode}, trade type: ${selectedTradeType}, file: ${selectedDataFile}`);
                 
                 // Use the selected trade type and data file
-                const csvPath = `../../trade-data/year/2019/${countryCode}/${selectedTradeType}/${selectedDataFile}`;
+                const csvPath = `${tradeData}year/2019/${countryCode}/${selectedTradeType}/${selectedDataFile}`;
                 
                 const response = await fetch(csvPath);
                 if (!response.ok) {
@@ -928,7 +931,7 @@
                     if (countryData.country) {
                         combinedPaths.push({
                             label: `${countryData.countryName} (${countryData.country})`,
-                            path: `../../trade-data/year/2019/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
+                            path: `${tradeData}year/2019/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
                             type: 'exiobase',
                             isLink: true
                         });
