@@ -1,7 +1,7 @@
 [Active Projects](../../projects/)
 # Trade Flow SQL
 
-We're using [Claude Code CLI to create .CSV files](https://github.com/ModelEarth/exiobase/tree/main/tradeflow) for use in [comparison frontends](https://model.earth/comparison/), and later Azure PostgrSQL databases with data from Exiobase similar to [generate\_import\_factors.py](https://github.com/ModelEarth/USEEIO/tree/master/import_emission_factors). 
+We're using [Claude Code CLI to create .CSV files](../../exiobase/tradeflow/) for use in [comparison frontends](../../comparison/), and later Azure PostgrSQL databases with data from Exiobase similar to [generate\_import\_factors.py](https://github.com/ModelEarth/USEEIO/tree/master/import_emission_factors). 
 
 Each country-year database instance will represent a country and year from Exiobase.
 
