@@ -37,7 +37,7 @@ industryflow.csv
 trade_id, year, region1, region2, industry1, industry2, amount
 
 
-For Exiobase processing into SQL, we're using spark on a limux VM rather than databricks (databricks would be really expensive). Spark is the data processing program that databricks provides, but since you can't control the costs, for now it's best to use directly on linux to be safe.  [Private doc](https://docs.google.com/document/d/1gNsPJmC8_Et3dwd1Kgg0weOSbFC3vPQ3E-S9M_ttg2k/edit?usp=sharing) and [.env for testing](https://colab.research.google.com/drive/1TgA9FJzhhue74Bgf-MJoOAKSBrzpiyss?usp=sharing)
+For Exiobase processing into SQL, we're using Spark on a linux VM to avoid higher expenses using Databricks. Spark is the data processing program that databricks provides, but since you can't control the costs, for now it's best to use directly on linux to be safe.  [Private doc](https://docs.google.com/document/d/1gNsPJmC8_Et3dwd1Kgg0weOSbFC3vPQ3E-S9M_ttg2k/edit?usp=sharing) and [.env for testing](https://colab.research.google.com/drive/1TgA9FJzhhue74Bgf-MJoOAKSBrzpiyss?usp=sharing)
 
 
 Also see [Open CEDA](https://watershed.com/solutions/ceda)
