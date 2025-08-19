@@ -2,7 +2,7 @@
 
 [Admin Dashboard](../../team/admin/) for our collaborative dev site using [SuiteCRM's](https://SuiteCRM.com) standard [database schema](https://schema--suitecrm-docs.netlify.app/schema) which has a [large support community](https://community.SuiteCRM.com). 
 
-[Configure your server](../../team/admin/server/) and/or [install additional repos](/localsite/start/steps).
+[Configure Your Local Server](../../team/admin/server/) and/or [install additional repos](/localsite/start/steps).
 
 Tables names match Salesforce and [Microsoft Dynamics Common Data Model (CDM)](https://learn.microsoft.com/en-us/common-data-model):
 
