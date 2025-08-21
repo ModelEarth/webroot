@@ -4,7 +4,7 @@
 Multi-Regional Input-Output (MRIO) Models - Data Pulls
 
 ### &bullet; <a href="../trade/">Trade Flow SQL</a><br>
-### &bullet; <a href="../crm/">PartnerTools Database SQL</a><br>
+### &bullet; <a href="../crm/">MemberCommons Database SQL</a><br>
 
 ### &bullet; <a href="../impacts/json/">JSON from Exiobase</a><br>
 ### &bullet; <a href="../impacts/useeio/parquet/">DuckDB Parquet from US State USEEIO .json files</a><br>
