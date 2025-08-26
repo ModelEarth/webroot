@@ -413,6 +413,7 @@
         // Trade data path configuration
         //const tradeData = "../../trade-data/";
         const tradeData = "https://raw.githubusercontent.com/ModelEarth/trade-data/refs/heads/main/";
+        const tradeDataDisplay = "trade-data/"; // Shortened path for display
 
         // Country code to name mapping for international data
         const countryNames = {
@@ -715,6 +716,7 @@
                         countryPaths.push({
                             label: `${countryData.countryName} (${countryData.country})`,
                             path: `${tradeData}year/2019/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
+                            displayPath: `${tradeDataDisplay}year/2019/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
                             type: 'exiobase',
                             isLink: true
                         });
@@ -932,6 +934,7 @@
                         combinedPaths.push({
                             label: `${countryData.countryName} (${countryData.country})`,
                             path: `${tradeData}year/2019/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
+                            displayPath: `${tradeDataDisplay}year/2019/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
                             type: 'exiobase',
                             isLink: true
                         });
@@ -1094,13 +1097,13 @@
                 if (pathInfo.isLink && pathInfo.path) {
                     const link = document.createElement('a');
                     link.href = pathInfo.path;
-                    link.textContent = pathInfo.path;
+                    link.textContent = pathInfo.displayPath || pathInfo.path;
                     link.target = '_blank';
                     link.style.color = '#007bff';
                     link.style.textDecoration = 'underline';
                     pathContainer.appendChild(link);
                 } else {
-                    pathContainer.textContent = pathInfo.path;
+                    pathContainer.textContent = pathInfo.displayPath || pathInfo.path;
                 }
                 
                 // Add 3-dot menu for interactive files
