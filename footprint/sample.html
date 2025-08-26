@@ -94,6 +94,51 @@
             border-radius: 3px;
         }
         
+        .dark .toggle-data-container {
+            background-color: #555;
+            color: #fff;
+        }
+        
+        .dark .file-selection-container {
+            background-color: #555;
+            color: #fff;
+            border-left-color: #888;
+        }
+        
+        .dark .data-info {
+            background-color: #555;
+            color: #fff;
+            border-left-color: #888;
+        }
+        
+        .dark .totals {
+            background-color: #555;
+            color: #fff;
+            border-color: #888;
+        }
+        
+        .data-info-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .year-selector {
+            padding: 5px 10px;
+            border: 1px solid #2196f3;
+            border-radius: 3px;
+            background: white;
+            color: #1976d2;
+            font-size: 0.9em;
+            cursor: pointer;
+        }
+        
+        .dark .year-selector {
+            background: #777;
+            color: #fff;
+            border-color: #888;
+        }
+        
         .totals {
             margin: 15px 0;
             padding: 15px;
@@ -365,7 +410,16 @@
 
         <!-- Data Information Display -->
         <div id="dataInfo" class="data-info">
-            <strong>Current Data:</strong> <span id="dataDescription">US state-level economic output and employment data</span>
+            <div class="data-info-content">
+                <div>
+                    <strong>Current Data (<span id="currentYear">2019</span>):</strong> 
+                    <span id="dataDescription">US state-level economic output and employment data</span>
+                </div>
+                <select id="yearSelector" class="year-selector">
+                    <option value="2019">2019</option>
+                    <option value="2022">2022</option>
+                </select>
+            </div>
         </div>
         
         <!-- Totals Summary -->
@@ -1542,6 +1596,19 @@
             if (hash) {
                 console.log('Hash changed:', hash);
                 
+                // Update year selector from hash
+                const hashParams = new URLSearchParams(hash.replace(/&/g, '&').replace(/=/g, '='));
+                const yearFromHash = hashParams.get('year');
+                if (yearFromHash) {
+                    const yearSelector = document.getElementById('yearSelector');
+                    const currentYearSpan = document.getElementById('currentYear');
+                    if (yearSelector && yearSelector.value !== yearFromHash) {
+                        yearSelector.value = yearFromHash;
+                        currentYearSpan.textContent = yearFromHash;
+                        localStorage.setItem('selectedYear', yearFromHash);
+                    }
+                }
+                
                 // Update file selector visibility
                 updateFileSelector();
                 
@@ -1553,25 +1620,27 @@
                     }
                 }
                 // Handle state view (both state=all and specific states)
-                else if (hash.startsWith('state=')) {
+                else if (hash.includes('state=')) {
                     if (currentDataSource !== 'us') {
                         document.querySelector('input[value="us"]').checked = true;
                         handleDataSourceChange('us', false);
                     }
                     
                     // Extract state abbreviation for potential filtering
-                    const stateAbbr = hash.split('=')[1];
+                    const stateMatch = hash.match(/state=([^&]*)/);
+                    const stateAbbr = stateMatch ? stateMatch[1] : null;
                     console.log('State view - state:', stateAbbr);
                 }
                 // Handle country view (both country=all and specific countries)
-                else if (hash.startsWith('country=')) {
+                else if (hash.includes('country=')) {
                     if (currentDataSource !== 'international') {
                         document.querySelector('input[value="international"]').checked = true;
                         handleDataSourceChange('international', false);
                     }
                     
                     // Extract country code for potential filtering
-                    const countryCode = hash.split('=')[1];
+                    const countryMatch = hash.match(/country=([^&]*)/);
+                    const countryCode = countryMatch ? countryMatch[1] : null;
                     console.log('Country view - country:', countryCode);
                     
                     // If country=US, reload international data to include US
@@ -1871,8 +1940,73 @@
             }
         }
         
+        // Year selector functionality
+        function initializeYearSelector() {
+            const yearSelector = document.getElementById('yearSelector');
+            const currentYearSpan = document.getElementById('currentYear');
+            
+            // Load year from URL hash first, then localStorage as fallback
+            const hash = window.location.hash.substring(1);
+            const hashParams = new URLSearchParams(hash.replace(/&/g, '&').replace(/=/g, '='));
+            const yearFromHash = hashParams.get('year');
+            const savedYear = localStorage.getItem('selectedYear');
+            
+            const initialYear = yearFromHash || savedYear || '2019';
+            
+            if (yearSelector) {
+                yearSelector.value = initialYear;
+                currentYearSpan.textContent = initialYear;
+                
+                // Update hash if year came from localStorage
+                if (!yearFromHash && savedYear) {
+                    updateHashWithYear(savedYear);
+                }
+            }
+            
+            // Set up change listener
+            if (yearSelector) {
+                yearSelector.addEventListener('change', function() {
+                    const selectedYear = this.value;
+                    
+                    // Save to localStorage
+                    localStorage.setItem('selectedYear', selectedYear);
+                    
+                    // Update year display in text
+                    currentYearSpan.textContent = selectedYear;
+                    
+                    // Update URL hash with new year
+                    updateHashWithYear(selectedYear);
+                    
+                    // Reload page data for new year
+                    console.log('Year changed to:', selectedYear, '- reloading data...');
+                    handleDataSourceChange(currentDataSource, false);
+                });
+            }
+        }
+        
+        // Helper function to update URL hash with year parameter
+        function updateHashWithYear(year) {
+            const hash = window.location.hash.substring(1);
+            const hashParams = new URLSearchParams(hash.replace(/&/g, '&').replace(/=/g, '='));
+            
+            // Update or add year parameter
+            hashParams.set('year', year);
+            
+            // Reconstruct hash
+            const newHashParams = hashParams.toString();
+            const newHash = newHashParams.replace(/&/g, '&').replace(/=/g, '=');
+            
+            // Update URL without triggering hashchange event
+            if (window.location.hash !== '#' + newHash) {
+                window.location.hash = newHash;
+            }
+        }
+        
         // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', initializePage);
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeYearSelector();
+            initializePage();
+        });
     </script>
 </body>
 </html>
