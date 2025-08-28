@@ -131,6 +131,10 @@
             color: #1976d2;
             font-size: 0.9em;
             cursor: pointer;
+            /* Keep the regular dropdown arrow */
+            -webkit-appearance: menulist;
+            -moz-appearance: menulist;
+            appearance: menulist;
         }
         
         .dark .year-selector {
@@ -412,12 +416,12 @@
         <div id="dataInfo" class="data-info">
             <div class="data-info-content">
                 <div>
-                    <strong>Current Data (<span id="currentYear">2019</span>):</strong> 
+                    <strong>Current Data (<span id="currentYear">2022</span>):</strong> 
                     <span id="dataDescription">US state-level economic output and employment data</span>
                 </div>
                 <select id="yearSelector" class="year-selector">
                     <option value="2019">2019</option>
-                    <option value="2022">2022</option>
+                    <option value="2022" selected>2022</option>
                 </select>
             </div>
         </div>
@@ -446,13 +450,13 @@
         </div>
 
         <br>
-        <a href="../../useeio.js/footprint/">State Reports</a>
+        <a href="../../trade/footprint/">State Reports</a>
     </div>
 
     <!-- JavaScript Libraries -->
     <script src="https://unpkg.com/tabulator-tables@5.2.7/dist/js/tabulator.min.js"></script>
-    <script src="../../useeio.js/dist/useeio.js"></script>
-    <script src="../../useeio.js/footprint/config.js"></script>
+    <script src="../../trade/dist/useeio.js"></script>
+    <script src="../../trade/footprint/config.js"></script>
     
     <script>
         // Global variables
@@ -463,6 +467,12 @@
         let usStateData = [];
         let internationalData = [];
         let combinedData = [];
+        
+        // Get selected year from dropdown
+        function getSelectedYear() {
+            const yearSelector = document.getElementById('yearSelector');
+            return yearSelector ? yearSelector.value : '2022';
+        }
         
         // Trade data path configuration
         //const tradeData = "../../trade-data/";
@@ -486,7 +496,10 @@
             'KR': 'South Korea',
             'AU': 'Australia',
             'ES': 'Spain',
-            'NL': 'Netherlands'
+            'NL': 'Netherlands',
+            'WM': 'Middle East (row)',
+            'SA': 'Saudi Arabia',
+            'ZA': 'South Africa'
         };
         
         // State mapping - All 50 US states
@@ -544,7 +557,7 @@
         };
         
         // Available countries in Exiobase data
-        const exiobaseCountries = ['US', 'CN', 'DE', 'JP', 'GB', 'CA', 'AU', 'IT', 'KR', 'FR', 'BR', 'IN'];
+        const exiobaseCountries = ['US', 'CN', 'DE', 'JP', 'GB', 'CA', 'AU', 'IT', 'KR', 'FR', 'BR', 'IN', 'WM', 'SA', 'ZA'];
         
         // Utility functions
         function formatNumber(num) {
@@ -730,7 +743,8 @@
         // Load international data from Exiobase CSV files
         async function loadInternationalData() {
             try {
-                updateDataInfo('International trade flow data from Exiobase MRIO database (2019)');
+                const selectedYear = getSelectedYear();
+                updateDataInfo(`International trade flow data from Exiobase MRIO database (${selectedYear})`);
                 
                 // Check if we should include US data based on URL hash
                 const hash = window.location.hash.substring(1);
@@ -769,8 +783,8 @@
                     if (countryData.country) {
                         countryPaths.push({
                             label: `${countryData.countryName} (${countryData.country})`,
-                            path: `${tradeData}year/2019/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
-                            displayPath: `${tradeDataDisplay}year/2019/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
+                            path: `${tradeData}year/${selectedYear}/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
+                            displayPath: `${tradeDataDisplay}year/${selectedYear}/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
                             type: 'exiobase',
                             isLink: true
                         });
@@ -802,10 +816,11 @@
         // Load individual country data from Exiobase CSV
         async function loadCountryData(countryCode) {
             try {
-                console.log(`Loading data for country: ${countryCode}, trade type: ${selectedTradeType}, file: ${selectedDataFile}`);
+                const selectedYear = getSelectedYear();
+                console.log(`Loading data for country: ${countryCode}, year: ${selectedYear}, trade type: ${selectedTradeType}, file: ${selectedDataFile}`);
                 
-                // Use the selected trade type and data file
-                const csvPath = `${tradeData}year/2019/${countryCode}/${selectedTradeType}/${selectedDataFile}`;
+                // Use the selected year, trade type and data file
+                const csvPath = `${tradeData}year/${selectedYear}/${countryCode}/${selectedTradeType}/${selectedDataFile}`;
                 
                 const response = await fetch(csvPath);
                 if (!response.ok) {
@@ -983,12 +998,13 @@
                 });
                 
                 // Add international country paths
+                const selectedYear = getSelectedYear();
                 internationalData.forEach(countryData => {
                     if (countryData.country) {
                         combinedPaths.push({
                             label: `${countryData.countryName} (${countryData.country})`,
-                            path: `${tradeData}year/2019/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
-                            displayPath: `${tradeDataDisplay}year/2019/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
+                            path: `${tradeData}year/${selectedYear}/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
+                            displayPath: `${tradeDataDisplay}year/${selectedYear}/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
                             type: 'exiobase',
                             isLink: true
                         });
@@ -1951,7 +1967,7 @@
             const yearFromHash = hashParams.get('year');
             const savedYear = localStorage.getItem('selectedYear');
             
-            const initialYear = yearFromHash || savedYear || '2019';
+            const initialYear = yearFromHash || savedYear || '2022';
             
             if (yearSelector) {
                 yearSelector.value = initialYear;
@@ -1965,7 +1981,7 @@
             
             // Set up change listener
             if (yearSelector) {
-                yearSelector.addEventListener('change', function() {
+                yearSelector.addEventListener('change', async function() {
                     const selectedYear = this.value;
                     
                     // Save to localStorage
@@ -1977,9 +1993,14 @@
                     // Update URL hash with new year
                     updateHashWithYear(selectedYear);
                     
+                    // Clear cached data to force reload with new year
+                    usStateData = [];
+                    internationalData = [];
+                    combinedData = [];
+                    
                     // Reload page data for new year
                     console.log('Year changed to:', selectedYear, '- reloading data...');
-                    handleDataSourceChange(currentDataSource, false);
+                    await handleDataSourceChange(currentDataSource, false);
                 });
             }
         }
@@ -1996,9 +2017,9 @@
             const newHashParams = hashParams.toString();
             const newHash = newHashParams.replace(/&/g, '&').replace(/=/g, '=');
             
-            // Update URL without triggering hashchange event
+            // Update URL without triggering hashchange event using history.replaceState
             if (window.location.hash !== '#' + newHash) {
-                window.location.hash = newHash;
+                history.replaceState(null, null, '#' + newHash);
             }
         }
         
