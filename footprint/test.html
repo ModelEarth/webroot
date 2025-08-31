@@ -8,6 +8,7 @@
     
     <!-- Icon Dependencies -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     
     <!-- Shared CSS from localsite -->
     <link type="text/css" rel="stylesheet" href="../../localsite/css/base.css" id="/localsite/css/base.css"/>
@@ -23,6 +24,14 @@
 </head>
 
 <body>
+    <script>
+        // Initialize Feather Icons after DOM load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        });
+    </script>
     <div class="content contentpadding" style="position: relative; padding-top:0px">
     </div>
 </body>
