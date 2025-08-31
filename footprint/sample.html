@@ -987,11 +987,11 @@
                 const rawOutput = totals.amount || 0;
                 const rawEmployment = totals.Employment_total || 0;
                 
-                // Scale adjustments based on debug analysis
-                // Output: ~52M needs to become ~52T, so multiply by ~1,000,000 (1 million)
-                // Employment: ~1.1T needs to become ~1.1B, so divide by 1000
-                const scaledOutput = rawOutput * 1000000; // Scale up to trillions
-                const scaledEmployment = rawEmployment / 1000; // Scale down to billions
+                // Scale adjustments based on debug analysis and data source investigation
+                // Output: CSV values are in millions, scale to trillions
+                // Employment: CSV has unit mixing bug causing ~1000x inflation, scale down accordingly
+                const scaledOutput = rawOutput * 1000000; // Scale millions to trillions
+                const scaledEmployment = rawEmployment / 1000; // Fix trade_impact.py unit mixing bug (~1000x inflation)
                 
                 console.log(`Filtered country ${countryCode} raw values:`, { rawOutput, rawEmployment });
                 console.log(`Filtered country ${countryCode} scaled values:`, { scaledOutput, scaledEmployment });
@@ -1572,11 +1572,11 @@
                 const rawOutput = totals.amount || 0;
                 const rawEmployment = totals.Employment_total || 0;
                 
-                // Scale adjustments based on debug analysis
-                // Output: ~52M needs to become ~52T, so multiply by ~1,000,000 (1 million)
-                // Employment: ~1.1T needs to become ~1.1B, so divide by 1000
-                const scaledOutput = rawOutput * 1000000; // Scale up to trillions
-                const scaledEmployment = rawEmployment / 1000; // Scale down to billions
+                // Scale adjustments based on debug analysis and data source investigation
+                // Output: CSV values are in millions, scale to trillions
+                // Employment: CSV has unit mixing bug causing ~1000x inflation, scale down accordingly
+                const scaledOutput = rawOutput * 1000000; // Scale millions to trillions
+                const scaledEmployment = rawEmployment / 1000; // Fix trade_impact.py unit mixing bug (~1000x inflation)
                 
                 console.log(`Country ${countryCode} raw values:`, { rawOutput, rawEmployment });
                 console.log(`Country ${countryCode} scaled values:`, { scaledOutput, scaledEmployment });
@@ -2252,18 +2252,17 @@
                 if (newSource === 'us') {
                     data = await loadUSStateData();
                     if (updateHash) {
-                        window.location.hash = 'state=all';
+                        updateHashWithDataSource('state=all');
                     }
                 } else if (newSource === 'international') {
                     data = await loadInternationalData();
                     if (updateHash) {
-                        // Set to country=all for international view
-                        window.location.hash = 'country=all';
+                        updateHashWithDataSource('country=all');
                     }
                 } else if (newSource === 'combined') {
                     data = await loadCombinedData();
                     if (updateHash) {
-                        window.location.hash = 'country=all&state=all';
+                        updateHashWithDataSource('country=all&state=all');
                     }
                 }
                 
@@ -2797,6 +2796,33 @@
             const newHash = newHashParams.replace(/&/g, '&').replace(/=/g, '=');
             
             // Update URL without triggering hashchange event using history.replaceState
+            if (window.location.hash !== '#' + newHash) {
+                history.replaceState(null, null, '#' + newHash);
+            }
+        }
+        
+        // Helper function to update URL hash with data source while preserving other parameters
+        function updateHashWithDataSource(dataSourceParams) {
+            const hash = window.location.hash.substring(1);
+            const hashParams = new URLSearchParams(hash.replace(/&/g, '&').replace(/=/g, '='));
+            
+            // Parse the new data source parameters
+            const newParams = new URLSearchParams(dataSourceParams.replace(/&/g, '&').replace(/=/g, '='));
+            
+            // Remove existing state/country parameters
+            hashParams.delete('state');
+            hashParams.delete('country');
+            
+            // Add new data source parameters
+            for (const [key, value] of newParams) {
+                hashParams.set(key, value);
+            }
+            
+            // Reconstruct hash
+            const newHashParams = hashParams.toString();
+            const newHash = newHashParams.replace(/&/g, '&').replace(/=/g, '=');
+            
+            // Update URL without triggering hashchange event
             if (window.location.hash !== '#' + newHash) {
                 history.replaceState(null, null, '#' + newHash);
             }
