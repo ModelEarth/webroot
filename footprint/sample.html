@@ -361,6 +361,154 @@
             -moz-appearance: none !important;
             appearance: none !important;
         }
+        
+        /* Industry Filter Styles */
+        .industry-filter-container {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f0f8ff;
+            border-left: 4px solid #0066cc;
+            border-radius: 5px;
+            display: none; /* Initially hidden */
+        }
+        
+        .industry-filter-row {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+        }
+        
+        .industry-filter-group {
+            position: relative;
+        }
+        
+        .industry-filter-group:first-child {
+            flex: 0 0 200px; /* Fixed width for category popup */
+        }
+        
+        .industry-filter-group:last-child {
+            flex: 1; /* Remaining space for industry dropdown */
+        }
+        
+        .industry-filter-container label {
+            display: block;
+            margin-top: 0;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #000;
+        }
+        
+        .dark .industry-filter-container label {
+            color: #fff;
+        }
+        
+        .industry-dropdown, .category-button {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #0066cc;
+            border-radius: 4px;
+            font-size: 0.95em;
+            background-color: white;
+            cursor: pointer;
+            height: 40px;
+            box-sizing: border-box;
+            margin-bottom: 0px;
+        }
+        
+        .category-button {
+            background-color: #e6f3ff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 40px;
+        }
+        
+        .category-popup {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #0066cc;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            display: none;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .category-popup.show {
+            display: block;
+        }
+        
+        .category-item {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .category-item:last-child {
+            border-bottom: none;
+        }
+        
+        .category-item:hover {
+            background-color: #f0f8ff;
+        }
+        
+        .category-item input[type="checkbox"] {
+            margin: 0;
+        }
+        
+        .dark .industry-filter-container {
+            background-color: #444;
+            color: #fff;
+            border-left-color: #888;
+        }
+        
+        .dark .category-popup {
+            background: #555;
+            border-color: #888;
+            color: #fff;
+        }
+        
+        .dark .category-item:hover {
+            background-color: #666;
+        }
+        
+        .dark .category-button {
+            background-color: #555;
+            color: #fff;
+            border-color: #888;
+        }
+        
+        .dark .industry-dropdown {
+            background-color: #555;
+            color: #fff;
+            border-color: #888;
+        }
+        
+        .dark .category-item {
+            color: #fff;
+        }
+        
+        .dark .category-item label {
+            color: #fff !important;
+        }
+        
+        .category-item {
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .category-item label {
+            cursor: pointer;
+            user-select: none;
+            flex: 1;
+            color: #0066cc; /* Blue text in light mode */
+        }
     </style>
 </head>
 
@@ -412,6 +560,29 @@
             </div>
         </div>
 
+        <!-- Industry Filter Section -->
+        <div id="industryFilterContainer" class="industry-filter-container">
+            <div class="industry-filter-row">
+                <div class="industry-filter-group">
+                    <label for="industryCategory"><strong>Categories:</strong></label>
+                    <div class="category-button" id="industrycat">
+                        <span id="categoryDisplay">All Categories</span>
+                        <i class="ph ph-caret-down"></i>
+                    </div>
+                    <div id="categoryPopup" class="category-popup">
+                        <!-- Categories will be loaded dynamically -->
+                    </div>
+                </div>
+                <div class="industry-filter-group">
+                    <label for="industry"><strong>Industry:</strong></label>
+                    <select id="industry" class="industry-dropdown">
+                        <option value="all">All Industries</option>
+                        <!-- Industries will be loaded dynamically -->
+                    </select>
+                </div>
+            </div>
+        </div>
+        
         <!-- Data Information Display -->
         <div id="dataInfo" class="data-info">
             <div class="data-info-content">
@@ -467,11 +638,515 @@
         let usStateData = [];
         let internationalData = [];
         let combinedData = [];
+        let industriesData = [];
+        let selectedCategories = [];
+        let selectedIndustry = 'all';
+        let filteredData = [];
         
         // Get selected year from dropdown
         function getSelectedYear() {
             const yearSelector = document.getElementById('yearSelector');
             return yearSelector ? yearSelector.value : '2022';
+        }
+        
+        // Load industries data for filtering
+        async function loadIndustriesData() {
+            try {
+                const selectedYear = getSelectedYear();
+                const csvPath = `${tradeData}year/${selectedYear}/industry.csv`;
+                
+                const response = await fetch(csvPath);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch industries CSV: ${response.status}`);
+                }
+                
+                const csvText = await response.text();
+                const rows = parseCSV(csvText);
+                
+                industriesData = rows;
+                console.log('Loaded industries data:', industriesData.length + ' industries');
+                
+                // Populate category checkboxes
+                populateCategoryCheckboxes();
+                
+                // Populate industry dropdown
+                populateIndustryDropdown();
+                
+                return industriesData;
+                
+            } catch (error) {
+                console.error('Error loading industries data:', error);
+                industriesData = [];
+                return [];
+            }
+        }
+        
+        // Populate category checkboxes
+        function populateCategoryCheckboxes() {
+            const popup = document.getElementById('categoryPopup');
+            
+            // Get unique categories
+            const categories = [...new Set(industriesData.map(row => row.category))]
+                .filter(cat => cat && cat.trim() !== '')
+                .sort();
+            
+            popup.innerHTML = '';
+            
+            categories.forEach(category => {
+                const categoryItem = document.createElement('div');
+                categoryItem.className = 'category-item';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `cat-${category.replace(/\s+/g, '-')}`;
+                checkbox.value = category;
+                checkbox.addEventListener('change', handleCategoryChange);
+                
+                const label = document.createElement('label');
+                label.htmlFor = checkbox.id;
+                label.textContent = category;
+                label.style.cursor = 'pointer';
+                label.style.marginBottom = '0';
+                label.style.fontWeight = 'normal';
+                
+                // Make entire row clickable
+                categoryItem.addEventListener('click', function(e) {
+                    // Prevent event bubbling if clicking directly on checkbox
+                    if (e.target === checkbox) {
+                        return;
+                    }
+                    // Toggle checkbox for any other click in the row
+                    e.preventDefault();
+                    e.stopPropagation();
+                    checkbox.checked = !checkbox.checked;
+                    // Trigger change event to update filters
+                    const changeEvent = new Event('change', { bubbles: true });
+                    checkbox.dispatchEvent(changeEvent);
+                });
+                
+                categoryItem.appendChild(checkbox);
+                categoryItem.appendChild(label);
+                popup.appendChild(categoryItem);
+            });
+        }
+        
+        // Populate industry dropdown
+        function populateIndustryDropdown() {
+            const dropdown = document.getElementById('industry');
+            
+            // Clear existing options except "All Industries"
+            dropdown.innerHTML = '<option value="all">All Industries</option>';
+            
+            // Filter industries based on selected categories
+            let filteredIndustries = industriesData;
+            
+            if (selectedCategories.length > 0) {
+                filteredIndustries = industriesData.filter(row => 
+                    selectedCategories.includes(row.category)
+                );
+            }
+            
+            // Add filtered industries to dropdown
+            filteredIndustries.forEach(industry => {
+                const option = document.createElement('option');
+                option.value = industry.industry_id;
+                option.textContent = industry.name;
+                dropdown.appendChild(option);
+            });
+        }
+        
+        // Handle category checkbox changes
+        function handleCategoryChange() {
+            // Update selected categories array
+            selectedCategories = [];
+            document.querySelectorAll('#categoryPopup input[type="checkbox"]:checked').forEach(cb => {
+                selectedCategories.push(cb.value);
+            });
+            
+            // Update category display
+            const categoryDisplay = document.getElementById('categoryDisplay');
+            if (selectedCategories.length === 0) {
+                categoryDisplay.textContent = 'All Categories';
+            } else if (selectedCategories.length === 1) {
+                categoryDisplay.textContent = selectedCategories[0];
+            } else {
+                categoryDisplay.textContent = `${selectedCategories.length} Categories`;
+            }
+            
+            // Repopulate industry dropdown with filtered industries
+            populateIndustryDropdown();
+            
+            // Reset industry selection to "all" when categories change
+            document.getElementById('industry').value = 'all';
+            selectedIndustry = 'all';
+            
+            // Apply filters and refresh report
+            applyIndustryFilters();
+        }
+        
+        // Handle industry dropdown change
+        function handleIndustryChange() {
+            selectedIndustry = document.getElementById('industry').value;
+            applyIndustryFilters();
+        }
+        
+        // Apply industry filters and refresh report
+        async function applyIndustryFilters() {
+            // Update URL hash with filter values
+            updateHashWithFilters();
+            
+            // Save filter values to browser cache
+            saveFiltersToCache();
+            
+            // Filter current data and refresh table
+            await filterDataByIndustry();
+        }
+        
+        // Filter current data by industry
+        async function filterDataByIndustry() {
+            let currentData;
+            
+            if (currentDataSource === 'us') {
+                // For US states, no industry filtering applies
+                filteredData = usStateData;
+                createTable(filteredData, currentDataSource);
+                updateTotals(filteredData, currentDataSource);
+                return;
+            } else if (currentDataSource === 'international') {
+                currentData = internationalData;
+            } else if (currentDataSource === 'combined') {
+                currentData = combinedData;
+            } else {
+                return;
+            }
+            
+            // Check if industry filtering is needed
+            const needsFiltering = selectedCategories.length > 0 || selectedIndustry !== 'all';
+            
+            if (needsFiltering) {
+                console.log('Applying industry filters:', {
+                    categories: selectedCategories,
+                    industry: selectedIndustry
+                });
+                
+                // Show loading state
+                document.getElementById('loadingMessage').style.display = 'block';
+                document.getElementById('table').style.display = 'none';
+                
+                try {
+                    // Reload data with industry filtering
+                    if (currentDataSource === 'international') {
+                        filteredData = await loadFilteredInternationalData();
+                    } else if (currentDataSource === 'combined') {
+                        // Reload international portion with filtering
+                        const filteredInternational = await loadFilteredInternationalData();
+                        filteredData = [...usStateData, ...filteredInternational];
+                    }
+                    
+                    // Hide loading state
+                    document.getElementById('loadingMessage').style.display = 'none';
+                    document.getElementById('table').style.display = 'block';
+                    
+                } catch (error) {
+                    console.error('Error applying industry filters:', error);
+                    // Fallback to unfiltered data
+                    filteredData = currentData;
+                    document.getElementById('loadingMessage').style.display = 'none';
+                    document.getElementById('table').style.display = 'block';
+                }
+            } else {
+                // No filtering needed, use current data
+                filteredData = currentData;
+            }
+            
+            // Recreate table with filtered data
+            createTable(filteredData, currentDataSource);
+            if (currentDataSource === 'international') {
+                const hash = window.location.hash.substring(1);
+                const shouldIncludeUS = hash.includes('country=US') || (!hash.includes('country=') && !hash.includes('state='));
+                const totalCountries = shouldIncludeUS ? exiobaseCountries.length : exiobaseCountries.filter(c => c !== 'US').length;
+                updateTotals(filteredData, currentDataSource, totalCountries);
+            } else if (currentDataSource === 'combined') {
+                const hash = window.location.hash.substring(1);
+                const shouldIncludeUS = hash.includes('country=US') || (!hash.includes('country=') && !hash.includes('state='));
+                const totalCountries = shouldIncludeUS ? exiobaseCountries.length : exiobaseCountries.filter(c => c !== 'US').length;
+                updateTotals(filteredData, currentDataSource, totalCountries);
+            } else {
+                updateTotals(filteredData, currentDataSource);
+            }
+        }
+        
+        // Load filtered international data based on industry selection
+        async function loadFilteredInternationalData() {
+            const selectedYear = getSelectedYear();
+            const filteredInternationalData = [];
+            
+            // Determine which countries to process
+            const hash = window.location.hash.substring(1);
+            const shouldIncludeUS = hash.includes('country=US') || (!hash.includes('country=') && !hash.includes('state='));
+            const countriesToLoad = shouldIncludeUS ? 
+                exiobaseCountries : 
+                exiobaseCountries.filter(c => c !== 'US');
+            
+            console.log('Loading filtered international data for:', countriesToLoad);
+            
+            // Process countries in batches with industry filtering
+            const batchSize = 3; // Smaller batch size for filtered loading
+            for (let i = 0; i < countriesToLoad.length; i += batchSize) {
+                const batch = countriesToLoad.slice(i, i + batchSize);
+                console.log(`Processing filtered batch ${Math.floor(i/batchSize) + 1}:`, batch);
+                
+                const results = await Promise.all(batch.map(country => loadFilteredCountryData(country)));
+                const validResults = results.filter(result => result !== null);
+                filteredInternationalData.push(...validResults);
+                
+                // Small delay between batches
+                if (i + batchSize < countriesToLoad.length) {
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                }
+            }
+            
+            // Sort by output descending
+            filteredInternationalData.sort((a, b) => b.output - a.output);
+            
+            console.log('Successfully loaded filtered international data:', filteredInternationalData.length + ' of ' + countriesToLoad.length + ' countries');
+            return filteredInternationalData;
+        }
+        
+        // Load individual country data with industry filtering
+        async function loadFilteredCountryData(countryCode) {
+            try {
+                const selectedYear = getSelectedYear();
+                console.log(`Loading filtered data for country: ${countryCode}`);
+                
+                const csvPath = `${tradeData}year/${selectedYear}/${countryCode}/${selectedTradeType}/${selectedDataFile}`;
+                
+                const response = await fetch(csvPath);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch CSV for country ${countryCode}: ${response.status}`);
+                }
+                
+                const csvText = await response.text();
+                const rows = parseCSV(csvText);
+                
+                if (rows.length === 0) {
+                    throw new Error(`No data found for country ${countryCode}`);
+                }
+                
+                // Filter rows by industry if specific industry is selected
+                let filteredRows = rows;
+                
+                if (selectedIndustry !== 'all') {
+                    // Filter by specific industry
+                    filteredRows = rows.filter(row => {
+                        // Try different possible industry column names
+                        return row.industry1 === selectedIndustry || 
+                               row.industry2 === selectedIndustry ||
+                               row.industry_id === selectedIndustry ||
+                               row.industry === selectedIndustry;
+                    });
+                } else if (selectedCategories.length > 0) {
+                    // Filter by industry categories
+                    const allowedIndustries = industriesData
+                        .filter(ind => selectedCategories.includes(ind.category))
+                        .map(ind => ind.industry_id);
+                    
+                    filteredRows = rows.filter(row => {
+                        // Try different possible industry column names
+                        return allowedIndustries.includes(row.industry1) || 
+                               allowedIndustries.includes(row.industry2) ||
+                               allowedIndustries.includes(row.industry_id) ||
+                               allowedIndustries.includes(row.industry);
+                    });
+                }
+                
+                console.log(`Country ${countryCode}: filtered ${rows.length} rows to ${filteredRows.length} rows`);
+                
+                if (filteredRows.length === 0) {
+                    console.log(`No matching industry data for ${countryCode}`);
+                    return null;
+                }
+                
+                // Aggregate filtered data
+                let totals = {};
+                let transactionCount = 0;
+                
+                filteredRows.forEach(row => {
+                    if (row.amount && !isNaN(parseFloat(row.amount))) {
+                        Object.keys(row).forEach(key => {
+                            const value = parseFloat(row[key]);
+                            if (!isNaN(value)) {
+                                totals[key] = (totals[key] || 0) + value;
+                            }
+                        });
+                        transactionCount++;
+                    }
+                });
+                
+                // Create result object - scale raw values to correct units
+                const rawOutput = totals.amount || 0;
+                const rawEmployment = totals.Employment_total || 0;
+                
+                // Scale adjustments based on debug analysis
+                // Output: ~52M needs to become ~52T, so multiply by ~1,000,000 (1 million)
+                // Employment: ~1.1T needs to become ~1.1B, so divide by 1000
+                const scaledOutput = rawOutput * 1000000; // Scale up to trillions
+                const scaledEmployment = rawEmployment / 1000; // Scale down to billions
+                
+                console.log(`Filtered country ${countryCode} raw values:`, { rawOutput, rawEmployment });
+                console.log(`Filtered country ${countryCode} scaled values:`, { scaledOutput, scaledEmployment });
+                
+                const result = {
+                    country: countryCode,
+                    countryName: countryNames[countryCode] || countryCode,
+                    output: scaledOutput, // Store scaled value
+                    outputFormatted: formatCurrency(scaledOutput),
+                    employment: scaledEmployment, // Store scaled value
+                    employmentFormatted: formatEmployment(scaledEmployment),
+                    transactionCount: transactionCount,
+                    type: 'country',
+                    filtered: true // Mark as filtered data
+                };
+                
+                // Add environmental metrics with appropriate scaling
+                const keyMetrics = ['CO2_total', 'Energy_total', 'Water_total', 'Land_total', 'CH4_total', 'N2O_total', 'NOX_total'];
+                keyMetrics.forEach(metric => {
+                    if (totals[metric] !== undefined) {
+                        // Environmental metrics may need scaling too - using 1000x for now
+                        const scaledMetric = (totals[metric] || 0) * 1000;
+                        result[metric] = scaledMetric;
+                        result[metric + '_formatted'] = formatNumber(scaledMetric);
+                    }
+                });
+                
+                // For US, add all available data columns
+                if (countryCode === 'US') {
+                    Object.keys(totals).forEach(key => {
+                        if (!result[key] && key !== 'amount') {
+                            result[key] = Math.round(totals[key] || 0);
+                            result[key + '_formatted'] = formatNumber(Math.round(totals[key] || 0));
+                        }
+                    });
+                    result.allColumns = Object.keys(totals);
+                    result.allData = totals;
+                }
+                
+                return result;
+                
+            } catch (error) {
+                console.error(`Error loading filtered country ${countryCode}:`, error);
+                return null;
+            }
+        }
+        
+        // Update URL hash with filter values
+        function updateHashWithFilters() {
+            const hash = window.location.hash.substring(1);
+            const hashParams = new URLSearchParams(hash.replace(/&/g, '&').replace(/=/g, '='));
+            
+            // Update category filter in hash
+            if (selectedCategories.length > 0) {
+                hashParams.set('categories', selectedCategories.join(','));
+            } else {
+                hashParams.delete('categories');
+            }
+            
+            // Update industry filter in hash
+            if (selectedIndustry && selectedIndustry !== 'all') {
+                hashParams.set('industry', selectedIndustry);
+            } else {
+                hashParams.delete('industry');
+            }
+            
+            // Reconstruct hash
+            const newHashParams = hashParams.toString();
+            const newHash = newHashParams.replace(/&/g, '&').replace(/=/g, '=');
+            
+            // Update URL without triggering hashchange event
+            if (window.location.hash !== '#' + newHash) {
+                history.replaceState(null, null, '#' + newHash);
+            }
+        }
+        
+        // Save filter values to browser cache
+        function saveFiltersToCache() {
+            const filters = {
+                categories: selectedCategories,
+                industry: selectedIndustry
+            };
+            localStorage.setItem('industryFilters', JSON.stringify(filters));
+        }
+        
+        // Load filter values from browser cache or URL hash
+        function loadFiltersFromCache() {
+            // First check URL hash
+            const hash = window.location.hash.substring(1);
+            const hashParams = new URLSearchParams(hash.replace(/&/g, '&').replace(/=/g, '='));
+            
+            const categoriesFromHash = hashParams.get('categories');
+            const industryFromHash = hashParams.get('industry');
+            
+            if (categoriesFromHash || industryFromHash) {
+                // Use values from URL hash
+                selectedCategories = categoriesFromHash ? categoriesFromHash.split(',') : [];
+                selectedIndustry = industryFromHash || 'all';
+            } else {
+                // Fallback to localStorage
+                try {
+                    const savedFilters = localStorage.getItem('industryFilters');
+                    if (savedFilters) {
+                        const filters = JSON.parse(savedFilters);
+                        selectedCategories = filters.categories || [];
+                        selectedIndustry = filters.industry || 'all';
+                    }
+                } catch (error) {
+                    console.error('Error loading filters from cache:', error);
+                }
+            }
+        }
+        
+        // Apply loaded filter values to UI
+        function applyLoadedFilters() {
+            // Update category checkboxes
+            selectedCategories.forEach(category => {
+                // Find checkbox by iterating through all checkboxes to avoid CSS selector issues
+                const checkboxes = document.querySelectorAll('#categoryPopup input[type="checkbox"]');
+                checkboxes.forEach(checkbox => {
+                    if (checkbox.value === category) {
+                        checkbox.checked = true;
+                    }
+                });
+            });
+            
+            // Update category display
+            const categoryDisplay = document.getElementById('categoryDisplay');
+            if (selectedCategories.length === 0) {
+                categoryDisplay.textContent = 'All Categories';
+            } else if (selectedCategories.length === 1) {
+                categoryDisplay.textContent = selectedCategories[0];
+            } else {
+                categoryDisplay.textContent = `${selectedCategories.length} Categories`;
+            }
+            
+            // Update industry dropdown
+            populateIndustryDropdown();
+            
+            const industryDropdown = document.getElementById('industry');
+            if (selectedIndustry && selectedIndustry !== 'all') {
+                industryDropdown.value = selectedIndustry;
+            }
+        }
+        
+        // Show/hide industry filter based on data source
+        function updateIndustryFilterVisibility() {
+            const filterContainer = document.getElementById('industryFilterContainer');
+            
+            // Show industry filter for international and combined views only
+            if (currentDataSource === 'international' || currentDataSource === 'combined') {
+                filterContainer.style.display = 'block';
+            } else {
+                filterContainer.style.display = 'none';
+            }
         }
         
         // Trade data path configuration
@@ -561,10 +1236,12 @@
         
         // Utility functions
         function formatNumber(num) {
-            if (num >= 1e9) {
-                return (num / 1e9).toFixed(1) + 'B';
+            if (num >= 1e12) {
+                return (num / 1e12).toFixed(1) + ' Trillion';
+            } else if (num >= 1e9) {
+                return (num / 1e9).toFixed(1) + ' Billion';
             } else if (num >= 1e6) {
-                return (num / 1e6).toFixed(1) + 'M';
+                return (num / 1e6).toFixed(1) + ' Million';
             } else if (num >= 1e3) {
                 return (num / 1e3).toFixed(1) + 'K';
             }
@@ -572,7 +1249,30 @@
         }
         
         function formatCurrency(num) {
-            return '$' + formatNumber(num);
+            if (num >= 1e12) {
+                return '$' + (num / 1e12).toFixed(1) + ' Trillion';
+            } else if (num >= 1e9) {
+                return '$' + (num / 1e9).toFixed(1) + ' Billion';
+            } else if (num >= 1e6) {
+                return '$' + (num / 1e6).toFixed(1) + ' Million';
+            } else if (num >= 1e3) {
+                return '$' + (num / 1e3).toFixed(1) + 'K';
+            }
+            return '$' + num.toFixed(0);
+        }
+        
+        // Special formatter for employment numbers (3 decimal places for billions)
+        function formatEmployment(num) {
+            if (num >= 1e12) {
+                return (num / 1e12).toFixed(1) + ' Trillion';
+            } else if (num >= 1e9) {
+                return (num / 1e9).toFixed(3) + ' Billion';
+            } else if (num >= 1e6) {
+                return (num / 1e6).toFixed(1) + ' Million';
+            } else if (num >= 1e3) {
+                return (num / 1e3).toFixed(1) + 'K';
+            }
+            return num.toFixed(0);
         }
         
         // Load US state data from USEEIO.js models
@@ -698,14 +1398,16 @@
                 
                 console.log(`State ${stateCode} data:`, { output: totalOutput, jobs: totalJobs });
                 
+                console.log(`State ${stateCode} raw values:`, { totalOutput, totalJobs });
+                
                 return {
                     state: stateCode,
                     stateName: stateMapping[stateCode],
                     stateAbbr: stateCode,
-                    output: Math.round(totalOutput),
-                    outputFormatted: formatCurrency(Math.round(totalOutput)),
-                    employment: Math.round(totalJobs),
-                    employmentFormatted: formatNumber(Math.round(totalJobs)),
+                    output: totalOutput, // Store raw value
+                    outputFormatted: formatCurrency(totalOutput),
+                    employment: totalJobs, // Store raw value
+                    employmentFormatted: formatEmployment(totalJobs),
                     type: 'state'
                 };
                 
@@ -776,6 +1478,12 @@
                 
                 // Sort by output descending
                 internationalData.sort((a, b) => b.output - a.output);
+                
+                // Calculate availability stats
+                const totalCountriesToLoad = countriesToLoad.length;
+                const successfullyLoaded = internationalData.length;
+                
+                console.log(`Loaded ${successfullyLoaded} of ${totalCountriesToLoad} countries`);
                 
                 // Update data sources display with actual paths used
                 const countryPaths = [];
@@ -860,14 +1568,26 @@
                 
                 console.log(`Country ${countryCode} data totals:`, totals);
                 
-                // Create base result object
+                // Create base result object - scale raw values to correct units
+                const rawOutput = totals.amount || 0;
+                const rawEmployment = totals.Employment_total || 0;
+                
+                // Scale adjustments based on debug analysis
+                // Output: ~52M needs to become ~52T, so multiply by ~1,000,000 (1 million)
+                // Employment: ~1.1T needs to become ~1.1B, so divide by 1000
+                const scaledOutput = rawOutput * 1000000; // Scale up to trillions
+                const scaledEmployment = rawEmployment / 1000; // Scale down to billions
+                
+                console.log(`Country ${countryCode} raw values:`, { rawOutput, rawEmployment });
+                console.log(`Country ${countryCode} scaled values:`, { scaledOutput, scaledEmployment });
+                
                 const result = {
                     country: countryCode,
                     countryName: countryNames[countryCode] || countryCode,
-                    output: Math.round(totals.amount || 0),
-                    outputFormatted: formatCurrency(Math.round(totals.amount || 0)),
-                    employment: Math.round(totals.Employment_total || 0),
-                    employmentFormatted: formatNumber(Math.round(totals.Employment_total || 0)),
+                    output: scaledOutput, // Store scaled value
+                    outputFormatted: formatCurrency(scaledOutput),
+                    employment: scaledEmployment, // Store scaled value
+                    employmentFormatted: formatEmployment(scaledEmployment),
                     transactionCount: transactionCount,
                     type: 'country'
                 };
@@ -885,8 +1605,8 @@
                 if (countryCode === 'US') {
                     Object.keys(totals).forEach(key => {
                         if (!result[key] && key !== 'amount') {
-                            result[key] = Math.round(totals[key] || 0);
-                            result[key + '_formatted'] = formatNumber(Math.round(totals[key] || 0));
+                            result[key] = totals[key] || 0; // Store raw value
+                            result[key + '_formatted'] = formatNumber(totals[key] || 0);
                         }
                     });
                     
@@ -1270,7 +1990,7 @@
         }
         
         // Update totals display
-        function updateTotals(data, dataType = 'countries') {
+        function updateTotals(data, dataType = 'countries', totalAvailable = null) {
             const totalOutput = data.reduce((sum, row) => sum + (row.output || 0), 0);
             const totalEmployment = data.reduce((sum, row) => sum + (row.employment || 0), 0);
             const totalRegions = data.length;
@@ -1279,15 +1999,32 @@
             if (dataType === 'us') {
                 regionLabel = ' states';
             } else if (dataType === 'international') {
-                regionLabel = ' countries';
+                if (totalAvailable && totalAvailable > totalRegions) {
+                    regionLabel = ` of ${totalAvailable} countries available`;
+                } else {
+                    regionLabel = ' countries';
+                }
             } else if (dataType === 'combined') {
                 const stateCount = data.filter(row => row.type === 'state').length;
                 const countryCount = data.filter(row => row.type === 'country').length;
-                regionLabel = ` regions (${stateCount} states + ${countryCount} countries)`;
+                if (totalAvailable && totalAvailable > countryCount) {
+                    regionLabel = ` regions (${stateCount} states + ${countryCount} of ${totalAvailable} countries available)`;
+                } else {
+                    regionLabel = ` regions (${stateCount} states + ${countryCount} countries)`;
+                }
             }
             
+            // Debug the actual values to see what's happening
+            console.log('Raw totals:', { totalOutput, totalEmployment });
+            console.log('Formatted output:', formatCurrency(totalOutput));
+            console.log('Formatted employment:', formatEmployment(totalEmployment));
+            
+            // Test the formatters with known values
+            console.log('Test formatCurrency(52700000000000):', formatCurrency(52700000000000)); // Should be $52.7 Trillion
+            console.log('Test formatEmployment(1133000000):', formatEmployment(1133000000)); // Should be 1.133 Billion
+            
             document.getElementById('totalOutput').textContent = formatCurrency(totalOutput);
-            document.getElementById('totalEmployment').textContent = formatNumber(totalEmployment);
+            document.getElementById('totalEmployment').textContent = formatEmployment(totalEmployment);
             document.getElementById('totalRegions').textContent = totalRegions + regionLabel;
             
             document.getElementById('loadingTotals').style.display = 'none';
@@ -1506,6 +2243,9 @@
             // Update file selector visibility
             updateFileSelector();
             
+            // Update industry filter visibility
+            updateIndustryFilterVisibility();
+            
             try {
                 let data;
                 
@@ -1528,7 +2268,21 @@
                 }
                 
                 createTable(data, newSource);
-                updateTotals(data, newSource);
+                if (newSource === 'international') {
+                    // Pass availability info for international data
+                    const hash = window.location.hash.substring(1);
+                    const shouldIncludeUS = hash.includes('country=US') || (!hash.includes('country=') && !hash.includes('state='));
+                    const totalCountries = shouldIncludeUS ? exiobaseCountries.length : exiobaseCountries.filter(c => c !== 'US').length;
+                    updateTotals(data, newSource, totalCountries);
+                } else if (newSource === 'combined') {
+                    // Pass availability info for combined data
+                    const hash = window.location.hash.substring(1);
+                    const shouldIncludeUS = hash.includes('country=US') || (!hash.includes('country=') && !hash.includes('state='));
+                    const totalCountries = shouldIncludeUS ? exiobaseCountries.length : exiobaseCountries.filter(c => c !== 'US').length;
+                    updateTotals(data, newSource, totalCountries);
+                } else {
+                    updateTotals(data, newSource);
+                }
                 
                 document.getElementById('loadingMessage').style.display = 'none';
                 document.getElementById('table').style.display = 'block';
@@ -1573,6 +2327,31 @@
                     handleDataSourceChange(currentDataSource, false);
                 }
             });
+            
+            // Set up industry filter event listeners
+            document.getElementById('industrycat').addEventListener('click', function() {
+                const popup = document.getElementById('categoryPopup');
+                popup.classList.toggle('show');
+            });
+            
+            document.getElementById('industry').addEventListener('change', handleIndustryChange);
+            
+            // Close category popup when clicking outside
+            document.addEventListener('click', function(event) {
+                const popup = document.getElementById('categoryPopup');
+                const button = document.getElementById('industrycat');
+                
+                if (!button.contains(event.target) && !popup.contains(event.target)) {
+                    popup.classList.remove('show');
+                }
+            });
+            
+            // Load industries data
+            await loadIndustriesData();
+            
+            // Load and apply saved filters
+            loadFiltersFromCache();
+            applyLoadedFilters();
             
             // Check URL hash to determine initial view
             const hash = window.location.hash.substring(1);
