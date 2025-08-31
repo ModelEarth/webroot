@@ -19,15 +19,40 @@
     
     <style>
         .toggle-data-container {
-            margin: 20px 0;
-            padding: 15px;
+            margin: 10px 0;
+            padding: 10px;
             background-color: #f5f5f5;
             border-radius: 5px;
-            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .toggle-options {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .github-link {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+        }
+        
+        .github-link img {
+            width: 40px;
+            height: auto;
+            transition: opacity 0.3s;
+        }
+        
+        .github-link img:hover {
+            opacity: 0.8;
         }
         
         .toggle-data-container label {
-            margin: 0 15px;
+            margin: 0px;
             font-weight: bold;
             cursor: pointer;
         }
@@ -97,6 +122,14 @@
         .dark .toggle-data-container {
             background-color: #555;
             color: #fff;
+        }
+        
+        .dark .github-link img {
+            filter: brightness(0.8);
+        }
+        
+        .dark .github-link img:hover {
+            filter: brightness(1);
         }
         
         .dark .file-selection-container {
@@ -498,6 +531,38 @@
             color: #fff !important;
         }
         
+        /* USEEIO Source Message Styles */
+        #useeioSourceMessage {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #1976d2;
+            text-align: center;
+        }
+        
+        .dark #useeioSourceMessage {
+            background-color: #444;
+            border-color: #888;
+            color: #bbb;
+        }
+        
+        /* Data path layout improvements */
+        .data-path-label {
+            display: block;
+            margin-bottom: 4px;
+        }
+        
+        .data-path.parent-row .data-path-label {
+            margin-bottom: 8px;
+        }
+        
+        .dark .data-path span {
+            color: #bbb;
+        }
+        
         .category-item {
             cursor: pointer;
             user-select: none;
@@ -513,26 +578,24 @@
 </head>
 
 <body>
-    <div class="content contentpadding" style="position: relative;">
-
-        <div style="position:absolute; z-index:2; right:40px; top:42px">
-          <a href="https://github.com/ModelEarth/MaterialScience/"><img src="../../localsite/img/icon/github/github.png" style="width:40px"></a>
-        </div>
-
-        <h1>Environmental Footprint Analysis</h1>
-        <p>Toggle between US state-level data and international trade data to compare environmental and economic impacts.</p>
+    <div class="content contentpadding" style="position: relative; padding-top:0px">
         
         <!-- Data Source Toggle -->
         <div class="toggle-data-container">
-            <label>
-                <input type="radio" name="dataSource" value="international" checked> Countries
-            </label>
-            <label>
-                <input type="radio" name="dataSource" value="us"> US States
-            </label>
-            <label>
-                <input type="radio" name="dataSource" value="combined"> Combined
-            </label>
+            <div class="toggle-options">
+                <label>
+                    <input type="radio" name="dataSource" value="international" checked> Countries
+                </label>
+                <label>
+                    <input type="radio" name="dataSource" value="us"> US States
+                </label>
+                <label>
+                    <input type="radio" name="dataSource" value="combined"> Combined
+                </label>
+            </div>
+            <a href="https://github.com/ModelEarth/exiobase/tree/main/tradeflow" class="github-link" target="trade_github">
+                <img src="../../localsite/img/icon/github/github.png" alt="Exiobase Tradeflow Repository">
+            </a>
         </div>
         
         <!-- File Selection Dropdown (for specific countries) -->
@@ -642,6 +705,8 @@
         let selectedCategories = [];
         let selectedIndustry = 'all';
         let filteredData = [];
+        let useLocalUseeio = null; // null = not checked, true = local, false = github
+        let useeioSourceMessageShown = false;
         
         // Get selected year from dropdown
         function getSelectedYear() {
@@ -1275,17 +1340,114 @@
             return num.toFixed(0);
         }
         
+        // Check if local USEEIO data is available
+        async function checkLocalUseeioAvailability() {
+            if (useLocalUseeio !== null) {
+                return useLocalUseeio; // Already checked
+            }
+            
+            try {
+                // Check for local models.json file
+                const response = await fetch('../../useeio-json/models/2020/models.json');
+                useLocalUseeio = response.ok;
+                
+                const source = useLocalUseeio ? 'local useeio-json directory' : 'GitHub repository (modelearth/useeio-json)';
+                console.log(`USEEIO data source: ${source}`);
+                
+                // Show message on localhost only (once)
+                if (!useeioSourceMessageShown && window.location.hostname === 'localhost') {
+                    showUseeioSourceMessage(source);
+                    useeioSourceMessageShown = true;
+                }
+                
+                return useLocalUseeio;
+            } catch (error) {
+                console.log('USEEIO data source: GitHub repository (modelearth/useeio-json) - local check failed');
+                useLocalUseeio = false;
+                
+                if (!useeioSourceMessageShown && window.location.hostname === 'localhost') {
+                    showUseeioSourceMessage('GitHub repository (modelearth/useeio-json)');
+                    useeioSourceMessageShown = true;
+                }
+                
+                return false;
+            }
+        }
+        
+        // Show USEEIO source message below chart (localhost only)
+        function showUseeioSourceMessage(source) {
+            const existingMessage = document.getElementById('useeioSourceMessage');
+            if (existingMessage) {
+                return; // Message already shown
+            }
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.id = 'useeioSourceMessage';
+            messageDiv.style.cssText = `
+                margin: 15px 0;
+                padding: 10px;
+                background-color: #e3f2fd;
+                border: 1px solid #2196f3;
+                border-radius: 4px;
+                font-size: 0.9em;
+                color: #1976d2;
+                text-align: center;
+            `;
+            messageDiv.innerHTML = `<strong>USEEIO Data Source:</strong> ${source}`;
+            
+            // Insert after the main table
+            const tableDiv = document.getElementById('table');
+            tableDiv.parentNode.insertBefore(messageDiv, tableDiv.nextSibling);
+        }
+        
         // Load US state data from USEEIO.js models
         async function loadUSStateData() {
             try {
-                updateDataInfo('US state-level economic output and employment data from USEEIO models');
+                // Check data source availability first
+                const isLocalAvailable = await checkLocalUseeioAvailability();
                 
-                // States to process (all 50 states with available USEEIO models)
-                const statesToLoad = Object.keys(stateMapping); // All 50 states
-                const batchSize = 5; // Process in batches to handle all 50 states efficiently
+                // Check URL hash for specific state filtering
+                const hash = window.location.hash.substring(1);
+                const stateMatch = hash.match(/state=([^&]*)/);
+                const stateParam = stateMatch ? stateMatch[1] : null;
+                
+                let statesToLoad;
+                if (stateParam && stateParam !== 'all') {
+                    // Handle comma-separated states (e.g., CA,TX,NY)
+                    const requestedStates = stateParam.split(',').map(s => s.trim().toUpperCase());
+                    const validStates = requestedStates.filter(state => stateMapping[state]);
+                    
+                    if (validStates.length > 0) {
+                        statesToLoad = validStates;
+                        
+                        // Update description based on number of states
+                        if (validStates.length === 1) {
+                            updateDataInfo(`${stateMapping[validStates[0]]} state economic output and employment data from USEEIO models`);
+                        } else if (validStates.length <= 5) {
+                            const stateNames = validStates.map(state => stateMapping[state]).join(', ');
+                            updateDataInfo(`${stateNames} state economic output and employment data from USEEIO models`);
+                        } else {
+                            updateDataInfo(`${validStates.length} selected US states economic output and employment data from USEEIO models`);
+                        }
+                        
+                        console.log('Loading specific states:', validStates, 'from param:', stateParam);
+                    } else {
+                        // No valid states found, load all
+                        statesToLoad = Object.keys(stateMapping);
+                        updateDataInfo('US state-level economic output and employment data from USEEIO models');
+                        console.log('No valid states found in param:', stateParam, 'loading all states');
+                    }
+                } else {
+                    // Load all 50 states
+                    statesToLoad = Object.keys(stateMapping);
+                    updateDataInfo('US state-level economic output and employment data from USEEIO models');
+                }
+                
+                const batchSize = 5; // Process in batches
                 usStateData = [];
                 
                 console.log('Loading US state data for:', statesToLoad);
+                console.log('Using USEEIO source:', isLocalAvailable ? 'local' : 'GitHub');
                 
                 // Process states in batches (similar to useeio.js/footprint/states.html)
                 for (let i = 0; i < statesToLoad.length; i += batchSize) {
@@ -1309,10 +1471,20 @@
                 const statePaths = [];
                 usStateData.forEach(stateData => {
                     if (stateData.stateAbbr) {
-                        const modelDir = `/useeio-json/models/2020/${stateData.stateAbbr}EEIOv1.0-s-20/`;
+                        const isLocalAvailable = useLocalUseeio;
+                        const rawPath = isLocalAvailable ? 
+                            `/useeio-json/models/2020/${stateData.stateAbbr}EEIOv1.0-s-20/` :
+                            `https://raw.githubusercontent.com/modelearth/useeio-json/refs/heads/main/models/2020/${stateData.stateAbbr}EEIOv1.0-s-20/`;
+                        
+                        // For parent row links, use GitHub tree view instead of raw
+                        const modelDir = isLocalAvailable ? 
+                            rawPath :
+                            `https://github.com/ModelEarth/useeio-json/tree/main/models/2020/${stateData.stateAbbr}EEIOv1.0-s-20`;
+                        
                         statePaths.push({
                             label: `${stateData.stateName} (${stateData.stateAbbr}) - Model Directory`,
                             path: modelDir,
+                            displayPath: `2020/${stateData.stateAbbr}EEIOv1.0-s-20`,
                             type: 'useeio',
                             isLink: true,
                             isParent: true,
@@ -1323,7 +1495,8 @@
                         keyFiles.forEach(file => {
                             statePaths.push({
                                 label: `${file}`,
-                                path: modelDir + file,
+                                path: rawPath + file, // Use raw path for file downloads
+                                displayPath: `2020/${stateData.stateAbbr}EEIOv1.0-s-20/${file}`,
                                 type: 'useeio-file',
                                 isLink: true,
                                 isChild: true,
@@ -1360,11 +1533,19 @@
             try {
                 console.log(`Loading data for state: ${stateCode}`);
                 
+                // Determine endpoint based on availability check
+                const isLocalAvailable = await checkLocalUseeioAvailability();
+                const endpoint = isLocalAvailable ? 
+                    '../../useeio-json/models/2020' : 
+                    'https://raw.githubusercontent.com/modelearth/useeio-json/refs/heads/main/models/2020';
+                
                 const modelParams = {
-                    endpoint: '../../useeio-json/models/2020',
+                    endpoint: endpoint,
                     asJsonFiles: true,
                     model: `${stateCode}EEIOv1.0-s-20`
                 };
+                
+                console.log(`Loading ${stateCode} from:`, endpoint);
                 
                 const model = await useeio.modelOf(modelParams);
                 if (!model) {
@@ -1492,9 +1673,10 @@
                         countryPaths.push({
                             label: `${countryData.countryName} (${countryData.country})`,
                             path: `${tradeData}year/${selectedYear}/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
-                            displayPath: `${tradeDataDisplay}year/${selectedYear}/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
+                            displayPath: `year/${selectedYear}/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
                             type: 'exiobase',
-                            isLink: true
+                            isLink: true,
+                            isCountryPath: true // Special flag for country path styling
                         });
                     }
                 });
@@ -1693,10 +1875,20 @@
                 // Add US state paths
                 usStateData.forEach(stateData => {
                     if (stateData.stateAbbr) {
-                        const modelDir = `/useeio-json/models/2020/${stateData.stateAbbr}EEIOv1.0-s-20/`;
+                        const isLocalAvailable = useLocalUseeio;
+                        const rawPath = isLocalAvailable ? 
+                            `/useeio-json/models/2020/${stateData.stateAbbr}EEIOv1.0-s-20/` :
+                            `https://raw.githubusercontent.com/modelearth/useeio-json/refs/heads/main/models/2020/${stateData.stateAbbr}EEIOv1.0-s-20/`;
+                        
+                        // For parent row links, use GitHub tree view instead of raw
+                        const modelDir = isLocalAvailable ? 
+                            rawPath :
+                            `https://github.com/ModelEarth/useeio-json/tree/main/models/2020/${stateData.stateAbbr}EEIOv1.0-s-20`;
+                        
                         combinedPaths.push({
                             label: `${stateData.stateName} (${stateData.stateAbbr}) - Model Directory`,
                             path: modelDir,
+                            displayPath: `2020/${stateData.stateAbbr}EEIOv1.0-s-20`,
                             type: 'useeio',
                             isLink: true,
                             isParent: true,
@@ -1707,7 +1899,8 @@
                         keyFiles.forEach(file => {
                             combinedPaths.push({
                                 label: `${file}`,
-                                path: modelDir + file,
+                                path: rawPath + file, // Use raw path for file downloads
+                                displayPath: `2020/${stateData.stateAbbr}EEIOv1.0-s-20/${file}`,
                                 type: 'useeio-file',
                                 isLink: true,
                                 isChild: true,
@@ -1724,9 +1917,10 @@
                         combinedPaths.push({
                             label: `${countryData.countryName} (${countryData.country})`,
                             path: `${tradeData}year/${selectedYear}/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
-                            displayPath: `${tradeDataDisplay}year/${selectedYear}/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
+                            displayPath: `year/${selectedYear}/${countryData.country}/${selectedTradeType}/${selectedDataFile}`,
                             type: 'exiobase',
-                            isLink: true
+                            isLink: true,
+                            isCountryPath: true // Special flag for country path styling
                         });
                     }
                 });
@@ -1883,17 +2077,59 @@
                 label.appendChild(labelText);
                 
                 const pathContainer = document.createElement('span');
+                pathContainer.style.display = 'block';
                 
-                if (pathInfo.isLink && pathInfo.path) {
-                    const link = document.createElement('a');
-                    link.href = pathInfo.path;
-                    link.textContent = pathInfo.displayPath || pathInfo.path;
-                    link.target = '_blank';
-                    link.style.color = '#007bff';
-                    link.style.textDecoration = 'underline';
-                    pathContainer.appendChild(link);
+                if (pathInfo.isParent || pathInfo.isCountryPath) {
+                    // For parent rows and country paths: show path in grey text with small link icon
+                    pathContainer.style.pointerEvents = 'none'; // Allow clicks to pass through for parent rows
+                    
+                    const pathText = document.createElement('span');
+                    pathText.textContent = pathInfo.displayPath || pathInfo.path;
+                    pathText.style.color = '#666';
+                    pathText.style.fontSize = '0.9em';
+                    pathText.style.pointerEvents = 'none';
+                    
+                    if (pathInfo.isLink && pathInfo.path) {
+                        const linkIcon = document.createElement('a');
+                        linkIcon.href = pathInfo.path;
+                        linkIcon.target = '_blank';
+                        linkIcon.innerHTML = '<i class="ph ph-arrow-square-out" style="font-size: 1.1em; margin-left: 8px;"></i>';
+                        linkIcon.style.color = '#007bff';
+                        linkIcon.style.textDecoration = 'none';
+                        linkIcon.style.pointerEvents = 'auto'; // Enable clicks on link icon
+                        linkIcon.style.display = 'inline-block';
+                        
+                        if (pathInfo.isParent) {
+                            linkIcon.title = 'Open in GitHub';
+                            linkIcon.onclick = (e) => {
+                                e.stopPropagation(); // Prevent triggering parent row click
+                                e.preventDefault();
+                            };
+                        } else {
+                            linkIcon.title = 'Open CSV file';
+                            // For country paths, don't prevent default - let the link work normally
+                        }
+                        
+                        pathContainer.appendChild(pathText);
+                        pathContainer.appendChild(linkIcon);
+                    } else {
+                        pathContainer.appendChild(pathText);
+                    }
                 } else {
-                    pathContainer.textContent = pathInfo.displayPath || pathInfo.path;
+                    // For child rows: show as clickable link with shortened display path
+                    pathContainer.style.pointerEvents = 'auto'; // Enable clicks for child rows
+                    
+                    if (pathInfo.isLink && pathInfo.path) {
+                        const link = document.createElement('a');
+                        link.href = pathInfo.path;
+                        link.textContent = pathInfo.displayPath || pathInfo.path;
+                        link.target = '_blank';
+                        link.style.color = '#007bff';
+                        link.style.textDecoration = 'underline';
+                        pathContainer.appendChild(link);
+                    } else {
+                        pathContainer.textContent = pathInfo.displayPath || pathInfo.path;
+                    }
                 }
                 
                 // Add 3-dot menu for interactive files
@@ -1961,6 +2197,7 @@
                 
                 // Make div clickable for expand/collapse or data viewing (limited click area)
                 if (pathInfo.isParent) {
+                    // True parent rows (states) - expandable with child rows
                     pathDiv.onclick = (e) => {
                         // Don't trigger if clicking on menu, links, or tabulator tables
                         if (e.target.closest('.data-path-menu') || 
@@ -1977,7 +2214,11 @@
                             toggleSubRows(pathInfo.stateId || pathInfo.parentId, arrow);
                         }
                     };
+                } else if (pathInfo.isCountryPath) {
+                    // Country paths - clickable for data viewing but styled like parent rows
+                    makeDataPathClickable(pathDiv, pathInfo.path);
                 } else {
+                    // Child rows - normal clickable behavior
                     makeDataPathClickable(pathDiv, pathInfo.path);
                 }
                 
@@ -2359,10 +2600,10 @@
             if (hash.includes('country=all&state=all')) {
                 initialView = 'combined';
                 document.querySelector('input[value="combined"]').checked = true;
-            } else if (hash.startsWith('state=all') || hash.startsWith('state=')) {
+            } else if (hash.includes('state=all') || hash.includes('state=')) {
                 initialView = 'us';
                 document.querySelector('input[value="us"]').checked = true;
-            } else if (hash.startsWith('country=all') || hash.startsWith('country=')) {
+            } else if (hash.includes('country=all') || hash.includes('country=')) {
                 initialView = 'international';
                 document.querySelector('input[value="international"]').checked = true;
             } else {
@@ -2406,15 +2647,15 @@
                 // Update file selector visibility
                 updateFileSelector();
                 
-                // Handle combined view
-                if (hash.includes('country=all&state=all')) {
+                // Handle combined view (must check this first)
+                if (hash.includes('country=all&state=all') || hash.includes('state=all&country=all')) {
                     if (currentDataSource !== 'combined') {
                         document.querySelector('input[value="combined"]').checked = true;
                         handleDataSourceChange('combined', false);
                     }
                 }
-                // Handle state view (both state=all and specific states)
-                else if (hash.includes('state=')) {
+                // Handle state view (both state=all and specific states) - check for state= without country=all
+                else if (hash.includes('state=') && !hash.includes('country=all')) {
                     if (currentDataSource !== 'us') {
                         document.querySelector('input[value="us"]').checked = true;
                         handleDataSourceChange('us', false);
@@ -2422,8 +2663,22 @@
                     
                     // Extract state abbreviation for potential filtering
                     const stateMatch = hash.match(/state=([^&]*)/);
-                    const stateAbbr = stateMatch ? stateMatch[1] : null;
-                    console.log('State view - state:', stateAbbr);
+                    const stateParam = stateMatch ? stateMatch[1] : null;
+                    console.log('State view - state param:', stateParam);
+                    
+                    // If we switched to different specific state(s), reload data
+                    if (stateParam && stateParam !== 'all') {
+                        // Handle single state or comma-separated states
+                        const requestedStates = stateParam.split(',').map(s => s.trim().toUpperCase());
+                        const validStates = requestedStates.filter(state => stateMapping[state]);
+                        
+                        if (validStates.length > 0) {
+                            console.log('Loading specific states from hash change:', validStates);
+                            // Force reload to show only the specific state(s)
+                            usStateData = [];
+                            handleDataSourceChange('us', false);
+                        }
+                    }
                 }
                 // Handle country view (both country=all and specific countries)
                 else if (hash.includes('country=')) {
