@@ -26,6 +26,15 @@
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
+    <script>
+        waitForElm('#cloneLeftTarget').then((elm) => {
+            setTimeout(() => {
+            //$("#cloneLeft").empty();
+            //loadMarkdown("../trade/nav.md", "cloneLeft", "_parent");
+            }, 200);
+        });
+    </script>
+
     <style>
         .toggle-data-container {
             margin: 10px 0;
@@ -120,14 +129,6 @@
             color: #666;
         }
         
-        .data-info {
-            margin: 15px 0;
-            padding: 10px;
-            background-color: #e3f2fd;
-            border-left: 4px solid #2196f3;
-            border-radius: 3px;
-        }
-        
         .dark .toggle-data-container {
             background-color: #555;
             color: #fff;
@@ -142,12 +143,6 @@
         }
         
         .dark .file-selection-container {
-            background-color: #555;
-            color: #fff;
-            border-left-color: #888;
-        }
-        
-        .dark .data-info {
             background-color: #555;
             color: #fff;
             border-left-color: #888;
@@ -218,6 +213,74 @@
             margin-bottom: 10px;
             color: #495057;
             font-family: inherit;
+        }
+        
+        /* Dark mode styles for data sources */
+        .dark .data-sources {
+            background-color: #555;
+            border-color: #404040;
+            color: #e0e6ed;
+        }
+        
+        .dark .data-sources h3 {
+            color: #e0e6ed;
+        }
+        
+        .dark .data-path {
+            background-color: #333;
+            border-left-color: #0f3460;
+            color: #e0e6ed;
+        }
+        
+        .dark .data-path:hover {
+            background-color: #404040;
+        }
+        
+        /* Tabulator footer styling */
+        .tabulator-footer button,
+        .tabulator-footer .tabulator-page-size,
+        .tabulator-footer .tabulator-page-size select {
+            height: 24px !important;
+            line-height: 22px !important;
+            padding: 2px 8px !important;
+            box-sizing: border-box !important;
+        }
+        
+        .tabulator-footer .tabulator-page-size,
+        .tabulator-footer .tabulator-page-size select {
+            font-size: 12px !important;
+        }
+        
+        .tabulator-footer .tabulator-page {
+            font-size: 12px !important;
+        }
+        
+        /* Dark mode tabulator footer */
+        .dark .tabulator-footer {
+            background-color: #333 !important;
+            border-color: #404040 !important;
+            color: #e0e6ed !important;
+        }
+        
+        .dark .tabulator-footer button {
+            background-color: #555 !important;
+            border-color: #666 !important;
+            color: #e0e6ed !important;
+        }
+        
+        .dark .tabulator-footer button:hover {
+            background-color: #666 !important;
+        }
+        
+        .dark .tabulator-footer .tabulator-page-size,
+        .dark .tabulator-footer .tabulator-page-size select {
+            background-color: #555 !important;
+            border-color: #666 !important;
+            color: #e0e6ed !important;
+        }
+        
+        .dark .tabulator-footer .tabulator-page {
+            color: #e0e6ed !important;
         }
         
         .data-path {
@@ -369,14 +432,7 @@
             margin: 4px 0;
         }
         
-        .csv-viewer-container {
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
-            display: none;
-        }
+        /* .csv-viewer-container removed - unnecessary margin */
         
         .csv-viewer-table {
             margin-top: 10px;
@@ -587,7 +643,7 @@
 </head>
 
 <body>
-    <div class="content contentpadding" style="position: relative; padding-top:0px">
+    <div class="content contentpaddingX" style="position: relative; padding-top:0px">
         
         <!-- Data Source Toggle -->
         <div class="toggle-data-container">
@@ -656,10 +712,16 @@
         </div>
         
         <!-- Data Information Display -->
-        <div id="dataInfo" class="data-info">
+        <div class="data-info">
+            
+
+        </div>
+        
+        <!-- Totals Summary -->
+        <div id="totalsContainer" class="totals">
             <div class="data-info-content">
                 <div>
-                    <strong>Current Data (<span id="currentYear">2022</span>):</strong> 
+                    <h3><span id="currentYear"></span> Summary Totals</h3>
                     <span id="dataDescription">US state-level economic output and employment data</span>
                 </div>
                 <select id="yearSelector" class="year-selector">
@@ -667,11 +729,6 @@
                     <option value="2022" selected>2022</option>
                 </select>
             </div>
-        </div>
-        
-        <!-- Totals Summary -->
-        <div id="totalsContainer" class="totals">
-            <h3>Summary Totals</h3>
             <div id="totalsContent">
                 <div id="loadingTotals" class="loading">Loading totals...</div>
                 <div id="totalsDisplay" style="display: none;">
@@ -698,8 +755,8 @@
 
     <!-- JavaScript Libraries -->
     <script src="https://unpkg.com/tabulator-tables@5.2.7/dist/js/tabulator.min.js"></script>
-    <script src="../../trade/dist/useeio.js"></script>
-    <script src="../../trade/footprint/config.js"></script>
+    <script src="js/useeio.js"></script>
+    <script src="js/config.js"></script>
     
     <script>
         // Global variables
@@ -2211,7 +2268,7 @@
                         // Don't trigger if clicking on menu, links, or tabulator tables
                         if (e.target.closest('.data-path-menu') || 
                             e.target.tagName === 'A' ||
-                            e.target.closest('.csv-viewer-container') ||
+                            e.target.closest('.csv-viewer') ||
                             e.target.closest('.tabulator')) {
                             return;
                         }
@@ -2747,7 +2804,7 @@
         
         // Data Viewer Functions (handles both CSV and JSON)
         function toggleDataViewer(pathDiv, filePath) {
-            const existingViewer = pathDiv.querySelector('.csv-viewer-container');
+            const existingViewer = pathDiv.querySelector('.csv-viewer');
             const menuButton = pathDiv.querySelector('.dropdown-item');
             
             if (existingViewer) {
@@ -2764,7 +2821,7 @@
             
             // Create new viewer container
             const viewerContainer = document.createElement('div');
-            viewerContainer.className = 'csv-viewer-container';
+            viewerContainer.className = 'csv-viewer';
             
             const loadingMsg = document.createElement('div');
             const fileType = filePath.endsWith('.json') ? 'JSON' : 'CSV';
@@ -2798,7 +2855,7 @@
                     // Don't trigger if clicking on menu, links, or tabulator tables
                     if (e.target.closest('.data-path-menu') || 
                         e.target.tagName === 'A' || 
-                        e.target.closest('.csv-viewer-container') ||
+                        e.target.closest('.csv-viewer') ||
                         e.target.closest('.tabulator')) {
                         return;
                     }
