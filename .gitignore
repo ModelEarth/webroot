@@ -21,6 +21,7 @@ data-pipeline
 config/settings.js
 config/keys.json
 config/.env
+config.yaml
 settings.local.json
 
 # Auth keys and secrets
