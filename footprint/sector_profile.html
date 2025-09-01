@@ -11,14 +11,14 @@
   <script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.2.7/dist/js/tabulator.min.js"></script>
 
   <script type="text/javascript" src="/localsite/js/localsite.js?showheader=true&showsearch=true"></script>
-  <script src="../dist/useeio.js"></script>
+  <script src="js/useeio.js"></script>
 </head>
 
 <body>
 
 <div class="content contentpadding">
   <div style="margin-bottom:10px">
-    <a id="footprintLink" href="./">State Impact Reports</a> - 
+    <a id="footprintLink" href="../state/" >State Impact Reports</a> - 
     <a id="commoditiesLink" href="commodities.html">Commodities</a>
   </div>
   <div id="relocatedStateMenu"></div>
@@ -27,7 +27,7 @@
   <div id="table"></div>
 </div>
 
-<script src="./config.js"></script>
+<script src="js/config.js"></script>
 <script>
 document.addEventListener('hashChangeEvent', hashChangedUseeio, false);
 function hashChangedUseeio() {
