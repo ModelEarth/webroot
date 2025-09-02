@@ -3,25 +3,24 @@
 
 We're using [Claude Code CLI to create .CSV files](../../exiobase/tradeflow/) for use in [comparison frontends](../../comparison/), and later Azure PostgrSQL databases with data from Exiobase similar to [generate\_import\_factors.py](https://github.com/ModelEarth/USEEIO/tree/master/import_emission_factors). 
 
-Each country-year database instance will represent a country and year from Exiobase.
+<!--Each country-year database instance will represent a country and year from Exiobase.-->
 
-**Start here:** [Explore the data structure below](../footprint/)
+**View Report:** [Created from trade_impact data structure below](../footprint/) and [states](../footprint/#state=all)
 
 ## Tables: trade, factor, industry 
 
 [Overview](../../exiobase/tradeflow/) - Pull for Exiobase for domestic, imports, exports
 [Overview US BEA](../../exiobase/tradeflow/bea/) - Pull for US state-to-state
 
-
 [View table names as csv files](https://github.com/ModelEarth/trade-data/tree/main/year/2019) and [Trade Flow by Country and State](../state/)
 
 **table names**
 [factor](https://github.com/ModelEarth/trade-data/blob/main/year/2019/factor.csv) (includes factor\_id<!-- and flow\_id-->)  
 [industry](https://github.com/ModelEarth/trade-data/blob/main/year/2019/industry.csv) (5-char sectors) 
-trade
+trade (trade_id, year, region1, region2, industry1, industry2, amount)  
 trade_factor  
-trade_factor_lg
-trade_impact  
+trade_factor_lg - For local processing. 
+[trade_impact](../footprint/)  
 trade_resource
 trade_material  
 trade_employment
@@ -36,10 +35,6 @@ importmultiplier\_factor
 For future:
 commodities (6-char products)  
 commodity\_factor  
-
-
-industryflow.csv
-trade_id, year, region1, region2, industry1, industry2, amount
 
 
 For Exiobase processing into SQL, we're using Spark on a linux VM to avoid higher expenses using Databricks. Spark is the data processing program that databricks provides, but since you can't control the costs, for now it's best to use directly on linux to be safe.  [Private doc](https://docs.google.com/document/d/1gNsPJmC8_Et3dwd1Kgg0weOSbFC3vPQ3E-S9M_ttg2k/edit?usp=sharing) and [.env for testing](https://colab.research.google.com/drive/1TgA9FJzhhue74Bgf-MJoOAKSBrzpiyss?usp=sharing)

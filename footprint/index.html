@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>My Profile</title>
+    <title>Exiobase and USEEIO report</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
     
@@ -2182,19 +2182,35 @@
                         pathContainer.appendChild(pathText);
                     }
                 } else {
-                    // For child rows: show as clickable link with shortened display path
-                    pathContainer.style.pointerEvents = 'auto'; // Enable clicks for child rows
+                    // For child rows: show as grey text with link icon (like other links in report)
+                    pathContainer.style.pointerEvents = 'none'; // Let clicks pass through to parent div
                     
                     if (pathInfo.isLink && pathInfo.path) {
-                        const link = document.createElement('a');
-                        link.href = pathInfo.path;
-                        link.textContent = pathInfo.displayPath || pathInfo.path;
-                        link.target = '_blank';
-                        link.style.color = '#007bff';
-                        link.style.textDecoration = 'underline';
-                        pathContainer.appendChild(link);
+                        const pathText = document.createElement('span');
+                        pathText.textContent = pathInfo.displayPath || pathInfo.path;
+                        pathText.style.color = '#666';
+                        pathText.style.fontSize = '0.9em';
+                        pathText.style.pointerEvents = 'none';
+                        
+                        const linkIcon = document.createElement('a');
+                        linkIcon.href = pathInfo.path;
+                        linkIcon.target = '_blank';
+                        linkIcon.innerHTML = '<i class="ph ph-arrow-square-out" style="font-size: 1.1em; margin-left: 8px;"></i>';
+                        linkIcon.style.color = '#007bff';
+                        linkIcon.style.textDecoration = 'none';
+                        linkIcon.style.pointerEvents = 'auto'; // Enable clicks on link icon only
+                        linkIcon.style.display = 'inline-block';
+                        linkIcon.title = 'Open file';
+                        linkIcon.onclick = (e) => {
+                            e.stopPropagation(); // Prevent triggering div click
+                        };
+                        
+                        pathContainer.appendChild(pathText);
+                        pathContainer.appendChild(linkIcon);
                     } else {
                         pathContainer.textContent = pathInfo.displayPath || pathInfo.path;
+                        pathContainer.style.color = '#666';
+                        pathContainer.style.fontSize = '0.9em';
                     }
                 }
                 
