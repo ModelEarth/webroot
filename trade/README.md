@@ -5,9 +5,15 @@ We're using [Claude Code CLI to create .CSV files](../../exiobase/tradeflow/) fo
 
 Each country-year database instance will represent a country and year from Exiobase.
 
-**Start here:** [Explore the data structure below](../footprint/sample.html)
+**Start here:** [Explore the data structure below](../footprint/)
 
-[View table names as csv files](https://github.com/ModelEarth/trade-data/tree/main/year/2019) and [Trade Flow by Country and State](../footprint/sample.html)
+## Tables: trade, factor, industry 
+
+[Overview](../../exiobase/tradeflow/) - Pull for Exiobase for domestic, imports, exports
+[Overview US BEA](../../exiobase/tradeflow/bea/) - Pull for US state-to-state
+
+
+[View table names as csv files](https://github.com/ModelEarth/trade-data/tree/main/year/2019) and [Trade Flow by Country and State](../state/)
 
 **table names**
 [factor](https://github.com/ModelEarth/trade-data/blob/main/year/2019/factor.csv) (includes factor\_id<!-- and flow\_id-->)  
@@ -30,7 +36,6 @@ importmultiplier\_factor
 For future:
 commodities (6-char products)  
 commodity\_factor  
- 
 
 
 industryflow.csv
@@ -42,9 +47,25 @@ For Exiobase processing into SQL, we're using Spark on a linux VM to avoid highe
 
 Also see [Open CEDA](https://watershed.com/solutions/ceda)
 
+## Tables: sector and sector_beasummary
 
-[MemberCommons Admin Dashboard](../../team/admin)  
+For "sector" table is the 6-char international CEDA Sector that aligns with USEEIO ([see concordance](https://github.com/ModelEarth/USEEIO/blob/master/import_emission_factors/concordances/ceda_to_useeio_commodity_concordance.csv)]
+
+For processing, we can also have beasummary (often 5-char) and beadetail (6-char).
+
+For CEDA "sector_beasummary" table:
+
+The [useeio_internal_concordance.csv](https://github.com/ModelEarth/USEEIO/blob/master/import_emission_factors/concordances/useeio_internal_concordance.csv) relates BEA to USEEIO, which could be changed to the CEDA sector.
+
+
+## Member CRM tables
+
 [SuiteCRM](../crm) - Partner Data analysis using Azure, SQL Express and MariaDB.
+[MemberCommons Admin Dashboard](../../team/admin)  
+
+
+## Additional (older)
+
 [Trade Impact Colabs](../impacts/json) - Deploys Exiobase international data to GitHub as JSON
 [Global Trade - our Comtrade and Exobase API data pulls](../../global-trade)
 [Try MARIO Input-Output library](https://mario-suite.readthedocs.io/en/latest/intro.html) as a striped-down [Pymyrio](https://pymrio.readthedocs.io/en/latest/intro.html)
@@ -77,8 +98,8 @@ For spreadsheets, use capitalized CamelCase for column names.
 
 **Contribute to these CoLabs:**   
 <!-- these 2 also reside on DuckDB page -->
-[NEW - Parquet To Github](https://colab.research.google.com/drive/1Pqpdebj4rY06E6NAgqJskgt-G4HBHPUZ?usp=sharing)
-[NEW - Colab to Github](https://colab.research.google.com/drive/1mnZKBypCBlVLXiCuSpGj0JZf4NZzNR7h?usp=sharing)
+[Parquet To Github](https://colab.research.google.com/drive/1Pqpdebj4rY06E6NAgqJskgt-G4HBHPUZ?usp=sharing)
+[Colab to Github](https://colab.research.google.com/drive/1mnZKBypCBlVLXiCuSpGj0JZf4NZzNR7h?usp=sharing)
 [Exiobase To Github Pipeline](https://colab.research.google.com/drive/1N47_pfTUyOzeukgf4KYX1pmN_Oj1N3r_?usp=sharing) - Pulls zip of year from Exiobase and unzips 
 [Create Database from Panda Dataframe](https://colab.research.google.com/drive/1IMpOYzT6oXbZXaJKugi5vCmUB_tIHo0J?usp=sharing) - Output SQL 
 [Pymrio Exiobase Industry](https://colab.research.google.com/drive/1bXUO1iXyBGbmZODmnl0NVn3yFpWwBCOi?usp=sharing) - Sends to Supabase
