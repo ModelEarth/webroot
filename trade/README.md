@@ -42,12 +42,12 @@ For Exiobase processing into SQL, we're using Spark on a linux VM to avoid highe
 
 Also see [Open CEDA](https://watershed.com/solutions/ceda)
 
-## Tables: sector, beasummary and sector_beasummary
+## Tables: sector, beasummary, sector_beasummary
 
 For "sector" table is the 6-char ~400 international CEDA Sectors that aligns with BEA Detail and USEEIO ([see concordance](https://github.com/ModelEarth/USEEIO/blob/master/import_emission_factors/concordances/ceda_to_useeio_commodity_concordance.csv)]
 
 Our "beasummary" table is the ~60 categories which aggregate the Sectors (BEA Details).  
-(Typically th summary aggregate IDs are 5-char, but some range from 2 to 6 char).
+Typically the summary aggregate IDs are 5-char, but they can range from 2 to 6 char.
 
 For CEDA "sector_beasummary" table:
 
