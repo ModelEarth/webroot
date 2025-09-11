@@ -57,31 +57,38 @@
 
 <body>
   
-  <div class="content contentpadding">
+  <div style="padding-left:60px;padding-right:18px;">
     <a id="footprintLink" href="../state/" >State Impact Reports</a>
     <h2>Sector Supply Impacts</h2>
-  </div>
 
-  <!-- D3 Separated chord chart -->
-  <div style="position: relative;">
-    <div id="chart2"></div>
-    <!-- Control Dropdowns -->
-    <div style="position: absolute; top: 10px; right: 10px; z-index: 1000;">
-      <select id="theme-mode" class="controlDD">
-        <option value="light" selected>Light Mode</option>
-        <option value="dark">Dark Mode</option>
-      </select><br>
-      <select id="scaling-method" class="controlDD">
-        <option value="raw" selected>No Scaling</option>
-        <option value="square-root">Square Root</option>
-        <option value="proportional">Proportional</option>
-        <option value="logarithmic">Logarithmic</option>
-      </select><br>
-      <select id="edge-style" class="controlDD">
-        <option value="none">No Edge</option>
-        <option value="light" selected>Light Edge</option>
-        <option value="dark">Dark Edge</option>
-      </select>
+    <!-- D3 Separated chord chart -->
+    <div style="position: relative;">
+      <div>
+
+        <div style="width:85%">
+          <!-- D3 Separated chord chart - initial test chart -->
+          <div id="chart2"></div>
+        </div>
+      </div>
+
+      <!-- Control Dropdowns -->
+      <div style="position: absolute; top: 10px; right: 10px; z-index: 1000;">
+        <select id="theme-mode" class="controlDD">
+          <option value="light" selected>Light Mode</option>
+          <option value="dark">Dark Mode</option>
+        </select><br>
+        <select id="scaling-method" class="controlDD">
+          <option value="raw" selected>No Scaling</option>
+          <option value="square-root">Square Root</option>
+          <option value="proportional">Proportional</option>
+          <option value="logarithmic">Logarithmic</option>
+        </select><br>
+        <select id="edge-style" class="controlDD">
+          <option value="none">No Edge</option>
+          <option value="light" selected>Light Edge</option>
+          <option value="dark">Dark Edge</option>
+        </select>
+      </div>
     </div>
   </div>
 
@@ -787,8 +794,6 @@ path.chord {
 </style>
 
 <div class="content contentpadding">
-<!-- D3 Separated chord chart - initial test chart -->
-<div id="chart1"></div>
 
 <!-- Tooltip for chart hover effects -->
 <div id="chord-tooltip" style="position: absolute; background: rgba(0,0,0,0.8); color: white; padding: 8px 12px; border-radius: 4px; font-size: 12px; pointer-events: none; z-index: 1000; opacity: 0; transition: opacity 0.2s;"></div>
