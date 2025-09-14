@@ -6,7 +6,7 @@ Toggle between [Nutrition Layout](#layout=nutrition) and [Product Layout](#layou
 
 [View Profile Label JavaScript](https://github.com/ModelEarth/profile/blob/main/item/js/label.js)
 
-TO DO: Add emissions details from [BuildingTransparency.org Products](/profile/products/) to the [Product Layout](#layout=product).  
+TO DO: Add emissions details from [BuildingTransparency.org Products](/products/) to the [Product Layout](#layout=product).  
 
 TO DO: Create a list of food linked to the label formatter below using the Food API pull examples in our [Food Data Commons](/data-commons/docs/food/)
 
