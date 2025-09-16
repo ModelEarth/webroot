@@ -42,6 +42,9 @@ For Exiobase processing into SQL, we're using Spark on a linux VM to avoid highe
 
 Also see [Open CEDA](https://watershed.com/solutions/ceda)
 
+[Stanford's Cornerstone Sustainability Data Initiative](https://cornerstonedata.org) - Collaboration on USEEIO and Open CEDA, the world’s two most widely used models for Scope 3 (value chain) carbon accounting and policy research. [GitHub](https://github.com/cornerstone-data)
+
+
 ## Tables: sector, beasummary, sector_beasummary
 
 For "sector" table is the 6-char ~400 international CEDA Sectors that aligns with BEA Detail and USEEIO ([see concordance](https://github.com/ModelEarth/USEEIO/blob/master/import_emission_factors/concordances/ceda_to_useeio_commodity_concordance.csv)]
