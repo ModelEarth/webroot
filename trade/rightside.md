@@ -10,4 +10,5 @@
 <b>Developing</b>  
 <a href="../../profile/trade/map/">Trade Flow Map</a>  
 <a href="../../profile/charts/d3/chord-diagram/">Chord (D3)</a><!-- https://nivo.rocks/chord/ -->  
-<a href="../../profile/charts/echarts/sankey-nodeAlign-left.html">Sankey (eCharts)</a>  
+<a href="../../io/charts/sankey/">Sankey (eCharts)</a>
+<!-- Fix or remove: profile/charts/echarts/sankey-nodeAlign-left.html -->
