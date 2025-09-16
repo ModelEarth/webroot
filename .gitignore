@@ -100,3 +100,5 @@ target/
 # Backup files
 *.bak
 *.backup
+
+.history
