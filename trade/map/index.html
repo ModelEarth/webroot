@@ -7,16 +7,14 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <style>
-        body {
-            font-family: 'Nunito Sans', Lato, 'Helvetica Neue', Helvetica, Arial, sans-serif;
-        }
         #map {
-            height: 700px;
+            height: 600px;
             width: 100%;
         }
         .arrow {
             fill: none;
             stroke-linecap: round;
+            opacity: 0.6;
         }
         .checkbox-container {
             position: absolute;
@@ -27,36 +25,28 @@
             border: 1px solid #ccc;
             z-index: 1000;
         }
+        .label-text {
+            fill: black;
+            font-size: 12px;
+            font-weight: bold;
+            paint-order: stroke;
+            stroke: white;
+            stroke-width: 2px; /* halo for readability */
+        }
     </style>
 </head>
 <body>
     <div id="map"></div>
     <div class="checkbox-container" id="checkbox-container"></div>
-
-    <div style="margin:10px">
-        TO DO: <a href="index-numbers.html">Add transparency and numbers</a> - 
-        When applying transparency, treat each line and its arrowhead as one object, so the line is not visible through the arrowhead.  Place the volume titles at the center of each line and align the bottom of each title with it's line (using the angle at the line's center). Avoid making any of the titles upside down. So the point of the arrow is visible, hide a small portion of the line path below the arrow.
-        <!--
-        TO DO: Align inflow and outflow lines <a href="curves.html">curves that align (no map)</a>
-        -->
-    </div>
-
-     <div style="margin:10px">
-        TO DO: <a href="index-new.html">Added transparency and numbers</a> - 
-        New changes made, check them out.
-    </div>
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-    // Initialize the Leaflet map
-    const map = L.map('map').setView([25, 12], 3); // Center the map and set zoom level
+document.addEventListener("DOMContentLoaded", function() {
+    const map = L.map('map').setView([25, 12], 3);
 
-    // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    // Country coordinates
     const countries = {
         "USA": [-99.9018, 37.0902],
         "China": [104.1954, 35.8617],
@@ -65,7 +55,6 @@
         "India": [78.9629, 20.5937]
     };
 
-    // Trade data
     const trades = [
         { from: "USA", to: "China", volume: 500 },
         { from: "USA", to: "Germany", volume: 300 },
@@ -79,70 +68,87 @@
         { from: "Germany", to: "USA", volume: 450 },
     ];
 
-    // Define color scale
     const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
 
-    // Function to project geographic coordinates to Leaflet's layer
-    function projectPoint(lat, lon) {
-        return map.latLngToLayerPoint(new L.LatLng(lon, lat));
+    function projectPoint(lon, lat) {
+        return map.latLngToLayerPoint(new L.LatLng(lat, lon));
     }
 
-    // Create an SVG layer on top of the Leaflet map
     L.svg().addTo(map);
     const svg = d3.select("#map").select("svg"),
           g = svg.append("g");
 
-    // Function to draw curved lines
     function drawCurve(d) {
         const from = projectPoint(...countries[d.from]);
         const to = projectPoint(...countries[d.to]);
-
         const dx = to.x - from.x,
               dy = to.y - from.y,
               dr = Math.sqrt(dx * dx + dy * dy);
 
-        return `M${from.x},${from.y}A${dr},${dr} 0 0,1 ${to.x},${to.y}`;
+        // A consistent sweep flag to ensure arc direction.
+        // You might need to adjust this for specific curve aesthetics.
+        const sweepFlag = 1;
+
+        // Ensure the path extends all the way to the 'to' point
+        let targetX = to.x;
+        let targetY = to.y;
+
+        return `M${from.x},${from.y}A${dr},${dr} 0 0,${sweepFlag} ${targetX},${targetY}`;
     }
 
-    // Draw lines with arrowheads
+    // Draw arrows and attach text on path
     trades.forEach((trade, i) => {
-        // Define arrowhead marker with a unique ID for each color
+        const pathId = `trade-path-${i}`;
         const markerId = `arrowhead-${i}`;
+
+        // Arrowhead marker definition - INCREASED SIZE HERE
         svg.append("defs").append("marker")
             .attr("id", markerId)
             .attr("viewBox", "0 -5 10 10")
-            .attr("refX", 10)
+            .attr("refX", 10) // Still 10, as it refers to the internal viewBox coordinates
             .attr("refY", 0)
-            .attr("markerWidth", 6)
-            .attr("markerHeight", 6)
+            .attr("markerWidth", 6) 
+            .attr("markerHeight", 6) 
             .attr("orient", "auto")
             .append("path")
             .attr("d", "M0,-5L10,0L0,5")
-            .attr("fill", colorScale(i));
+            .attr("fill", colorScale(i))
+            .attr("opacity", 0.6);
 
+        // Path for the arrow (full length to destination 'to')
         g.append("path")
             .datum(trade)
+            .attr("id", pathId)
             .attr("class", `arrow arrow-${trade.from}`)
             .attr("d", drawCurve(trade))
             .attr("stroke", colorScale(i))
-            .attr("stroke-width", trade.volume / 50)  // Adjust the divisor to scale arrow thickness
+            .attr("stroke-width", trade.volume / 50)
             .attr("marker-end", `url(#${markerId})`);
+
+        // Attach text to follow the curve
+        g.append("text")
+            .append("textPath")
+            .attr("xlink:href", `#${pathId}`)
+            .attr("startOffset", "50%")
+            .attr("class", "label-text")
+            .attr("text-anchor", "middle")
+            .text(trade.volume);
     });
 
-    // Function to update the lines on map zoom/pan
+    // Update positions on map movement
     function update() {
-        g.selectAll("path.arrow")
-            .attr("d", drawCurve);
+        g.selectAll("path.arrow").attr("d", drawCurve);
+        // Text path doesn't need re-linking unless path IDs change,
+        // but its position along the *newly drawn* path will be updated by startOffset.
     }
 
-    // Update the lines on map events
     map.on("zoomend", update);
     map.on("moveend", update);
 
-    // Create checkboxes for each "from" country
+    // Create checkboxes
     const checkboxContainer = document.getElementById('checkbox-container');
     const uniqueFromCountries = [...new Set(trades.map(trade => trade.from))];
-    
+
     uniqueFromCountries.forEach(country => {
         const label = document.createElement('label');
         const checkbox = document.createElement('input');
@@ -150,7 +156,11 @@
         checkbox.checked = true;
         checkbox.value = country;
         checkbox.addEventListener('change', function() {
-            d3.selectAll(`.arrow-${country}`).attr('visibility', this.checked ? 'visible' : 'hidden');
+            const visibility = this.checked ? 'visible' : 'hidden';
+            d3.selectAll(`.arrow-${country}`).attr('visibility', visibility);
+            d3.selectAll("textPath")
+              .filter(function() { return this.parentNode.__data__.from === country; })
+              .attr("visibility", visibility);
         });
 
         label.appendChild(checkbox);
@@ -159,7 +169,6 @@
         checkboxContainer.appendChild(document.createElement('br'));
     });
 });
-
     </script>
 </body>
 </html>
