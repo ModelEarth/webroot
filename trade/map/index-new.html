@@ -40,7 +40,7 @@
     <div class="checkbox-container" id="checkbox-container"></div>
     <script>
 document.addEventListener("DOMContentLoaded", function() {
-    const map = L.map('map').setView([20, 0], 2);
+    const map = L.map('map').setView([25, 12], 3);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", function() {
             .attr("class", `arrow arrow-${trade.from}`)
             .attr("d", drawCurve(trade))
             .attr("stroke", colorScale(i))
-            .attr("stroke-width", 2)
+            .attr("stroke-width", trade.volume / 50)
             .attr("marker-end", `url(#${markerId})`);
 
         // Attach text to follow the curve
