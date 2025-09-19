@@ -200,14 +200,14 @@
             background-color: #f8f9fa;
             border: 1px solid #e9ecef;
             border-radius: 5px;
+        }
+        .data-sources {
             font-family: monospace;
         }
-        
         .data-sources h3 {
             margin-top: 0;
             margin-bottom: 10px;
             color: #495057;
-            font-family: inherit;
         }
         
         /* Dark mode styles for data sources */
@@ -290,7 +290,6 @@
             cursor: pointer;
             transition: background-color 0.2s;
         }
-        
         .data-path:hover {
             background-color: #dee2e6;
         }
@@ -310,13 +309,14 @@
             margin-left: 20px;
             font-size: 0.85em;
         }
-        
         .data-path-label {
             font-weight: bold;
             color: #495057;
             margin-right: 8px;
         }
-        
+        .dark .data-path-label, .dark .data-path {
+            color: #ddd;
+        }     
         .expand-arrow {
             display: inline-block;
             margin-right: 8px;
@@ -749,9 +749,8 @@
         <div id="table"></div>
 
         <!-- Data Sources Display -->
-        <div id="dataSourcesContainer" class="data-sources" style="display: none;">
-            <h3>Data Sources</h3>
-            <div id="dataSourcesPaths"></div>
+        <div id="dataSourcesContainer" style="display: none;">
+            <div class="data-sources" id="dataSourcesPaths"></div>
         </div>
     </div>
 
@@ -2111,6 +2110,11 @@
                 return;
             }
             
+            // Add heading first
+            const heading = document.createElement('h3');
+            heading.textContent = 'Data Sources';
+            pathsDiv.appendChild(heading);
+            
             // Add paths based on data type
             paths.forEach(pathInfo => {
                 const pathDiv = document.createElement('div');
@@ -2153,7 +2157,7 @@
                     
                     const pathText = document.createElement('span');
                     pathText.textContent = pathInfo.displayPath || pathInfo.path;
-                    pathText.style.color = '#666';
+                    // pathText.style.color = '#666'; // Removed for dark mode compatibility
                     pathText.style.fontSize = '0.9em';
                     pathText.style.pointerEvents = 'none';
                     
@@ -2190,7 +2194,7 @@
                     if (pathInfo.isLink && pathInfo.path) {
                         const pathText = document.createElement('span');
                         pathText.textContent = pathInfo.displayPath || pathInfo.path;
-                        pathText.style.color = '#666';
+                        // pathText.style.color = '#666'; // Removed for dark mode compatibility
                         pathText.style.fontSize = '0.9em';
                         pathText.style.pointerEvents = 'none';
                         
@@ -2211,7 +2215,7 @@
                         pathContainer.appendChild(linkIcon);
                     } else {
                         pathContainer.textContent = pathInfo.displayPath || pathInfo.path;
-                        pathContainer.style.color = '#666';
+                        // pathContainer.style.color = '#666'; // Removed for dark mode compatibility
                         pathContainer.style.fontSize = '0.9em';
                     }
                 }
@@ -2859,7 +2863,7 @@
             loadingMsg.style.textAlign = 'center';
             loadingMsg.style.padding = '20px';
             loadingMsg.style.fontStyle = 'italic';
-            loadingMsg.style.color = '#666';
+            // loadingMsg.style.color = '#666'; // Removed for dark mode compatibility
             
             viewerContainer.appendChild(loadingMsg);
             pathDiv.appendChild(viewerContainer);
