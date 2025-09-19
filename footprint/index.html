@@ -27,12 +27,7 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <script>
-        waitForElm('#cloneLeftTarget').then((elm) => {
-            setTimeout(() => {
-            //$("#cloneLeft").empty();
-            //loadMarkdown("../trade/nav.md", "cloneLeft", "_parent");
-            }, 200);
-        });
+        loadMarkdown("../trade/nav.md", "navDiv", "_parent");
     </script>
 
     <style>
@@ -468,6 +463,7 @@
             border-left: 4px solid #0066cc;
             border-radius: 5px;
             display: none; /* Initially hidden */
+            overflow: auto;
         }
         
         .industry-filter-row {
@@ -559,7 +555,9 @@
         .category-item input[type="checkbox"] {
             margin: 0;
         }
-        
+        .tabulator-cell {
+            font-size: 15px;
+        }
         .dark .industry-filter-container {
             background-color: #444;
             color: #fff;
@@ -596,6 +594,9 @@
             color: #fff !important;
         }
         
+        #totalsContainer, #dataSourcesContainer, #useeioSourceMessage, #fileSelectionContainer {
+            overflow: auto; /* Prevents overlap of left nav.md #/
+        }
         /* USEEIO Source Message Styles */
         #useeioSourceMessage {
             margin: 15px 0;
@@ -645,6 +646,10 @@
 <body>
     <div class="content contentpaddingX" style="position: relative; padding-top:0px">
         
+        <div style="margin-right:30px" class="floatLeft">
+        <div id="navDiv"></div>
+        </div>
+
         <!-- Data Source Toggle -->
         <div class="toggle-data-container">
             <div class="toggle-options">
@@ -748,9 +753,6 @@
             <h3>Data Sources</h3>
             <div id="dataSourcesPaths"></div>
         </div>
-
-        <br>
-        <a href="../../profile/footprint/">State Reports</a>
     </div>
 
     <!-- JavaScript Libraries -->
@@ -2369,24 +2371,22 @@
                     {
                         title: "State",
                         field: "stateName",
-                        width: 200,
+                        widthGrow: 2,
                         formatter: function(cell) {
                             const data = cell.getRow().getData();
-                            return `<a href="#state=${data.stateAbbr}" style="color: #2196f3; text-decoration: none;">${data.stateName}</a>`;
+                            return `<a href="commodities.html#state=${data.stateAbbr}" style="color: #2196f3; text-decoration: none;">${data.stateName}</a>`;
                         }
                     },
                     {
                         title: "Economic Output",
                         field: "outputFormatted",
-                        width: 150,
                         sorter: function(a, b, aRow, bRow) {
                             return aRow.getData().output - bRow.getData().output;
                         }
                     },
                     {
                         title: "Employment",
-                        field: "employmentFormatted", 
-                        width: 120,
+                        field: "employmentFormatted",
                         sorter: function(a, b, aRow, bRow) {
                             return aRow.getData().employment - bRow.getData().employment;
                         }
@@ -2457,7 +2457,7 @@
                         {
                             title: "Country",
                             field: "countryName",
-                            width: 200,
+                            widthGrow: 2,
                             formatter: function(cell) {
                                 const data = cell.getRow().getData();
                                 return `<a href="#country=${data.country}" style="color: #2196f3; text-decoration: none;">${data.countryName}</a>`;
@@ -2466,7 +2466,7 @@
                         {
                             title: "Trade Flow Value",
                             field: "outputFormatted",
-                            width: 150,
+                            widthGrow: 1,
                             sorter: function(a, b, aRow, bRow) {
                                 return aRow.getData().output - bRow.getData().output;
                             }
@@ -2474,7 +2474,7 @@
                         {
                             title: "Employment Impact",
                             field: "employmentFormatted",
-                            width: 150,
+                            widthGrow: 1,
                             sorter: function(a, b, aRow, bRow) {
                                 return aRow.getData().employment - bRow.getData().employment;
                             }
@@ -2486,11 +2486,11 @@
                     {
                         title: "Region",
                         field: "regionName",
-                        width: 200,
+                        widthGrow: 2,
                         formatter: function(cell) {
                             const data = cell.getRow().getData();
                             if (data.type === 'state') {
-                                return `<a href="#state=${data.stateAbbr}" style="color: #2196f3; text-decoration: none;">${data.stateName}</a>`;
+                                return `<a href="commodities.html#state=${data.stateAbbr}" style="color: #2196f3; text-decoration: none;">${data.stateName}</a>`;
                             } else {
                                 return `<a href="#country=${data.country}" style="color: #2196f3; text-decoration: none;">${data.countryName}</a>`;
                             }
@@ -2535,6 +2535,7 @@
                 data: data,
                 columns: columns,
                 layout: "fitColumns",
+                width: "100%",
                 pagination: "local",
                 paginationSize: 500,
                 paginationSizeSelector: [10, 25, 50, 100, 500],
@@ -2713,8 +2714,21 @@
             if (hash) {
                 console.log('Hash changed:', hash);
                 
-                // Update year selector from hash
+                // Clear and repopulate USEEIO source message for state changes (not for countries)
                 const hashParams = new URLSearchParams(hash.replace(/&/g, '&').replace(/=/g, '='));
+                const hasStateParam = hashParams.has('state');
+                const hasCountryParam = hashParams.has('country');
+                
+                if (hasStateParam && !hasCountryParam) {
+                    // This is a state-only hash change, clear the message and reset flag
+                    const existingMessage = document.getElementById('useeioSourceMessage');
+                    if (existingMessage) {
+                        existingMessage.remove();
+                    }
+                    useeioSourceMessageShown = false; // Reset flag to allow repopulation
+                }
+                
+                // Update year selector from hash
                 const yearFromHash = hashParams.get('year');
                 if (yearFromHash) {
                     const yearSelector = document.getElementById('yearSelector');
