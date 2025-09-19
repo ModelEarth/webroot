@@ -25,10 +25,27 @@
   
   <p id="info">Loading ...</p>
   <div id="table"></div>
+  
+  <!-- Matrix and Data Sources Section -->
+  <div id="matrixSection" style="margin-top: 40px; display: none;">
+    <h3>Technical Coefficient Matrix</h3>
+    <p id="matrixInfo">Loading matrix data...</p>
+    <div id="matrixTable"></div>
+  </div>
+  
+  <div id="dataSourcesSection" style="margin-top: 40px; display: none;">
+    <h3>Data Sources</h3>
+    <p id="dataSourcesInfo">Loading data sources...</p>
+    <div id="dataSourcesTable"></div>
+  </div><br><br>
+
+  <div id="infoDiv"></div>
+
 </div>
 
 <script src="js/config.js"></script>
 <script>
+loadMarkdown("sector_profile_info.md", "infoDiv", "_parent");
 document.addEventListener('hashChangeEvent', hashChangedUseeio, false);
 function hashChangedUseeio() {
   console.log("URL hash changed");
@@ -161,6 +178,259 @@ async function main() {
       { column: "total", dir: "desc" },
     ]
   });
+
+  // Load and display matrix and data sources
+  await loadMatrixData(sector, analysis);
+  await loadDataSources(sector);
+}
+
+async function loadMatrixData(sector, analysis) {
+  try {
+    const matrixSection = document.getElementById('matrixSection');
+    const matrixInfo = document.getElementById('matrixInfo');
+    const matrixTable = document.getElementById('matrixTable');
+    
+    // Get model information for data source URL
+    const modelName = getModelFolderName();
+    const dataSourceUrl = `https://raw.githubusercontent.com/ModelEarth/useeio-json/main/models/2020/${modelName}/A.json`;
+    
+    matrixInfo.innerHTML = `Technical coefficients for sector: <strong>${sector.name}</strong><br>
+      <small>Data source: <a href="${dataSourceUrl}" target="_blank">A Matrix (${modelName})</a></small>`;
+    
+    // Get matrix data from the model
+    const sectors = await model.sectors();
+    const matrixA = await model.matrix('A'); // Technical coefficient matrix
+    
+    if (matrixA && matrixA.data && matrixA.data.length > 0) {
+      // Get the row for the current sector - matrixA.data is the actual 2D array
+      const sectorRow = matrixA.data[sector.index] || [];
+      
+      // Create data for the top contributing sectors
+      const matrixData = sectors
+        .map((s, index) => ({
+          sector: s.name,
+          coefficient: sectorRow[index] || 0,
+          sectorCode: s.code,
+          sectorId: s.id
+        }))
+        .filter(item => Math.abs(item.coefficient) > 0.0001) // Filter out very small values
+        .sort((a, b) => Math.abs(b.coefficient) - Math.abs(a.coefficient))
+        .slice(0, 25); // Show top 25 contributors
+      
+      if (matrixData.length > 0) {
+        // Create Tabulator table for matrix data
+        new Tabulator("#matrixTable", {
+          data: matrixData,
+          layout: "fitColumns",
+          height: "400px",
+          width: "100%",
+          columns: [
+            { title: "Sector Name", field: "sector", widthGrow: 3 },
+            { title: "Code", field: "sectorCode", width: 80 },
+            { title: "Sector ID", field: "sectorId", width: 120 },
+            { 
+              title: "Technical Coefficient", 
+              field: "coefficient", 
+              formatter: function(cell) {
+                const val = cell.getValue();
+                return val.toExponential(4);
+              },
+              sorter: "number",
+              width: 150
+            }
+          ],
+          initialSort: [
+            { column: "coefficient", dir: "desc" }
+          ]
+        });
+      } else {
+        matrixTable.innerHTML = '<p>No significant technical coefficients found for this sector.</p>';
+      }
+      
+      matrixSection.style.display = 'block';
+    } else {
+      // Try alternative access method
+      const matrixCol = await model.matrixColumn('A', sector.index);
+      if (matrixCol && matrixCol.length > 0) {
+        const matrixData = sectors
+          .map((s, index) => ({
+            sector: s.name,
+            coefficient: matrixCol[index] || 0,
+            sectorCode: s.code,
+            sectorId: s.id
+          }))
+          .filter(item => Math.abs(item.coefficient) > 0.0001)
+          .sort((a, b) => Math.abs(b.coefficient) - Math.abs(a.coefficient))
+          .slice(0, 25);
+        
+        if (matrixData.length > 0) {
+          new Tabulator("#matrixTable", {
+            data: matrixData,
+            layout: "fitColumns",
+            height: "400px",
+            width: "100%",
+            columns: [
+              { title: "Sector Name", field: "sector", widthGrow: 3 },
+              { title: "Code", field: "sectorCode", width: 80 },
+              { title: "Sector ID", field: "sectorId", width: 120 },
+              { 
+                title: "Technical Coefficient", 
+                field: "coefficient", 
+                formatter: function(cell) {
+                  const val = cell.getValue();
+                  return val.toExponential(4);
+                },
+                sorter: "number",
+                width: 150
+              }
+            ],
+            initialSort: [
+              { column: "coefficient", dir: "desc" }
+            ]
+          });
+        } else {
+          matrixTable.innerHTML = '<p>No significant technical coefficients found for this sector.</p>';
+        }
+        matrixSection.style.display = 'block';
+      } else {
+        matrixInfo.innerHTML += '<br><em>Matrix data not available for this sector.</em>';
+        matrixSection.style.display = 'block';
+      }
+    }
+  } catch (error) {
+    console.error('Error loading matrix data:', error);
+    document.getElementById('matrixInfo').innerHTML = `Technical coefficients for sector: <strong>${sector.name}</strong><br><em>Error loading matrix data: ${error.message}</em>`;
+    document.getElementById('matrixSection').style.display = 'block';
+  }
+}
+
+async function loadDataSources(sector) {
+  try {
+    const dataSourcesSection = document.getElementById('dataSourcesSection');
+    const dataSourcesInfo = document.getElementById('dataSourcesInfo');
+    const dataSourcesTable = document.getElementById('dataSourcesTable');
+    
+    // Get model information
+    const modelName = getModelFolderName();
+    const baseUrl = `https://raw.githubusercontent.com/ModelEarth/useeio-json/main/models/2020/${modelName}`;
+    
+    dataSourcesInfo.innerHTML = `Data sources and methodology for sector: <strong>${sector.name}</strong> (${modelName})`;
+    
+    // Get model metadata
+    let metadata;
+    try {
+      metadata = await model.metadata();
+    } catch (e) {
+      console.warn('Could not load metadata:', e);
+      metadata = { version: modelName };
+    }
+    
+    // Get indicators and demands to show what data is actually used
+    const indicators = await model.indicators();
+    const demands = await model.demands();
+    
+    // Create comprehensive data sources information
+    const dataSourcesData = [
+      {
+        dataset: "Technical Coefficient Matrix (A)",
+        description: "Inter-industry economic relationships and dependencies",
+        format: "JSON Matrix",
+        url: `${baseUrl}/A.json`,
+        usage: "Calculates direct economic impacts between sectors"
+      },
+      {
+        dataset: "Environmental Matrix (B)",
+        description: "Direct environmental coefficients by sector",
+        format: "JSON Matrix", 
+        url: `${baseUrl}/B.json`,
+        usage: "Direct environmental impacts per dollar of output"
+      },
+      {
+        dataset: "Total Requirements Matrix (L)",
+        description: "Leontief inverse matrix (I-A)^-1",
+        format: "JSON Matrix",
+        url: `${baseUrl}/L.json`, 
+        usage: "Calculates total economic requirements (direct + indirect)"
+      },
+      {
+        dataset: "Environmental Multipliers (D)",
+        description: "Total environmental impact coefficients",
+        format: "JSON Matrix",
+        url: `${baseUrl}/D.json`,
+        usage: "Total environmental impacts (direct + indirect + induced)"
+      },
+      {
+        dataset: "Sectors",
+        description: `${sector.code} - ${sector.name} and all other sectors`,
+        format: "JSON Array",
+        url: `${baseUrl}/sectors.json`,
+        usage: "Sector classification and naming"
+      },
+      {
+        dataset: "Indicators", 
+        description: `${indicators.length} environmental impact indicators`,
+        format: "JSON Array",
+        url: `${baseUrl}/indicators.json`,
+        usage: "Environmental impact categories (GHG, water, land, etc.)"
+      },
+      {
+        dataset: "Demands",
+        description: `${demands.length} demand vectors available`,
+        format: "JSON Object",
+        url: `${baseUrl}/demands.json`, 
+        usage: "Economic demand scenarios for analysis"
+      }
+    ];
+    
+    // Add location-specific information if available
+    if (sector.location && sector.location !== 'US') {
+      dataSourcesData.push({
+        dataset: "State-Level Data",
+        description: `Location-specific data for ${sector.location}`,
+        format: "Model Extension",
+        url: "https://www.epa.gov/land-research/useeio-state-models",
+        usage: "State-level economic and environmental coefficients"
+      });
+    }
+    
+    // Add metadata information
+    dataSourcesData.push({
+      dataset: "Model Metadata",
+      description: `${metadata?.name || modelName} model information`,
+      format: "JSON Object", 
+      url: `${baseUrl}/metadata.json`,
+      usage: "Model version, description, and technical specifications"
+    });
+    
+    // Create Tabulator table for data sources
+    new Tabulator("#dataSourcesTable", {
+      data: dataSourcesData,
+      layout: "fitColumns",
+      width: "100%",
+      columns: [
+        { title: "Dataset", field: "dataset", width: 180 },
+        { title: "Description", field: "description", widthGrow: 2 },
+        { title: "Usage in Report", field: "usage", widthGrow: 2 },
+        { title: "Format", field: "format", width: 100 },
+        { 
+          title: "Data Link", 
+          field: "url", 
+          formatter: function(cell) {
+            const url = cell.getValue();
+            const filename = url.split('/').pop();
+            return `<a href="${url}" target="_blank">${filename}</a>`;
+          },
+          width: 120
+        }
+      ]
+    });
+    
+    dataSourcesSection.style.display = 'block';
+  } catch (error) {
+    console.error('Error loading data sources:', error);
+    document.getElementById('dataSourcesInfo').innerHTML = `Data sources and methodology for sector: <strong>${sector?.name || 'Unknown'}</strong><br><em>Error: ${error.message}</em>`;
+    document.getElementById('dataSourcesSection').style.display = 'block';
+  }
 }
 main();
 </script>
