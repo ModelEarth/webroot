@@ -65,31 +65,88 @@
     <div style="position: relative;">
       <div>
 
-        <div style="width:85%">
-          <!-- D3 Separated chord chart - initial test chart -->
-          <div id="chart2"></div>
-        </div>
-      </div>
+          <style>
+            /* Row layout: chart2 (45%), sankey (45%), controls (5%) */
+            .charts-row {
+              display: flex;
+              gap: 0; /* no empty space between columns */
+              align-items: stretch;
+              width: 100%;
+            }
+            /* Use fixed flex-basis so total is exactly 100%: 45% + 45% + 5% = 95% (outer padding consumes rest), but no gaps between */
+            .charts-row > .chart-left {
+              flex: 0 0 45%;
+              min-width: 160px;
+              height: 480px;
+              padding: 0;
+              margin: 0;
+            }
+            .charts-row > .chart-center {
+              flex: 0 0 45%;
+              min-width: 160px;
+              height: 480px;
+              padding: 0;
+              margin: 0;
+            }
+            .charts-row > .chart-right-controls {
+              flex: 0 0 8%;
+              min-width: 110px; /* wider so labels don't truncate */
+              display: flex;
+              flex-direction: column;
+              gap: 6px;
+              align-items: flex-end; /* push controls to the right */
+              justify-content: flex-start;
+              height: 480px;
+              padding: 0 6px 0 0;
+              margin: 0;
+            }
+            .chart-right-controls .controlDD {
+              width: 120px;
+              max-width: 140px;
+              box-sizing: border-box;
+              margin: 0;
+              padding: 6px 8px;
+            }
+            @media (max-width: 900px) {
+              .charts-row {
+                    flex-direction: column;
+                  }
+                  .charts-row > .chart-left,
+                  .charts-row > .chart-center,
+                  .charts-row > .chart-right-controls {
+                    width: 100%;
+                    min-width: 0;
+                    height: 360px;
+                  }
+            }
+          </style>
 
-      <!-- Control Dropdowns -->
-      <div style="position: absolute; top: 10px; right: 10px; z-index: 1000;">
+      <!-- Top control bar above charts -->
+      <div style="display:flex; justify-content:flex-end; gap:8px; padding: 8px 0;">
         <select id="theme-mode" class="controlDD">
           <option value="light" selected>Light Mode</option>
           <option value="dark">Dark Mode</option>
-        </select><br>
+        </select>
         <select id="scaling-method" class="controlDD">
           <option value="raw" selected>No Scaling</option>
           <option value="square-root">Square Root</option>
           <option value="proportional">Proportional</option>
           <option value="logarithmic">Logarithmic</option>
-        </select><br>
+        </select>
         <select id="edge-style" class="controlDD">
           <option value="none">No Edge</option>
           <option value="light" selected>Light Edge</option>
           <option value="dark">Dark Edge</option>
         </select>
       </div>
-    </div>
+
+          <div style="display:flex; gap:20px; width:100%">
+            <!-- Left: D3 Separated chord chart -->
+            <div id="chart2" style="flex:1; min-width:300px; height:480px;"></div>
+            <!-- Right: Sankey chart will sit alongside the chord chart -->
+            <div id="sankey" style="flex:1; min-width:300px; height:480px;"></div>
+          </div>
+      </div>
   </div>
 
   <div style="padding-left:60px;padding-right:18px;">
@@ -109,6 +166,9 @@
   </div>
   
   <script src="js/config.js"></script>
+  <!-- include d3-sankey -->
+  <script src="https://unpkg.com/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
+  <!-- Repository sankey implementation removed to avoid runtime mismatch; using inline fallback -->
   <script type="module">
     // Importing chord diagram initialization function
     // chordInit.js loads script.js in same folder.
@@ -506,17 +566,117 @@
         // Store data globally for dropdown changes
         window.currentChordData = { sectors: top10Results, indicators: top10Indicators };
         
-        // Load saved preferences for initial chart creation
-        const initialPrefs = window.ChartPreferences ? window.ChartPreferences.load() : { scalingMethod: 'raw', edgeStyle: 'light' };
+  // Load saved preferences for initial chart creation
+  const initialPrefs = window.ChartPreferences ? window.ChartPreferences.load() : { scalingMethod: 'raw', edgeStyle: 'light' };
+
+  // Create a shared colorScale so chord and sankey share colors
+  const allSectorIds = top10Results.map(s => s.metadata ? (s.metadata.NAICS || s.sector) : s.sector);
+  const sharedColorScale = d3.scaleOrdinal(d3.schemeCategory10).domain(allSectorIds);
         
-        await initializeChordDiagram(top10Results, top10Indicators, { 
+        // Hide containers to prevent initial small->big flicker
+        try {
+          document.getElementById('chart2').style.visibility = 'hidden';
+          document.getElementById('sankey').style.visibility = 'hidden';
+        } catch (e) {}
+
+        // Initialize chord and capture the returned ChordDiagram instance so we can post-process labels
+        const chordInstance = await initializeChordDiagram(top10Results, top10Indicators, { 
           containerId: '#chart2',
           scalingMethod: initialPrefs.scalingMethod,
           chordBorder: {
             style: initialPrefs.edgeStyle,
             width: '1px'
-          }
+          },
+          colorScale: sharedColorScale
         });
+
+  // Using default chord script styling; custom label post-processing removed.
+
+        // After the chord finishes rendering, extract its actual colors from the DOM
+        // and pass a color function to the Sankey so both charts use identical colors.
+        if (typeof initializeSankey === 'function') {
+          // Allow the chord renderer a short moment to paint
+          setTimeout(() => {
+            try {
+              // Build a mapping from node id -> computed color by matching label text in #chart2
+              const colorMap = {};
+              const svg = document.querySelector('#chart2 svg');
+              if (svg) {
+                // For each sector id, try to find a text node that matches the sector name and read color
+                top10Results.forEach(s => {
+                  const id = s.metadata ? (s.metadata.NAICS || s.sector) : s.sector;
+                  // Find text element containing the sector name
+                  const textEl = Array.from(svg.querySelectorAll('text')).find(t => (t.textContent || '').trim() === s.sector);
+                        if (textEl) {
+                          // Prefer the fill attribute of the nearest sibling shape (may be a gradient url)
+                          let color = null;
+                          const gp = textEl.closest('g');
+                          if (gp) {
+                            const shape = gp.querySelector('path, rect, circle');
+                            if (shape) {
+                              // check the literal fill attribute first (may be 'url(#grad)')
+                              const fillAttr = shape.getAttribute && shape.getAttribute('fill');
+                              if (fillAttr && fillAttr.indexOf('url(') === 0) {
+                                // extract gradient id and copy its definition so sankey can reference it
+                                const m = fillAttr.match(/url\(#([^\)]+)\)/);
+                                if (m) {
+                                  const gradId = m[1];
+                                  // copy gradient <defs> node into a hidden host if not already present
+                                  try {
+                                    if (!document.getElementById(gradId)) {
+                                      const defNode = svg.querySelector(`#${gradId}`);
+                                      if (defNode) {
+                                        let host = document.getElementById('chart2-gradient-host');
+                                        if (!host) {
+                                          host = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                                          host.setAttribute('id', 'chart2-gradient-host');
+                                          host.style.position = 'absolute';
+                                          host.style.left = '0';
+                                          host.style.top = '0';
+                                          host.style.width = '0';
+                                          host.style.height = '0';
+                                          document.body.appendChild(host);
+                                        }
+                                        host.appendChild(defNode.cloneNode(true));
+                                      }
+                                    }
+                                  } catch (e) {
+                                    // ignore clone errors
+                                  }
+                                  color = `url(#${m[1]})`;
+                                }
+                              }
+                              // if we didn't find a gradient, fall back to computed styles
+                              if (!color) color = window.getComputedStyle(shape).fill || window.getComputedStyle(shape).stroke;
+                            }
+                          }
+                          if (!color) color = window.getComputedStyle(textEl).fill;
+                          if (color) colorMap[id] = color;
+                        }
+                });
+              }
+
+              // Create a color function that prefers the extracted map, falling back to sharedColorScale
+              const inferredColorScale = function(id) {
+                if (colorMap && colorMap[id]) return colorMap[id];
+                try { return sharedColorScale(id); } catch (e) { return '#999'; }
+              };
+
+              const initialPrefs = window.ChartPreferences ? window.ChartPreferences.load() : { scalingMethod: 'raw', edgeStyle: 'light' };
+              initializeSankey(top10Results, top10Indicators, { containerId: '#sankey', scalingMethod: initialPrefs.scalingMethod, edgeStyle: initialPrefs.edgeStyle, themeMode: initialPrefs.themeMode, colorScale: inferredColorScale });
+            } catch (e) {
+              // fallback to shared scale if extraction failed
+              const initialPrefs = window.ChartPreferences ? window.ChartPreferences.load() : { scalingMethod: 'raw', edgeStyle: 'light' };
+              initializeSankey(top10Results, top10Indicators, { containerId: '#sankey', scalingMethod: initialPrefs.scalingMethod, edgeStyle: initialPrefs.edgeStyle, themeMode: initialPrefs.themeMode, colorScale: sharedColorScale });
+            }
+          }, 120);
+        }
+
+        // Show containers after render
+        try {
+          document.getElementById('chart2').style.visibility = 'visible';
+          document.getElementById('sankey').style.visibility = 'visible';
+        } catch (e) {}
         
         // Display debug info for consistency checking
         displayDebugInfo(top10Results, top10Indicators);
@@ -688,7 +848,7 @@
           console.log(`Updating chart - Scaling: ${selectedScaling}, Edge: ${selectedEdge}`);
           
           try {
-            initializeChordDiagram(
+            const updatedChord = initializeChordDiagram(
               window.currentChordData.sectors, 
               window.currentChordData.indicators, 
               { 
@@ -700,6 +860,14 @@
                 }
               }
             );
+
+            // If initializeChordDiagram returned a promise or instance, leave default labeling
+            Promise.resolve(updatedChord).then(inst => {}).catch(() => {});
+
+            // Also update Sankey when controls change
+            if (typeof initializeSankey === 'function') {
+              initializeSankey(window.currentChordData.sectors, window.currentChordData.indicators, { containerId: '#sankey', scalingMethod: selectedScaling, edgeStyle: selectedEdge });
+            }
           } catch (error) {
             console.error('Error updating chord diagram:', error);
           }
@@ -735,6 +903,200 @@
       }
     });
 
+    // Initialize Sankey using the repository's sk.createSankey implementation
+    function initializeSankey(sectors, indicators, options) {
+            try {
+                const containerId = options && options.containerId ? options.containerId : '#sankey';
+                const container = d3.select(containerId);
+                container.selectAll('*').remove();
+
+  // Use the same node/link ids and attributes as the chord chart
+  // Nodes: sector NAICS (or name) and indicator.code
+  const sectorIds = sectors.map(s => s.metadata ? (s.metadata.NAICS || s.sector) : s.sector);
+  // Prefer a shared colorScale passed in options (from chord); fall back to local scale
+  const colorScale = options && options.colorScale ? options.colorScale : d3.scaleOrdinal(d3.schemeCategory10).domain(sectorIds);
+
+        const nodes = [];
+        const links = [];
+
+        // Add sector nodes with id equal to NAICS (if available) otherwise the sector name
+        sectors.forEach((s) => {
+          const id = s.metadata ? (s.metadata.NAICS || s.sector) : s.sector;
+          nodes.push({ id: id, name: s.sector, color: colorScale(id), type: 'sector' });
+        });
+
+        // Add indicator nodes with id equal to indicator code
+        indicators.forEach((ind) => {
+          nodes.push({ id: ind.code, name: ind.code, color: '#999', type: 'indicator' });
+        });
+
+        // Create links using id strings so the repo sankey (and chord) share semantics
+        sectors.forEach((s) => {
+          const sourceId = s.metadata ? (s.metadata.NAICS || s.sector) : s.sector;
+          indicators.forEach((ind) => {
+            const val = Math.abs(s[ind.code] || 0);
+            if (val > 0) {
+              links.push({ source: sourceId, target: ind.code, value: val });
+            }
+          });
+        });
+
+          const width = container.node().clientWidth || 600;
+          const height = container.node().clientHeight || 480;
+
+    // Determine scaling method, edge style and theme mode
+    const scalingMethod = options && options.scalingMethod ? options.scalingMethod : 'raw';
+    const edgeStyle = options && options.edgeStyle ? options.edgeStyle : 'light';
+    const themeMode = options && options.themeMode ? options.themeMode : (window.ChartPreferences ? window.ChartPreferences.load().themeMode : 'light');
+
+                const svg = container.append('svg')
+                    .attr('width', width)
+                    .attr('height', height);
+
+        // Build sankeyData using id/name/color/value so it matches the chord data semantics
+        const sankeyData = {
+          nodes: nodes.map(n => ({ id: n.id, name: n.name, color: n.color })),
+          links: links.map(l => ({ source: l.source, target: l.target, value: l.value }))
+        };
+
+                const layout = d3.sankey()
+                    .nodeWidth(12)
+                    .nodePadding(8)
+                    .extent([[1, 1], [width - 1, height - 6]]);
+
+                // Apply scaling to link values before layout
+                const scaledLinks = sankeyData.links.map(l => {
+                  let v = l.value;
+                  switch (scalingMethod) {
+                    case 'square-root': v = Math.sqrt(v); break;
+                    case 'proportional': v = v; break;
+                    case 'logarithmic': v = (v > 0) ? Math.log10(v + 1) : 0; break;
+                    default: v = v; // raw
+                  }
+                  return Object.assign({}, l, { value: v });
+                });
+
+                // d3-sankey expects link.source and link.target to be node indices or node objects.
+                // Convert string ids to node objects the layout can consume.
+                const nodeById = new Map(sankeyData.nodes.map(n => [n.id, Object.assign({}, n)]));
+                const layoutLinks = scaledLinks.map(l => {
+                  const s = nodeById.get(l.source);
+                  const t = nodeById.get(l.target);
+                  return Object.assign({}, l, { source: s, target: t });
+                });
+
+                // The layout needs an array of node objects; ensure we pass copies
+                const graph = layout({ nodes: Array.from(nodeById.values()), links: layoutLinks });
+                const path = d3.sankeyLinkHorizontal();
+
+                const linkG = svg.append('g')
+                    .attr('fill', 'none')
+                    .selectAll('g')
+                    .data(graph.links)
+                    .join('g');
+
+                // Path for the link
+                linkG.append('path')
+                    .attr('d', path)
+                    .attr('stroke', d => {
+                      // Prefer explicit shared colorScale if provided; otherwise fall back to node color
+                      if (options && options.colorScale && d.source && d.source.id) return options.colorScale(d.source.id);
+                      return d.source && d.source.color ? d.source.color : '#999';
+                    })
+                    .attr('stroke-opacity', edgeStyle === 'none' ? 0 : (edgeStyle === 'dark' ? 0.95 : 0.6))
+                    .attr('stroke-width', d => {
+                      const base = Math.max(1, d.width);
+                      // scale link width visually depending on scaling method
+                      return Math.max(1, base);
+                    })
+                    .attr('fill', 'none')
+                    .attr('stroke-linecap', 'round');
+                
+        // Add tooltip on hover using the page's #chord-tooltip div so the same popup works for other charts
+        const tooltip = d3.select('#chord-tooltip');
+
+        linkG.on('mouseover', function(event, d) {
+          tooltip.style('opacity', 1)
+               .html(`<strong>${d.source.name} → ${d.target.name}</strong><br/>Value: ${d.value.toFixed ? d.value.toFixed(3) : d.value}`);
+          const [mx, my] = d3.pointer(event, document.body);
+          tooltip.style('left', (mx + 12) + 'px')
+               .style('top', (my + 12) + 'px');
+        })
+        .on('mousemove', function(event) {
+          const [mx, my] = d3.pointer(event, document.body);
+          tooltip.style('left', (mx + 12) + 'px')
+               .style('top', (my + 12) + 'px');
+        })
+        .on('mouseleave', function() {
+          tooltip.style('opacity', 0);
+        });
+
+                // Add text on the path
+                linkG.append('text')
+                    .attr('x', d => (d.source.x1 + d.target.x0) / 2)
+                    .attr('y', d => (d.y0 + d.y1) / 2)
+                    .attr('dy', '0.35em')
+                    .attr('text-anchor', 'middle')
+                    .style('font-size', '10px')
+                    .text(d => d.value);
+
+                const nodeG = svg.append('g')
+                    .selectAll('g')
+                    .data(graph.nodes)
+                    .join('g');
+
+                nodeG.append('rect')
+                    .attr('x', d => d.x0)
+                    .attr('y', d => d.y0)
+                    .attr('height', d => Math.max(1, d.y1 - d.y0))
+                    .attr('width', d => Math.max(1, d.x1 - d.x0))
+                  .attr('fill', d => {
+                    if (options && options.colorScale && d.id) return options.colorScale(d.id);
+                    return d.color || '#999';
+                  })
+                  .attr('stroke', d => {
+                    if (edgeStyle === 'none') return 'none';
+                    if (edgeStyle === 'dark') return d3.rgb(d.color || '#999').darker(2.2);
+                    return d3.rgb(d.color || '#999').darker(1.2);
+                  })
+                  .attr('stroke-width', edgeStyle === 'none' ? 0 : 1);
+
+        nodeG.append('text')
+                  .attr('x', d => d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6)
+                  .attr('y', d => (d.y1 + d.y0) / 2)
+                  .attr('dy', '0.35em')
+                  .attr('text-anchor', d => d.x0 < width / 2 ? 'start' : 'end')
+                  .text(function(d) {
+                    // In dark mode, hide numeric-only labels (e.g., NAICS codes)
+                    if (themeMode === 'dark') {
+                      if (/^\d+$/.test(String(d.name).trim())) return '';
+                    }
+                    return d.name;
+                  })
+                  .style('font-size', '11px');
+
+        // Node hover tooltip
+        nodeG.on('mouseover', function(event, d) {
+          tooltip.style('opacity', 1)
+               .html(`<strong>${d.name}</strong><br/>In: ${d.value ? d.value.toFixed ? d.value.toFixed(3) : d.value : 'N/A'}<br/>Out: ${d.value ? d.value.toFixed ? d.value.toFixed(3) : d.value : 'N/A'}`);
+          const [mx, my] = d3.pointer(event, document.body);
+          tooltip.style('left', (mx + 12) + 'px')
+               .style('top', (my + 12) + 'px');
+        })
+        .on('mousemove', function(event) {
+          const [mx, my] = d3.pointer(event, document.body);
+          tooltip.style('left', (mx + 12) + 'px')
+               .style('top', (my + 12) + 'px');
+        })
+        .on('mouseleave', function() {
+          tooltip.style('opacity', 0);
+        });
+
+            } catch (err) {
+                console.error('Error in initializeSankey:', err);
+            }
+        }
+
   </script>
 
 
@@ -766,6 +1128,15 @@ path.chord {
 }
 .dark text.titles {
   fill: white;
+}
+.dark svg text,
+.dark #sankey svg text,
+.dark #chart2 svg text,
+.dark .sk-node text {
+  fill: white !important;
+}
+.dark #sankey svg .sk-node rect {
+  stroke-opacity: 0.9;
 }
 .dark #scaling-method,
 .dark #edge-style {
