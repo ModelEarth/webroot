@@ -70,11 +70,10 @@ Updates to the [prior sector profile](sector_profile_prior.html) include two tab
 ### 4. Improved Error Handling and User Experience
 
 **Change**: Enhanced error messaging and fallback methods
-```javascript
-// Added try-catch blocks with specific error reporting
-// Alternative data access methods when primary fails
-// Graceful degradation with informative messages
-```
+
+- Added try-catch blocks with specific error reporting
+- Alternative data access methods when primary fails
+- Graceful degradation with informative messages
 
 **Rationale**: Robust error handling ensures the report remains functional even when some data sources are unavailable, providing clear feedback to users about any issues.
 

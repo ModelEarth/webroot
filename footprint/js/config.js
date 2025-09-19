@@ -47,57 +47,73 @@ function getModel() {
     });
 }
 
-function formatCell(input, format) {
-    // If format is none or blank, return input as it is.
-    if (format === 'none' || format === '') {
-        return input;
-    }
+// Common dropdown functionality for locale and number format
+function initializeDropdowns() {
+  // Populate the locale dropdown
+  var localeSelect = document.getElementById("locale-select");
+  if (localeSelect) {
+    var locales = ["en-US", "fr-FR", "de-DE", "es-ES", "it-IT", "ja-JP", "ko-KR", "zh-CN"];
+    
+    locales.forEach(locale => {
+        let option = document.createElement("option");
+        option.value = locale;
+        option.textContent = locale;
+        localeSelect.appendChild(option);
+    });
+    
+    // Set the dropdown to the user's current locale
+    localeSelect.value = navigator.language;
+  }
 
-    // Format as scientific notation
-    if (format === 'scientific') {
-        return input.toExponential(1);
-    }
-
-    // Format as easy
-    if (input >= 1e12) {
-        // Round to billions
-        return (input / 1e12).toFixed(3) + ' Trillion';
-    } else if (input >= 1e9) {
-        // Round to billions
-        return (input / 1e9).toFixed(1) + ' Billion';
-    } else if (input >= 1e6) {
-        // Round to millions
-        return (input / 1e6).toFixed(1) + ' Million';
-    } else if (input >= 1000) {
-        // Round to thousands
-        return (input / 1000).toFixed(1) + ' K';
-    } else if (input >= 0) {
-        // Round to one decimal. Remove .0
-        return input.toFixed(1).replace(/\.0$/, '');
-    } else if (input >= 0.0001) {
-        // Round to one decimal
-        return input.toFixed(4);
-    } else if (input >= -1000) {
-        return (input / 1e3).toFixed(1) + ' K';
-    } else if (input >= -1e9) {
-        // Round to -millions
-        return (input / 1e6).toFixed(1).replace(/\.0$/, '') + ' Million';
-    } else if (input >= -1e12) {
-        // Round to -billions
-        return (input / 1e9).toFixed(1).replace(/\.0$/, '') + ' Billion';
-    } else {
-        // Format with scientific notation with one digit after decimal
-        return input.toExponential(1);
-    }
+  // Populate the number format dropdown
+  let numberFormatSelect = document.getElementById("number-format-select");
+  if (numberFormatSelect) {
+    let formats = ["simple", "full", "scientific"];
+    formats.forEach(format => {
+        let option = document.createElement("option");
+        option.value = format;
+        option.textContent = format;
+        numberFormatSelect.appendChild(option);
+    });
+    
+    // Set default to simple
+    numberFormatSelect.value = "simple";
+  }
 }
 
-// Test cases
-//console.log(formatCell(42262000000, 'easy')); // Output: "42.3 Billion"
-//console.log(formatCell(9500000, 'easy'));     // Output: "9.5 Million"
-//console.log(formatCell(50000, 'easy'));       // Output: "50.0 K"
-//console.log(formatCell(99.99, 'easy') + " - BUG, let's avoid adding .0 when rounding");        // Output: "100.0" - 
-//console.log(formatCell(0.0005, 'easy'));      // Output: "5.0e-4"
-// console.log(formatCell(45000000, 'scientific')); // Output: "4.5e+7"
+// Number formatting function based on format type
+function formatNumber(value, formatType, locale = navigator.language) {
+  if (!value && value !== 0) return '';
+  
+  switch(formatType) {
+    case "full":
+      return new Intl.NumberFormat(locale).format(value);
+    case "scientific":
+      let scientificValue = Number(value).toExponential(3);
+      let parts = scientificValue.split("e");
+      let base = parts[0];
+      let exponent = parts[1];
+      if (exponent) {
+        return `${base}&times;10<sup>${exponent.replace('+', '')}</sup>`;
+      }
+      return scientificValue;
+    case "simple":
+    default:
+      return formatCell(value); // Use existing formatCell function
+  }
+}
+
+// Get current number format selection
+function getCurrentNumberFormat() {
+  const select = document.getElementById("number-format-select");
+  return select ? select.value : "simple";
+}
+
+// Get current locale selection
+function getCurrentLocale() {
+  const select = document.getElementById("locale-select");
+  return select ? select.value : navigator.language;
+}
 // NOT USED - Will probably delete. Tabulator Intl.NumberFormat used instead.
 function formatNum(numberString, locale = navigator.language) {
     if (typeof numberString !== 'string') {

@@ -17,6 +17,9 @@
 <body>
 
 <div class="content contentpadding">
+  <div style="margin-bottom: 10px; float:right"><select id="number-format-select"></select></div>
+  <div style="margin-bottom: 10px; float:right"><select id="locale-select"></select></div>
+  
   <div style="margin-bottom:10px">
     <a id="footprintLink" href="../state/" >State Impact Reports</a> - 
     <a id="commoditiesLink" href="commodities.html">Commodities</a>
@@ -24,7 +27,7 @@
   <div id="relocatedStateMenu"></div>
   
   <p id="info">Loading ...</p>
-  <div id="table"></div>
+  <div id="table" style="clear:both"></div>
   
   <!-- Matrix and Data Sources Section -->
   <div id="matrixSection" style="margin-top: 40px; display: none;">
@@ -78,7 +81,7 @@ async function main() {
   let hash = getHash();
   if (hash.state) {
     // Append to links at top of page.
-    document.getElementById('footprintLink').setAttribute('href', '../#state=' + hash.state);
+    document.getElementById('footprintLink').setAttribute('href', '../state/#state=' + hash.state);
     document.getElementById('commoditiesLink').setAttribute('href', 'commodities.html#state=' + hash.state);
   }
   const info = document.getElementById("info");
@@ -157,27 +160,27 @@ async function main() {
   const indicators = await model.indicators();
   const direct = norm100(await analysis.getEnvironmentalProfile(true));
   const total = norm100(await analysis.getEnvironmentalProfile(false));
-  const results = indicators.map(i => {
+  // Get actual environmental values (not normalized)
+  const directValues = await analysis.getEnvironmentalProfile(true);
+  const totalValues = await analysis.getEnvironmentalProfile(false);
+  
+  tableData = indicators.map(i => {
     return {
       indicator: `${i.code} - ${i.name}`,
       direct: direct[i.index],
       total: total[i.index],
+      directValue: directValues[i.index],
+      totalValue: totalValues[i.index],
+      directValueEasy: formatCell(directValues[i.index], 'easy'),
+      totalValueEasy: formatCell(totalValues[i.index], 'easy'),
+      unit: i.unit
     }
   });
 
   info.innerHTML = `<h3 style="font-size:22px">${sector.name}</h3>Environmental profile based on ${demandId} for <b>${sector.id}</b>`;
-  new Tabulator("#table", {
-    data: results,
-    layout: "fitColumns",
-    columns: [
-      { title: "Indicator", field: "indicator" },
-      { title: "Direct", field: "direct", formatter: "progress", sorter: "number", headerSortTristate: false, headerSortStartingDir: "desc" },
-      { title: "Total", field: "total", formatter: "progress", sorter: "number" },
-    ],
-    initialSort: [
-      { column: "total", dir: "desc" },
-    ]
-  });
+  
+  // Now create the table using the displayTable function
+  displayTable();
 
   // Load and display matrix and data sources
   await loadMatrixData(sector, analysis);
@@ -188,7 +191,7 @@ async function loadMatrixData(sector, analysis) {
   try {
     const matrixSection = document.getElementById('matrixSection');
     const matrixInfo = document.getElementById('matrixInfo');
-    const matrixTable = document.getElementById('matrixTable');
+    const matrixTableDiv = document.getElementById('matrixTable');
     
     // Get model information for data source URL
     const modelName = getModelFolderName();
@@ -201,12 +204,19 @@ async function loadMatrixData(sector, analysis) {
     const sectors = await model.sectors();
     const matrixA = await model.matrix('A'); // Technical coefficient matrix
     
+    console.log('Matrix A structure:', matrixA);
+    console.log('Sector details:', sector);
+    
+    // Get matrix data using direct access like the working version
+    let matrixData = [];
+    
     if (matrixA && matrixA.data && matrixA.data.length > 0) {
-      // Get the row for the current sector - matrixA.data is the actual 2D array
+      // Get the row for the current sector
       const sectorRow = matrixA.data[sector.index] || [];
+      console.log('Sector row data (first 5):', sectorRow.slice(0, 5));
       
       // Create data for the top contributing sectors
-      const matrixData = sectors
+      matrixData = sectors
         .map((s, index) => ({
           sector: s.name,
           coefficient: sectorRow[index] || 0,
@@ -216,10 +226,13 @@ async function loadMatrixData(sector, analysis) {
         .filter(item => Math.abs(item.coefficient) > 0.0001) // Filter out very small values
         .sort((a, b) => Math.abs(b.coefficient) - Math.abs(a.coefficient))
         .slice(0, 25); // Show top 25 contributors
-      
-      if (matrixData.length > 0) {
+        
+      console.log('Matrix data sample:', matrixData.slice(0, 3));
+    }
+    
+    if (matrixData.length > 0) {
         // Create Tabulator table for matrix data
-        new Tabulator("#matrixTable", {
+        matrixTable = new Tabulator("#matrixTable", {
           data: matrixData,
           layout: "fitColumns",
           height: "400px",
@@ -229,11 +242,25 @@ async function loadMatrixData(sector, analysis) {
             { title: "Code", field: "sectorCode", width: 80 },
             { title: "Sector ID", field: "sectorId", width: 120 },
             { 
-              title: "Technical Coefficient", 
+              title: "Coefficient", 
               field: "coefficient", 
               formatter: function(cell) {
                 const val = cell.getValue();
-                return val.toExponential(4);
+                const formatType = getCurrentNumberFormat() || "simple";
+                if (typeof formatCell === 'function') {
+                  if (formatType === "simple") {
+                    return formatCell(val, 'easy');
+                  } else if (formatType === "full") {
+                    return formatCell(val, 'full');
+                  } else if (formatType === "scientific") {
+                    return formatCell(val, 'scientific');
+                  } else {
+                    return formatCell(val, 'easy');
+                  }
+                } else {
+                  // Fallback if formatCell is not available
+                  return val.toExponential(4);
+                }
               },
               sorter: "number",
               width: 150
@@ -243,60 +270,11 @@ async function loadMatrixData(sector, analysis) {
             { column: "coefficient", dir: "desc" }
           ]
         });
-      } else {
-        matrixTable.innerHTML = '<p>No significant technical coefficients found for this sector.</p>';
-      }
-      
-      matrixSection.style.display = 'block';
     } else {
-      // Try alternative access method
-      const matrixCol = await model.matrixColumn('A', sector.index);
-      if (matrixCol && matrixCol.length > 0) {
-        const matrixData = sectors
-          .map((s, index) => ({
-            sector: s.name,
-            coefficient: matrixCol[index] || 0,
-            sectorCode: s.code,
-            sectorId: s.id
-          }))
-          .filter(item => Math.abs(item.coefficient) > 0.0001)
-          .sort((a, b) => Math.abs(b.coefficient) - Math.abs(a.coefficient))
-          .slice(0, 25);
-        
-        if (matrixData.length > 0) {
-          new Tabulator("#matrixTable", {
-            data: matrixData,
-            layout: "fitColumns",
-            height: "400px",
-            width: "100%",
-            columns: [
-              { title: "Sector Name", field: "sector", widthGrow: 3 },
-              { title: "Code", field: "sectorCode", width: 80 },
-              { title: "Sector ID", field: "sectorId", width: 120 },
-              { 
-                title: "Technical Coefficient", 
-                field: "coefficient", 
-                formatter: function(cell) {
-                  const val = cell.getValue();
-                  return val.toExponential(4);
-                },
-                sorter: "number",
-                width: 150
-              }
-            ],
-            initialSort: [
-              { column: "coefficient", dir: "desc" }
-            ]
-          });
-        } else {
-          matrixTable.innerHTML = '<p>No significant technical coefficients found for this sector.</p>';
-        }
-        matrixSection.style.display = 'block';
-      } else {
-        matrixInfo.innerHTML += '<br><em>Matrix data not available for this sector.</em>';
-        matrixSection.style.display = 'block';
-      }
+      matrixTableDiv.innerHTML = '<p>No significant technical coefficients found for this sector.</p>';
     }
+    
+    matrixSection.style.display = 'block';
   } catch (error) {
     console.error('Error loading matrix data:', error);
     document.getElementById('matrixInfo').innerHTML = `Technical coefficients for sector: <strong>${sector.name}</strong><br><em>Error loading matrix data: ${error.message}</em>`;
@@ -433,6 +411,138 @@ async function loadDataSources(sector) {
     document.getElementById('dataSourcesSection').style.display = 'block';
   }
 }
+
+// Store table references for updating
+var mainTable, matrixTable;
+
+// Global variable to store results data
+let tableData = [];
+
+function displayTable() {
+  const formatType = getCurrentNumberFormat() || "simple";
+  
+  const columns = [
+    { title: "Indicator", field: "indicator", widthGrow: 2 },
+    { title: "Direct", field: "direct", formatter: "progress", sorter: "number", headerSortTristate: false, headerSortStartingDir: "desc", minWidth: 160 },
+    { title: "Total", field: "total", formatter: "progress", sorter: "number", minWidth: 160 },
+    {
+      title: "Direct Value",
+      field: formatType === "simple" ? "directValueEasy" : "directValue",
+      sorter: formatType === "simple" ? function(a, b, aRow, bRow) {
+        return aRow.getData().directValue - bRow.getData().directValue;
+      } : "number",
+      formatter: function(cell) {
+        const val = cell.getValue();
+        if (formatType === "simple") {
+          return val; // Already formatted by formatCell
+        } else if (formatType === "full") {
+          return formatCell(val, 'full');
+        } else if (formatType === "scientific") {
+          let scientificValue = Number(val).toExponential(3);
+          let parts = scientificValue.split("e");
+          let base = parts[0];
+          let exponent = parts[1];
+          if (exponent) {
+            return `${base}&times;10<sup>${exponent.replace('+', '')}</sup>`;
+          }
+          return scientificValue;
+        }
+        return val;
+      },
+      width: 120
+    },
+    {
+      title: "Total Value",
+      field: formatType === "simple" ? "totalValueEasy" : "totalValue",
+      sorter: formatType === "simple" ? function(a, b, aRow, bRow) {
+        return aRow.getData().totalValue - bRow.getData().totalValue;
+      } : "number",
+      formatter: function(cell) {
+        const val = cell.getValue();
+        if (formatType === "simple") {
+          return val; // Already formatted by formatCell
+        } else if (formatType === "full") {
+          return formatCell(val, 'full');
+        } else if (formatType === "scientific") {
+          let scientificValue = Number(val).toExponential(3);
+          let parts = scientificValue.split("e");
+          let base = parts[0];
+          let exponent = parts[1];
+          if (exponent) {
+            return `${base}&times;10<sup>${exponent.replace('+', '')}</sup>`;
+          }
+          return scientificValue;
+        }
+        return val;
+      },
+      width: 120
+    },
+    { title: "Unit", field: "unit", width: 100 }
+  ];
+
+  mainTable = new Tabulator("#table", {
+    data: tableData,
+    layout: "fitColumns",
+    width: "100%",
+    columns: columns,
+    initialSort: [
+      { column: "total", dir: "desc" },
+    ]
+  });
+}
+
+// Initialize dropdowns and add event listeners
+function initializeDropdownsAndEvents() {
+  console.log('Initializing dropdowns and events');
+  
+  // Check if dropdown elements exist
+  const localeSelect = document.getElementById('locale-select');
+  const numberFormatSelect = document.getElementById('number-format-select');
+  console.log('Locale select found:', !!localeSelect);
+  console.log('Number format select found:', !!numberFormatSelect);
+  
+  // Initialize the dropdowns
+  if (typeof initializeDropdowns === 'function') {
+    initializeDropdowns();
+    console.log('Dropdowns initialized');
+  } else {
+    console.error('initializeDropdowns function not available from config.js');
+  }
+  
+  // Add event listeners to update tables when dropdowns change
+  if (localeSelect) {
+    localeSelect.addEventListener("change", function() {
+      updateTables();
+    });
+  }
+  
+  if (numberFormatSelect) {
+    numberFormatSelect.addEventListener("change", function() {
+      updateTables();
+    });
+  }
+}
+
+// Function to update all tables when format changes
+function updateTables() {
+  // Recreate the main table with new format (like commodities.html)
+  if (tableData && tableData.length > 0) {
+    displayTable();
+  }
+  // For matrix table, just redraw since it uses dynamic formatters
+  if (matrixTable) {
+    matrixTable.redraw();
+  }
+}
+
+// Initialize everything when page loads
+window.addEventListener('load', function() {
+  // Give a small delay to ensure all scripts are loaded
+  setTimeout(function() {
+    initializeDropdownsAndEvents();
+  }, 100);
+});
+
 main();
 </script>
 
