@@ -17,10 +17,73 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
-
   <script type="text/javascript" src="../../localsite/js/localsite.js?showheader=true&showsearch=true"></script>
   <script src="js/useeio.js"></script>
+
+  <script type="text/javascript" src="../../team/js/common.js" id="/team/js/common.js"></script>
+  <script type="text/javascript" src="../../team/js/widget.js" id="/team/js/widget.js"></script>
+
   <style>
+    .fullscreen-toggle-container {
+      display: inline-block;
+    }
+    
+    .fullscreen-toggle-btn {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .fullscreen-toggle-btn:hover {
+      background: rgba(255, 255, 255, 1);
+      border-color: #007bff;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+    
+    .fullscreen-icon {
+      width: 16px;
+      height: 16px;
+      color: #666;
+    }
+    
+    .fullscreen-toggle-btn:hover .fullscreen-icon {
+      color: #007bff;
+    }
+    
+    /* Make charts responsive and auto-scale to their containers */
+    #chart2, #sankey {
+      width: 100% !important;
+      height: 100% !important;
+    }
+    
+    #chart2 svg, #sankey svg {
+      width: 100% !important;
+      height: 100% !important;
+      max-width: 100%;
+      max-height: 100%;
+    }
+    
+    /* Ensure charts scale in hero mode */
+    #widgetHero #chart2, #widgetHero #sankey {
+      width: 100vw !important;
+      height: 100vh !important;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    
+    #widgetHero #chart2 svg, #widgetHero #sankey svg {
+      width: calc(100vw - 40px) !important;
+      height: calc(100vh - 40px) !important;
+    }
+    
     #table {
       margin: 20px 0;
       height: auto !important; /* Override fixed height */
@@ -60,6 +123,8 @@
   <div style="padding-left:60px;padding-right:18px;">
     <a id="footprintLink" href="../state/" >State Impact Reports</a>
     <h2>Sector Supply Impacts</h2>
+
+    <div id="widgetHero"></div>
 
     <!-- D3 Separated chord chart -->
     <div style="position: relative;">
@@ -121,6 +186,7 @@
             }
           </style>
 
+
       <!-- Top control bar above charts -->
       <div style="display:flex; justify-content:flex-end; gap:8px; padding: 8px 0;">
         <select id="theme-mode" class="controlDD">
@@ -142,9 +208,35 @@
 
           <div style="display:flex; gap:20px; width:100%">
             <!-- Left: D3 Separated chord chart -->
-            <div id="chart2" style="flex:1; min-width:300px; height:480px;"></div>
+            <div id="chart2Parent" style="flex:1; min-width:300px; height:480px; position:relative;">
+              <div id="chart2" myparent="chart2Parent" style="width:100%; height:100%;"></div>
+              <!-- Expand Icon for Chart2 -->
+              <div class="fullscreen-toggle-container" style="position: absolute; top: 8px; right: 8px; z-index: 10;">
+                <button class="fullscreen-toggle-btn" onclick="myHero()" title="Expand Chart">
+                  <svg class="fullscreen-icon expand-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                  </svg>
+                  <svg class="fullscreen-icon collapse-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                    <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
             <!-- Right: Sankey chart will sit alongside the chord chart -->
-            <div id="sankey" style="flex:1; min-width:300px; height:480px;"></div>
+            <div id="sankeyParent" style="flex:1; min-width:300px; height:480px; position:relative;">
+              <div id="sankey" myparent="sankeyParent" style="width:100%; height:100%;"></div>
+              <!-- Expand Icon for Sankey -->
+              <div class="fullscreen-toggle-container" style="position: absolute; top: 8px; right: 8px; z-index: 10;">
+                <button class="fullscreen-toggle-btn" onclick="console.log('Sankey clicked'); myHero()" title="Expand Sankey">
+                  <svg class="fullscreen-icon expand-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                  </svg>
+                  <svg class="fullscreen-icon collapse-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                    <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
       </div>
   </div>
