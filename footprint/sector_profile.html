@@ -177,7 +177,7 @@ async function main() {
     }
   });
 
-  info.innerHTML = `<h3 style="font-size:22px">${sector.name}</h3>Environmental profile based on ${demandId} for <b>${sector.id}</b>`;
+  info.innerHTML = `<h3 style="font-size:22px">${sector.name}</h3><span style='float:right'>Values are probably per dollar spent.</span>Environmental profile based on ${demandId} for <b>${sector.id}</b>`;
   
   // Now create the table using the displayTable function
   displayTable();
@@ -235,7 +235,6 @@ async function loadMatrixData(sector, analysis) {
         matrixTable = new Tabulator("#matrixTable", {
           data: matrixData,
           layout: "fitColumns",
-          height: "400px",
           width: "100%",
           columns: [
             { title: "Sector Name", field: "sector", widthGrow: 3 },
