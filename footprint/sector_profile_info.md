@@ -1,8 +1,6 @@
-# Sector Profile Report Updates
+# About Sector Profile Report
 
-## Changes Made
-
-This document details the changes made to the [prior sector profile](sector_profile_prior.html) when adding the two tables above to display the technical coefficient matrix display and data sources.
+Updates to the [prior sector profile](sector_profile_prior.html) include two tables: the technical coefficient matrix and data sources display.
 
 ### 1. Enhanced Matrix Data Filtering and Display
 

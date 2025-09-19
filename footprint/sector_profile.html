@@ -165,7 +165,7 @@ async function main() {
     }
   });
 
-  info.innerHTML = `<h3 style="font-size:22px">${sector.name}</h3>Environmental profile of based on ${demandId} for <b>${sector.id}</b>`;
+  info.innerHTML = `<h3 style="font-size:22px">${sector.name}</h3>Environmental profile based on ${demandId} for <b>${sector.id}</b>`;
   new Tabulator("#table", {
     data: results,
     layout: "fitColumns",
@@ -312,7 +312,8 @@ async function loadDataSources(sector) {
     
     // Get model information
     const modelName = getModelFolderName();
-    const baseUrl = `https://raw.githubusercontent.com/ModelEarth/useeio-json/main/models/2020/${modelName}`;
+    //const baseUrlRaw = `https://raw.githubusercontent.com/ModelEarth/useeio-json/main/models/2020/${modelName}`;
+    const baseUrl = `https://github.com/ModelEarth/useeio-json/blob/main/models/2020/${modelName}`;
     
     dataSourcesInfo.innerHTML = `Data sources and methodology for sector: <strong>${sector.name}</strong> (${modelName})`;
     
@@ -335,28 +336,28 @@ async function loadDataSources(sector) {
         dataset: "Technical Coefficient Matrix (A)",
         description: "Inter-industry economic relationships and dependencies",
         format: "JSON Matrix",
-        url: `${baseUrl}/A.json`,
+        url: `${baseUrl}/matrix/A.json`,
         usage: "Calculates direct economic impacts between sectors"
       },
       {
         dataset: "Environmental Matrix (B)",
         description: "Direct environmental coefficients by sector",
         format: "JSON Matrix", 
-        url: `${baseUrl}/B.json`,
+        url: `${baseUrl}/matrix/B.json`,
         usage: "Direct environmental impacts per dollar of output"
       },
       {
         dataset: "Total Requirements Matrix (L)",
         description: "Leontief inverse matrix (I-A)^-1",
         format: "JSON Matrix",
-        url: `${baseUrl}/L.json`, 
+        url: `${baseUrl}/matrix/L.json`, 
         usage: "Calculates total economic requirements (direct + indirect)"
       },
       {
         dataset: "Environmental Multipliers (D)",
         description: "Total environmental impact coefficients",
         format: "JSON Matrix",
-        url: `${baseUrl}/D.json`,
+        url: `${baseUrl}/matrix/D.json`,
         usage: "Total environmental impacts (direct + indirect + induced)"
       },
       {
