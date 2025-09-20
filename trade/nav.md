@@ -11,16 +11,22 @@
 <a href="../footprint/states.html">State Totals</a>
 <a href="../footprint/commodities.html">Commodities</a>
 <a href="../footprint/calculation.html">Impact Calculation</a>
-<a href="../footprint/commodity_vector.html">Commodity Vector</a>
-<a href="../footprint/demands.html">Demands</a>
-<a href="../footprint/model_info.html">Model Info</a>
-<a href="../footprint/naics.html">NAICS Industries</a>
+
+<a href="../footprint/model.html">Model Info/Demands</a>
+
 <a href="../footprint/sector_crosswalk.html">Sector Crosswalk</a>
 <a href="../footprint/sector_purchase_impacts.html">Sector Purchase Impacts</a>
 <a href="../footprint/sector_scopes.html">Sector Scopes</a>
 <a href="../footprint/sector_supply_impacts.html">Sector Supply - Chord<!-- Impacts--></a>
 <a href="../footprint/matrix-requests.js">Matrix Requests (js)</a>
 <a href="../footprint/model-requests.js">Model Requests (js)</a>
+
+<div style="displayX:none">
+<b>Need Work</b><br>
+<!-- Move into model.html <a href="../footprint/demands.html">Demands</a> -->
+<a href="../footprint/commodity_vector.html">Commodity Vector</a><br>
+<a href="../footprint/naics.html">NAICS Industries</a><br><br>
+</div>
 
 <b>Details</b>
 <a href="../state/">About State Reports</a>
