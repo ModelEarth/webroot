@@ -9,8 +9,8 @@ We're using [Claude Code CLI to create .CSV files](../../exiobase/tradeflow/) fo
 
 ## Tables: trade, factor, industry 
 
-[Overview](../../exiobase/tradeflow/) - Pull for Exiobase for domestic, imports, exports
-[Overview US BEA](../../exiobase/tradeflow/bea/) - Pull for US state-to-state
+[Exiobase Overview](../../exiobase/tradeflow/) - Pull for Exiobase for domestic, imports, exports
+[BEA + Exiobase Overview](../../exiobase/tradeflow/bea/) - Pull for US state-to-state
 
 [View table names as csv files](https://github.com/ModelEarth/trade-data/tree/main/year/2019) and [Trade Flow by Country and State](../state/)
 

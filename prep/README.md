@@ -1,10 +1,11 @@
-[Trade Flow](/profile/trade/)
 # Data Prep for Visualizations
 
 Multi-Regional Input-Output (MRIO) Models - Data Pulls
 
-### &bullet; <a href="../trade/">Trade Flow CSV/SQL</a><br>
-### &bullet; <a href="../crm/">PartnerTools CRM</a><br>
+&bullet; <a href="../trade/">Trade Flow (CSV/SQL)</a> - Table Names
+&bullet; [Exiobase Overview](../../exiobase/tradeflow/) - Pull for Exiobase for domestic, imports, exports
+&bullet; [BEA + Exiobase Overview](../../exiobase/tradeflow/bea/) - Pull for US state-to-state
+&bullet; <a href="../crm/">PartnerTools CRM</a> - SQL Schema for members and teams
 
 <!--
 ### &bullet; <a href="../impacts/json/">JSON from Exiobase</a><br>
@@ -13,3 +14,10 @@ Multi-Regional Input-Output (MRIO) Models - Data Pulls
 ### &bullet; <a href="../prep/sql/supabase/">Supabase from Exiobase</a><br>
 ### &bullet; <a href="../prep/sql/duckdb/">DuckDB Parquet from Exiobase .csv files</a><br>
 -->
+
+## Data Visualizations
+
+<a href="../../profile/trade/map/">Trade Flow Map</a>  
+<a href="../../profile/footprint/sector_supply_impacts.html">Chord (D3)</a>
+<a href="../charts/echarts/sankey-nodeAlign-left.html">Sankey (eCharts)</a>
+[UN Timelines](../../localsite/timeline/)

@@ -23,6 +23,7 @@
 <script src="../localsite/js/nav.js"></script>
 
 <script>
+loadMarkdown("prep/README.md", "readmeDiv", "_parent");
 loadMarkdown("sources.md", "sourcesDiv", "_parent");
 loadMarkdown("processes.md", "processesDiv", "_parent");
 loadMarkdown("play.md", "playDiv", "_parent");
@@ -126,12 +127,9 @@ ol > li {
 <div class="content contentpadding">
 
 <div style="margin:0px 30px 30px 30px">
-    <a href="../projects/">Active Projects</a><br>
-    <div style="float:right; font-size: 19px; margin:0px 42px 30px 30px">
-        <a href="/feed/membersense" style="color:#999">MemberSense</a>
-    </div>
+    <div id="readmeDiv"></div>
 
-    <div style="font-size: 32px; margin:14px 0 28px 0;">Profile Tools</div>
+    <h2>Development</h2>
 
     <div style="float:left; width:33%">
       <div id="playDiv"></div>

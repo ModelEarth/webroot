@@ -1,6 +1,6 @@
 <!-- # OpenFootprint -->
 
-## Template Panel
+## Footprint Panel
 
 Navigation inactive
 
