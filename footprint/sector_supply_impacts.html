@@ -73,14 +73,14 @@
     
     /* Ensure charts scale in hero mode */
     #widgetHero #chart2, #widgetHero #sankey {
-      width: 100vw !important;
+      width: calc(100vw - 42px) !important; /* Account for 60px left - 18px right = 42px difference */
       height: 100vh !important;
       padding: 20px;
       box-sizing: border-box;
     }
     
     #widgetHero #chart2 svg, #widgetHero #sankey svg {
-      width: calc(100vw - 40px) !important;
+      width: calc(100vw - 82px) !important; /* 42px padding difference + 40px internal padding */
       height: calc(100vh - 40px) !important;
     }
     
@@ -115,16 +115,41 @@
     .dark .controlDD {
       background: #333;
     }
+    
+    /* Control bar layout */
+    .control-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      gap: 8px;
+    }
+    
+    .control-selects {
+      display: flex;
+      gap: 8px;
+    }
+    
+    /* Responsive layout for narrow screens */
+    @media (max-width: 400px) {
+      .control-bar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .control-selects {
+        align-self: stretch;
+        justify-content: flex-end;
+      }
+    }
   </style>
 </head>
 
 <body>
   
-  <div style="padding-left:60px;padding-right:18px;">
+  <div style="padding-left:20px;padding-right:18px;">
     <a id="footprintLink" href="../state/" >State Impact Reports</a>
     <h2>Sector Supply Impacts</h2>
-
-    <div id="widgetHero"></div>
 
     <!-- D3 Separated chord chart -->
     <div style="position: relative;">
@@ -188,53 +213,62 @@
 
 
       <!-- Top control bar above charts -->
-      <div style="display:flex; justify-content:flex-end; gap:8px; padding: 8px 0;">
-        <select id="theme-mode" class="controlDD">
-          <option value="light" selected>Light Mode</option>
-          <option value="dark">Dark Mode</option>
-        </select>
-        <select id="scaling-method" class="controlDD">
-          <option value="raw" selected>No Scaling</option>
-          <option value="square-root">Square Root</option>
-          <option value="proportional">Proportional</option>
-          <option value="logarithmic">Logarithmic</option>
-        </select>
-        <select id="edge-style" class="controlDD">
-          <option value="none">No Edge</option>
-          <option value="light" selected>Light Edge</option>
-          <option value="dark">Dark Edge</option>
-        </select>
+      <div class="control-bar">
+        <div id="relocatedStateMenu"></div>
+        <div class="control-selects">
+          <select id="theme-mode" class="controlDD">
+            <option value="light" selected>Light Mode</option>
+            <option value="dark">Dark Mode</option>
+          </select>
+          <select id="scaling-method" class="controlDD">
+            <option value="raw" selected>No Scaling</option>
+            <option value="square-root">Square Root</option>
+            <option value="proportional">Proportional</option>
+            <option value="logarithmic">Logarithmic</option>
+          </select>
+          <select id="edge-style" class="controlDD">
+            <option value="none">No Edge</option>
+            <option value="light" selected>Light Edge</option>
+            <option value="dark">Dark Edge</option>
+          </select>
+        </div>
       </div>
 
+      <div id="widgetHero"></div>
+      
           <div style="display:flex; gap:20px; width:100%">
             <!-- Left: D3 Separated chord chart -->
-            <div id="chart2Parent" style="flex:1; min-width:300px; height:480px; position:relative;">
-              <div id="chart2" myparent="chart2Parent" style="width:100%; height:100%;"></div>
-              <!-- Expand Icon for Chart2 -->
-              <div class="fullscreen-toggle-container" style="position: absolute; top: 8px; right: 8px; z-index: 10;">
-                <button class="fullscreen-toggle-btn" onclick="myHero()" title="Expand Chart">
-                  <svg class="fullscreen-icon expand-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
-                  </svg>
-                  <svg class="fullscreen-icon collapse-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
-                    <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
-                  </svg>
-                </button>
+            <div id="chart2Parent" style="flex:0 0 25%; min-width:300px; height:480px; position:relative;">
+              <div id="chart2Wrapper" myparent="chart2Parent" class="widgetPanel" style="width:100%; height:100%; position: relative;">
+                <div id="chart2" style="width:100%; height:100%;"></div>
+                <!-- Expand Icon for Chart2 -->
+                <div class="fullscreen-toggle-container" style="position: absolute; top: 8px; right: 8px; z-index: 10;">
+                  <button class="fullscreen-toggle-btn" mywidgetpanel="chart2Wrapper" onclick="myHero()" title="Expand Chart">
+                    <svg class="fullscreen-icon expand-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                    </svg>
+                    <svg class="fullscreen-icon collapse-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                      <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
             <!-- Right: Sankey chart will sit alongside the chord chart -->
             <div id="sankeyParent" style="flex:1; min-width:300px; height:480px; position:relative;">
-              <div id="sankey" myparent="sankeyParent" style="width:100%; height:100%;"></div>
-              <!-- Expand Icon for Sankey -->
-              <div class="fullscreen-toggle-container" style="position: absolute; top: 8px; right: 8px; z-index: 10;">
-                <button class="fullscreen-toggle-btn" onclick="console.log('Sankey clicked'); myHero()" title="Expand Sankey">
-                  <svg class="fullscreen-icon expand-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
-                  </svg>
-                  <svg class="fullscreen-icon collapse-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
-                    <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
-                  </svg>
-                </button>
+              <div id="sankeyWrapper" myparent="sankeyParent" class="widgetPanel" style="width:100%; height:100%; position: relative;">
+                <div id="sankey" style="width:100%; height:100%;"></div>
+                <!-- Expand Icon for Sankey -->
+                <div class="fullscreen-toggle-container" style="position: absolute; top: 8px; right: 8px; z-index: 10;">
+                  <button class="fullscreen-toggle-btn" mywidgetpanel="sankeyWrapper" onclick="console.log('Sankey clicked'); myHero()" title="Expand Sankey">
+                    <svg class="fullscreen-icon expand-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                    </svg>
+                    <svg class="fullscreen-icon collapse-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                      <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -242,7 +276,6 @@
   </div>
 
   <div style="padding-left:60px;padding-right:18px;">
-    <div id="relocatedStateMenu"></div>
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
         <p id="info" style="margin: 0;">Loading ...</p>
         <select id="number-format-select" style="margin-left: 10px;">
@@ -1256,7 +1289,7 @@ path.chord {
 }    
 </style>
 
-<div class="content contentpadding">
+<div class="content" style="padding:0px">
 
 <!-- Tooltip for chart hover effects -->
 <div id="chord-tooltip" style="position: absolute; background: rgba(0,0,0,0.8); color: white; padding: 8px 12px; border-radius: 4px; font-size: 12px; pointer-events: none; z-index: 1000; opacity: 0; transition: opacity 0.2s;"></div>
@@ -1310,7 +1343,8 @@ path.chord {
 </svg>
 <br>
 
-<b><a href="chord/">Our Stretched Chord Chart documentation</a></b><br>
+About <a href="chord/">Stretched Chord Chart</a> and <a href="/io/charts/sankey/">Sankey Chart</a><br>
+<br>
 
 <!--
 Use the stand-alone <a href="chord/stretched">cord/stretched</a> for dev.<br>
@@ -1321,7 +1355,7 @@ TODO: Horizontal Titles - Add angled lines where the titles currently reside.<br
 Have each angled line connect to a horizontal line that travels under each title.<br>
 -->
 
-Next we'll create a <a href="/io/charts/sankey/">Sankey chart</a> with the same data.
+
 </div>
 
 </body>

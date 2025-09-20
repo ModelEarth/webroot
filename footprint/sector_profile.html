@@ -177,7 +177,7 @@ async function main() {
     }
   });
 
-  info.innerHTML = `<h3 style="font-size:22px">${sector.name}</h3><span style='float:right'>Values are probably per dollar spent.</span>Environmental profile based on ${demandId} for <b>${sector.id}</b>`;
+  info.innerHTML = `<h3 style="font-size:22px">${sector.name}</h3><span style='float:right'>Amounts might be per dollar spent.</span>Environmental profile based on ${demandId} for <b>${sector.id}</b>`;
   
   // Now create the table using the displayTable function
   displayTable();
@@ -425,7 +425,7 @@ function displayTable() {
     { title: "Direct", field: "direct", formatter: "progress", sorter: "number", headerSortTristate: false, headerSortStartingDir: "desc", minWidth: 160 },
     { title: "Total", field: "total", formatter: "progress", sorter: "number", minWidth: 160 },
     {
-      title: "Direct Value",
+      title: "Direct",
       field: formatType === "simple" ? "directValueEasy" : "directValue",
       sorter: formatType === "simple" ? function(a, b, aRow, bRow) {
         return aRow.getData().directValue - bRow.getData().directValue;
@@ -451,7 +451,7 @@ function displayTable() {
       width: 120
     },
     {
-      title: "Total Value",
+      title: "Total",
       field: formatType === "simple" ? "totalValueEasy" : "totalValue",
       sorter: formatType === "simple" ? function(a, b, aRow, bRow) {
         return aRow.getData().totalValue - bRow.getData().totalValue;
