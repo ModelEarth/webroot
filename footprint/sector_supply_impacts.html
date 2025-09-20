@@ -286,7 +286,7 @@
     </div>
     <div id="table"></div>
     <div style="display:block; margin: 10px 0 20px 0;">
-      <a href="#" id="showAllLink">Show all rows</a>
+      <button id="showAllBtn" class="controlDD" style="padding: 6px 12px; cursor: pointer; background: #333; color: white; white-space: nowrap;">Show all rows</button>
     </div>
   </div>
   
@@ -321,13 +321,19 @@
       const formatSelect = document.getElementById('number-format-select');
       formatSelect.value = 'simple';
       
-      // Reset show all link visibility and state before loading new state
-      const showAllLink = document.getElementById('showAllLink');
-      showAllLink.style.display = 'inline-block';
+      // Reset show all button visibility and state before loading new state
+      const showAllBtn = document.getElementById('showAllBtn');
+      showAllBtn.style.display = 'inline-block';
       isShowingAllRows = false;
       
       main();
     }
+    
+    // Handle hash changes for sector navigation without page reload
+    window.addEventListener('hashchange', function() {
+      console.log('Hash changed to:', window.location.hash);
+      main();
+    });
     async function main() {
       let hash = getUrlHash();
       const info = document.getElementById("info");
@@ -341,8 +347,17 @@
       }
 
       const sectors = await model.sectors();
-      // Use first sector for consistent results instead of random
-      const sector = sectors[0];
+      
+      // Check for sector parameter in hash or use first sector as default
+      let sector = sectors[0]; // default
+      const hash1 = window.location.hash.substring(1);
+      if (hash1) {
+        const foundSector = sectors.find(s => s.code === hash1 || s.name === hash1);
+        if (foundSector) {
+          sector = foundSector;
+        }
+      }
+      
       console.log(`Base analysis sector: ${sector.code} - ${sector.name}`);
       info.textContent = `Analyzing sector '${sector.name}' based on ${demandId}`;
 
@@ -361,6 +376,7 @@
           const rawTotal = Math.abs(total[sectorItem.index]);
           const result = {
               sector: sectorItem.name, // Just the name without NAICS code
+              sectorType: sectorItem.code === sector.code ? 'Analyzed Sector' : 'Supply Chain Sector',
               total: rawTotal,
               totalRaw: rawTotal, // Add raw value for sorting
               sortValue: rawTotal, // Explicit sort value
@@ -548,16 +564,33 @@
               initialSort: [{column: "total", dir: "desc"}], // Use total for initial sorting
               columns: [
                   { 
-                      title: "Sector", 
+                      title: "Sector Name", 
                       field: "sector", 
-                      width: 300,
-                      formatter: "html",
-                      headerSortStartingDir: "desc", // Set default sort direction to descending
+                      width: 250,
+                      formatter: function(cell) {
+                          const data = cell.getRow().getData();
+                          const naicsCode = data.metadata.NAICS;
+                          return `<a href="#${naicsCode}" style="color: #007bff; text-decoration: none;">${data.sector}</a>`;
+                      },
+                      headerSortStartingDir: "desc",
                       headerClick: function(e, column) {
                           if (!isShowingAllRows) {
                               isShowingAllRows = true;
                               table.setData(allResults);
-                              showAllLink.style.display = 'none';
+                              document.getElementById('showAllBtn').style.display = 'none';
+                          }
+                      }
+                  },
+                  { 
+                      title: "Type", 
+                      field: "sectorType", 
+                      width: 150,
+                      headerSortStartingDir: "desc",
+                      headerClick: function(e, column) {
+                          if (!isShowingAllRows) {
+                              isShowingAllRows = true;
+                              table.setData(allResults);
+                              document.getElementById('showAllBtn').style.display = 'none';
                           }
                       }
                   },
@@ -574,7 +607,7 @@
                           if (!isShowingAllRows) {
                               isShowingAllRows = true;
                               table.setData(allResults);
-                              showAllLink.style.display = 'none';
+                              document.getElementById('showAllBtn').style.display = 'none';
                           }
                       }
                   }
@@ -596,7 +629,7 @@
                       if (!isShowingAllRows) {
                           isShowingAllRows = true;
                           table.setData(allResults);
-                          showAllLink.style.display = 'none';
+                          document.getElementById('showAllBtn').style.display = 'none';
                       }
                   }
               });
@@ -627,14 +660,14 @@
               table.setData(sortedResults);
           }
           
-          // Always update link visibility based on state
-          document.getElementById('showAllLink').style.display = 
+          // Always update button visibility based on state
+          document.getElementById('showAllBtn').style.display = 
               isShowingAllRows ? 'none' : 'inline-block';
       });
 
-      // Modify the show all link handler
-      const showAllLink = document.getElementById('showAllLink');
-      showAllLink.addEventListener('click', function(e) {
+      // Modify the show all button handler
+      const showAllBtn = document.getElementById('showAllBtn');
+      showAllBtn.addEventListener('click', function(e) {
           e.preventDefault();
           isShowingAllRows = true;
           table.setData(allResults);
@@ -645,8 +678,8 @@
           }, 100);
       });
 
-      // Ensure link is visible for new state data
-      showAllLink.style.display = 'inline-block';
+      // Ensure button is visible for new state data
+      showAllBtn.style.display = 'inline-block';
       currentData = sortedResults;
       isShowingAllRows = false;
 
