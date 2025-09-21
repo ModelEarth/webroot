@@ -8,28 +8,29 @@
 
 <b>US States</b>
 <a href="../footprint/sector_profile.html">Sector Profiles</a>
-<a href="../footprint/states.html">State Totals</a>
+<a href="../footprint/sector_supply_impacts.html">Sector Supply Charts</a>
+<a href="../footprint/states.html">State Impact Totals</a>
 <a href="../footprint/commodities.html">Commodities</a>
 <a href="../footprint/calculation.html">Impact Calculation</a>
-
-<a href="../footprint/model.html">Model Info/Demands</a>
-
-<a href="../footprint/sector_crosswalk.html">Sector Crosswalk</a>
 <a href="../footprint/sector_purchase_impacts.html">Sector Purchase Impacts</a>
 <a href="../footprint/sector_scopes.html">Sector Scopes</a>
-<a href="../footprint/sector_supply_impacts.html">Sector Supply - Chord<!-- Impacts--></a>
-<a href="../footprint/matrix-requests.js">Matrix Requests (js)</a>
-<a href="../footprint/model-requests.js">Model Requests (js)</a>
 
-<div style="displayX:none">
-<b>Need Work</b><br>
+<div class="local" style="display:none">
+<b>Needs Work</b><br>
 <!-- Move into model.html <a href="../footprint/demands.html">Demands</a> -->
 <a href="../footprint/commodity_vector.html">Commodity Vector</a><br>
-<a href="../footprint/naics.html">NAICS Industries</a><br><br>
+<a href="../footprint/naics.html">NAICS Industries</a><br>
+<a href="../footprint/sector_crosswalk.html">Sector Crosswalk</a><br>
+<!--
+Check where these are used. Maybe they could be new reports?
+<a href="../footprint/matrix-requests.js">Matrix Requests (js)</a>
+<a href="../footprint/model-requests.js">Model Requests (js)</a>
+--><br>
 </div>
 
 <b>Details</b>
 <a href="../state/">About State Reports</a>
 <a href="../../io/about/">State Models</a>
-<a href="../../io/charts/">React IO Widgets</a>
 <a href="../../profile/item/">Profile YAML</a></a>
+<a href="../../io/charts/">React IO Widgets</a>
+<a href="../footprint/model.html">Model Info/Demands</a>

@@ -1,4 +1,4 @@
-[State Impact Reports](../)
+[US State Reports](../)
 
 [Our separated chord chart](../sector_supply_impacts.html) is displayed from a chartData{} json object in the [Sector Supply Impacts report](../sector_supply_impacts.html).
 

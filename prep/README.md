@@ -2,6 +2,7 @@
 
 Multi-Regional Input-Output (MRIO) Models - Data Pulls
 
+&bullet; <a href="../state/">State Reports</a>
 &bullet; <a href="../trade/">Trade Flow (CSV/SQL)</a> - Table Names
 &bullet; [Exiobase Overview](../../exiobase/tradeflow/) - Pull for Exiobase for domestic, imports, exports
 &bullet; [BEA + Exiobase Overview](../../exiobase/tradeflow/bea/) - Pull for US state-to-state

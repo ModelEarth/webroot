@@ -13,6 +13,7 @@
 
 <!-- <script src="../dist/useeio.min.js"></script> -->
 <script src="js/useeio.js"></script>
+<script src="../../team/js/print-download.js"></script>
 <script type="text/javascript" src="/localsite/js/localsite.js?showheader=true&showsearch=true"></script>
 
 <script src="js/config.js"></script>
@@ -57,9 +58,7 @@ async function main() {
       }
 
       // Add source note for CO2e data
-      notesContent += '<div style="margin-top:20px; font-size:0.9em; color:#666;">' +
-        'CO2e Factor data source: <a href="https://zenodo.org/records/17080881" target="_blank">SupplyChainGHGEmissionFactorsv1.4.0-rc.1.xlsx</a>' +
-        '</div>';
+      notesContent += 'CO2e Factor data source: <a href="https://zenodo.org/records/17080881" target="_blank">SupplyChainGHGEmissionFactorsv1.4.0-rc.1.xlsx</a>';
 
       notesDiv.innerHTML = notesContent;
     }
@@ -347,6 +346,21 @@ function displayTable(locale, formatType) {
     layout: "fitColumns",
     columns: columns
   });
+  
+  // Add print/download icons to commodities page
+  if (typeof PrintDownloadWidget !== 'undefined') {
+    const options = {
+      showMap: false,
+      filename: 'commodities'
+    };
+    
+    PrintDownloadWidget.addPrintDownloadIcons(
+      'commodities',
+      '#topControls',
+      tableData,
+      options
+    );
+  }
 }
 
 // Update the table with the selected locale
@@ -382,11 +396,14 @@ function updateTable(locale) {
 <body>
 <!-- <select id="number-format-select"></select> -->
 <div class="contentpadding">
-  <div style="margin-bottom: 10px; float:right"><select id="number-format-select"></select></div>
-  <div style="margin-bottom: 10px; float:right"><select id="locale-select"></select></div>
+
+  <div id="topControls" style="float:right">
+    <div style="margin-bottom: 10px; float:right"><select id="number-format-select"></select></div>
+    <div style="margin-bottom: 10px; float:right"><select id="locale-select"></select></div>
+  </div>
 
   <div style="margin-bottom:10px">
-    <a id="footprintLink" href="../state/" >State Impact Reports</a>
+    <a id="footprintLink" href="../state/" >US State Reports</a>
   </div>
   <div id="relocatedStateMenu"></div>
 
