@@ -69,7 +69,7 @@
 }
 
 .value, .daily-value {
-  font-weightX: bold;
+  font-weight: bold;
 }
 
 .daily-value {
@@ -96,8 +96,198 @@ input[type=number] {
     appearance: textfield; /* Standard property */
     position: relative; /* This might help retain arrow visibility */
 }
-input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button {
     opacity: 1; /* Force visibility */
     display: inline-block; /* Make sure they display */
+}
+
+/* USDA Search and Menu Styles */
+#usda-search-div {
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+}
+
+#usda-search-input {
+    padding: 5px;
+    border: 1px solid #ccc;
+    margin-right: 10px;
+}
+
+#usda-search-button {
+    padding: 6px 12px;
+    background-color: #007acc;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.nutrition-label {
+    border: 1px solid #000;
+    padding: 10px;
+    margin: 10px 0;
+    font-family: Arial, sans-serif;
+    max-width: 300px;
+    background-color: white;
+}
+
+.nutrition-facts-header {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-bottom: 5px;
+}
+
+.nutrition-section {
+    margin: 2px 0;
+}
+
+.nutrition-label.aggregate {
+    background-color: #f0f8ff;
+    border: 2px solid #007acc;
+    font-weight: bold;
+}
+
+.menu-label {
+    margin: 20px 0;
+    padding: 10px;
+    border: 1px solid #ddd;
+    background-color: #fafafa;
+}
+
+.menu-label h4 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.decrease-qty, .increase-qty {
+    background-color: #eee;
+    border: 1px solid #ccc;
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+    margin: 0 5px;
+}
+
+.qty-input {
+    text-align: center;
+    width: 50px;
+    padding: 2px;
+}
+
+/* Search Results Styling */
+#search-results-container {
+    margin: 20px 0;
+    padding: 15px;
+    border: 1px solid #ddd;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+}
+
+#search-results-container h3 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 1.2em;
+}
+
+.search-result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    background-color: white;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+}
+
+.search-result-item:hover {
+    background-color: #f0f8ff;
+}
+
+.food-info {
+    flex: 1;
+}
+
+.food-info strong {
+    color: #333;
+    font-size: 1em;
+}
+
+.food-info small {
+    color: #666;
+    display: block;
+    margin-top: 2px;
+}
+
+.add-to-menu-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.add-to-menu-btn:hover {
+    background-color: #218838;
+}
+
+.add-to-menu-btn:active {
+    background-color: #1e7e34;
+}
+
+/* Menu Item Styling */
+.menu-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.menu-item-header h4 {
+    margin: 0;
+    color: #333;
+    flex: 1;
+}
+
+.remove-item-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.remove-item-btn:hover {
+    background-color: #c82333;
+}
+
+.quantity-controls {
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.quantity-controls button {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 3px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quantity-controls button:hover {
+    background-color: #5a6268;
 }
