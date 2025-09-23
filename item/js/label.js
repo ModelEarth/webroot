@@ -11,10 +11,36 @@ loadProfile();
 let menuItems = []; // { profileObject, quantity }
 let aggregateProfile = {};
 let searchResults = []; // Store current search results
+let hasSampleItem = false; // Track if sample item is present
 
 document.addEventListener('DOMContentLoaded', function() {
     addUSDASearchBar();
+    loadSampleFood();
 });
+
+function loadSampleFood() {
+    // Add a sample food item (apple) to show the user how it works
+    const sampleFood = {
+        description: "Apples, raw, with skin (Sample)",
+        brandOwner: null,
+        foodCategory: "Fruits and Fruit Juices",
+        foodNutrients: [
+            { nutrientName: "Energy", value: 52, unitName: "KCAL" },
+            { nutrientName: "Total lipid (fat)", value: 0.17, unitName: "G" },
+            { nutrientName: "Carbohydrate, by difference", value: 13.81, unitName: "G" },
+            { nutrientName: "Fiber, total dietary", value: 2.4, unitName: "G" },
+            { nutrientName: "Total Sugars", value: 10.39, unitName: "G" },
+            { nutrientName: "Protein", value: 0.26, unitName: "G" },
+            { nutrientName: "Sodium, Na", value: 1, unitName: "MG" },
+            { nutrientName: "Potassium, K", value: 107, unitName: "MG" },
+            { nutrientName: "Calcium, Ca", value: 6, unitName: "MG" },
+            { nutrientName: "Iron, Fe", value: 0.12, unitName: "MG" }
+        ]
+    };
+
+    addFoodToMenu(sampleFood);
+    hasSampleItem = true; // Mark that we have a sample item
+}
 
 function addUSDASearchBar() {
     let searchDiv = document.getElementById("usda-search-div");
@@ -23,11 +49,16 @@ function addUSDASearchBar() {
         searchDiv.innerHTML = `
             <input type="text" id="usda-search-input" placeholder="Search USDA Food Database" style="width:300px;">
             <button id="usda-search-button">Search</button>
+            <button id="usda-clear-button">Clear Results</button>
         `;
     }
     document.getElementById("usda-search-button").onclick = function() {
         const query = document.getElementById("usda-search-input").value.trim();
         searchUSDAFood(query);
+    };
+
+    document.getElementById("usda-clear-button").onclick = function() {
+        clearSearchResults();
     };
     document.getElementById("usda-search-input").addEventListener("keypress", function(e) {
         if (e.key === "Enter") {
@@ -58,7 +89,7 @@ function searchUSDAFood(query = "apple") {
 
 function displaySearchResults() {
     const container = document.getElementById("search-results-container");
-    container.innerHTML = "<h3>Search Results - Click to Add to Menu:</h3>";
+    container.innerHTML = "<h3>Search Results - Click to Add Item:</h3>";
 
     searchResults.forEach((food, index) => {
         const resultDiv = document.createElement("div");
@@ -69,12 +100,12 @@ function displaySearchResults() {
                 <br><small>Brand: ${food.brandOwner || 'Generic'}</small>
                 <br><small>Category: ${food.foodCategory || 'N/A'}</small>
             </div>
-            <button class="add-to-menu-btn" data-index="${index}">Add to Menu</button>
+            <button class="add-to-menu-btn" data-index="${index}">Add Item</button>
         `;
         container.appendChild(resultDiv);
     });
 
-    // Add event listeners for "Add to Menu" buttons
+    // Add event listeners for "Add Item" buttons
     container.querySelectorAll(".add-to-menu-btn").forEach(button => {
         button.onclick = function() {
             const index = parseInt(button.dataset.index);
@@ -89,6 +120,12 @@ function clearSearchResults() {
 }
 
 function addFoodToMenu(food) {
+    // If this is the first real food item being added and we have a sample, remove the sample
+    if (hasSampleItem && !food.description.includes("(Sample)")) {
+        menuItems = []; // Clear sample item
+        hasSampleItem = false;
+    }
+
     // Check if food is already in menu
     const existingIndex = menuItems.findIndex(item =>
         item.profileObject.itemName === food.description
@@ -125,11 +162,9 @@ function usdaProfileObject(usdaItem) {
     });
 
     // Create a more flexible lookup that tries multiple possible names
-    const getValue = (possibleNames) => {
-        for (let name of possibleNames) {
-            if (nutrients[name] !== undefined) {
-                return nutrients[name];
-            }
+    const getValue = (nutrientName) => {
+        if (nutrients[nutrientName] !== undefined) {
+            return nutrients[nutrientName];
         }
         return 0;
     };
@@ -144,17 +179,17 @@ function usdaProfileObject(usdaItem) {
             },
             {
                 name: "Total Fat",
-                value: getValue(["Total lipid (fat)", "Fat", "Total Fat"]),
-                dailyValue: calculateDailyValue(getValue(["Total lipid (fat)", "Fat", "Total Fat"]), 'fat'),
+                value: getValue("Total lipid (fat)"),
+                dailyValue: calculateDailyValue(getValue("Total lipid (fat)"), 'fat'),
                 subsections: [
                     {
                         name: "Saturated Fat",
-                        value: getValue(["Fatty acids, total trans"]),
-                        dailyValue: calculateDailyValue(getValue(["Fatty acids, total saturated", "Saturated Fat"]), 'satFat')
+                        value: getValue("Fatty acids, total saturated"),
+                        dailyValue: calculateDailyValue(getValue("Fatty acids, total saturated"), 'satFat')
                     },
                     {
                         name: "Trans Fat",
-                        value: getValue(["Fatty acids, total trans", "Trans Fat"])
+                        value: getValue("Fatty acids, total trans")
                     }
                 ]
             },
@@ -165,44 +200,44 @@ function usdaProfileObject(usdaItem) {
             },
             {
                 name: "Sodium",
-                value: getValue(["Sodium, Na", "Sodium"]),
-                dailyValue: calculateDailyValue(getValue(["Sodium, Na", "Sodium"]), 'sodium')
+                value: getValue("Sodium, Na"),
+                dailyValue: calculateDailyValue(getValue("Sodium, Na"), 'sodium')
             },
             {
                 name: "Total Carbohydrate",
-                value: getValue(["Carbohydrate, by difference"]),
-                dailyValue: calculateDailyValue(getValue(["Carbohydrate, by difference", "Total Carbohydrate", "Carbohydrates"]), 'carb'),
+                value: getValue("Carbohydrate, by difference"),
+                dailyValue: calculateDailyValue(getValue("Carbohydrate, by difference"), 'carb'),
                 subsections: [
                     {
                         name: "Dietary Fiber",
-                        value: getValue(["Fiber, total dietary", "Dietary Fiber", "Fiber"]),
-                        dailyValue: calculateDailyValue(getValue(["Fiber, total dietary", "Dietary Fiber", "Fiber"]), 'fiber')
+                        value: getValue("Fiber, total dietary"),
+                        dailyValue: calculateDailyValue(getValue("Fiber, total dietary"), 'fiber')
                     },
                     {
                         name: "Sugars",
-                        value: getValue(["Total Sugars", "Sugars, total including NLEA", "Sugars"])
+                        value: getValue("Total Sugars")
                     }
                 ]
             },
-            { name: "Protein", value: getValue(["Protein"]) },
+            { name: "Protein", value: getValue("Protein") },
             {
                 name: "Vitamin D",
-                value: getValue(["Vitamin D (D2 + D3)", "Vitamin D"]),
-                dailyValue: calculateDailyValue(getValue(["Vitamin D (D2 + D3)", "Vitamin D"]), 'vitaminD')
+                value: getValue("Vitamin D (D2 + D3)"),
+                dailyValue: calculateDailyValue(getValue("Vitamin D (D2 + D3)"), 'vitaminD')
             },
             {
                 name: "Potassium",
-                value: getValue(["Potassium, K", "Potassium"]),
-                dailyValue: calculateDailyValue(getValue(["Potassium, K", "Potassium"]), 'potassium')
+                value: getValue("Potassium, K"),
+                dailyValue: calculateDailyValue(getValue("Potassium, K"), 'potassium')
             },
             {
                 name: "Calcium",
-                value: getValue(["Calcium, Ca", "Calcium"]),
-                dailyValue: calculateDailyValue(getValue(["Calcium, Ca", "Calcium"]), 'calcium')
+                value: getValue("Calcium, Ca"),
+                dailyValue: calculateDailyValue(getValue("Calcium, Ca"), 'calcium')
             },
             {
                 name: "Iron",
-                value: getValue(["Iron, Fe", "Iron"]),
+                value: getValue("Iron, Fe"),
                 dailyValue: calculateDailyValue(getValue(["Iron, Fe", "Iron"]), 'iron')
             },
             { name: "Added Sugars", value: 0, dailyValue: null },
@@ -220,47 +255,27 @@ function renderMenuLabels() {
         updateAggregateProfile();
         container.appendChild(renderNutritionLabel(aggregateProfile, 1, true));
     }
-    
+
+    // Create a single container div for all menu items
+    const allItemsContainer = document.createElement("div");
+    allItemsContainer.classList.add("all-menu-items");
+
     menuItems.forEach((item, idx) => {
         const itemDiv = document.createElement("div");
         itemDiv.classList.add("menu-label");
-        itemDiv.innerHTML = `
-            <div class="menu-item-header">
-                <h4>${item.profileObject.itemName}</h4>
-                <button class="remove-item-btn" data-idx="${idx}">Remove</button>
-            </div>
-        `;
-        const controls = document.createElement("div");
-        controls.className = "quantity-controls";
-        controls.innerHTML = `
-            <button class="decrease-qty" data-idx="${idx}">-</button>
-            <input type="number" min="1" value="${item.quantity}" class="qty-input" data-idx="${idx}" style="width:40px";>
-            <button class="increase-qty" data-idx="${idx}">+</button>
-        `;
-        itemDiv.appendChild(controls);
-        itemDiv.appendChild(renderNutritionLabel(item.profileObject, item.quantity, false));
-        container.appendChild(itemDiv);
+        itemDiv.appendChild(renderNutritionLabel(item.profileObject, item.quantity, false, idx));
+        allItemsContainer.appendChild(itemDiv);
     });
 
-    container.querySelectorAll(".decrease-qty").forEach(button => {
-        button.onclick = function () {
-            const idx = +button.dataset.idx;
-            if (menuItems[idx].quantity > 1) {
-                menuItems[idx].quantity--;
-                renderMenuLabels();
-            }
-        };
-    });
-    container.querySelectorAll(".increase-qty").forEach(button => {
-        button.onclick = function () {
-            const idx = +button.dataset.idx;
-            menuItems[idx].quantity++;
-            renderMenuLabels();
-        };
-    });
-    container.querySelectorAll(".qty-input").forEach(input => {
+    // Add the container with all items to the main container
+    if (menuItems.length > 0) {
+        container.appendChild(allItemsContainer);
+    }
+
+    // Event listeners for quantity controls inside nutrition labels
+    container.querySelectorAll(".quantity-input").forEach(input => {
         input.onchange = function () {
-            const idx = +input.dataset.idx;
+            const idx = +input.dataset.index;
             menuItems[idx].quantity = Math.max(1, parseInt(input.value) || 1);
             renderMenuLabels();
         };
@@ -279,7 +294,7 @@ function removeFromMenu(index) {
     renderMenuLabels();
 }
 
-function renderNutritionLabel(profileObject, quantity = 1, isAggregate = false) {
+function renderNutritionLabel(profileObject, quantity = 1, isAggregate = false, itemIndex = null) {
     const div = document.createElement("div");
     div.className = isAggregate ? "nutrition-label aggregate" : "nutrition-label";
 
@@ -287,8 +302,16 @@ function renderNutritionLabel(profileObject, quantity = 1, isAggregate = false) 
     div.innerHTML = `
         <div class="nutrition-facts-header">
             ${isAggregate ? 'Menu Total - Nutrition Facts' : 'Nutrition Facts'}
+            ${!isAggregate ? `<button class="remove-item-btn" data-idx="${itemIndex}">Remove</button>` : ''}
         </div>
-        <div class="item-name">${profileObject.itemName}</div>
+        <div class="item-label-header">
+            <div class="item-name">${profileObject.itemName}</div>
+            ${!isAggregate ? `
+                <div class="quantity-controls">
+                    <input class="quantity-input" type="number" value="${quantity}" min="1" step="1" data-index="${itemIndex}" style="width:45px">
+                </div>
+            ` : ''}
+        </div>
         <hr class="thick-line">
         <div class="serving-size">Amount Per Serving</div>
         <hr class="thin-line">

@@ -68,10 +68,6 @@
   margin-left: 30px;
 }
 
-.value, .daily-value {
-  font-weight: bold;
-}
-
 .daily-value {
   text-align: right;
 }
@@ -129,7 +125,7 @@ input[type=number]::-webkit-outer-spin-button {
     padding: 10px;
     margin: 10px 0;
     font-family: Arial, sans-serif;
-    max-width: 300px;
+    max-width: 400px;
     background-color: white;
 }
 
@@ -137,6 +133,9 @@ input[type=number]::-webkit-outer-spin-button {
     font-weight: bold;
     font-size: 1.1em;
     margin-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .nutrition-section {
@@ -146,7 +145,6 @@ input[type=number]::-webkit-outer-spin-button {
 .nutrition-label.aggregate {
     background-color: #f0f8ff;
     border: 2px solid #007acc;
-    font-weight: bold;
 }
 
 .menu-label {
@@ -178,11 +176,19 @@ input[type=number]::-webkit-outer-spin-button {
 
 /* Search Results Styling */
 #search-results-container {
-    margin: 20px 0;
+    float: left;
+    width: 400px;
+    margin: 20px 20px 20px 0;
     padding: 15px;
     border: 1px solid #ddd;
     background-color: #f8f9fa;
     border-radius: 5px;
+}
+
+#menu-container {
+    margin-left: 460px; /* 400px width + 60px margin */
+    padding: 20px 0;
+    max-width: none;
 }
 
 #search-results-container h3 {
@@ -243,29 +249,34 @@ input[type=number]::-webkit-outer-spin-button {
 /* Menu Item Styling */
 .menu-item-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
-    margin-bottom: 10px;
-}
-
-.menu-item-header h4 {
-    margin: 0;
-    color: #333;
-    flex: 1;
+    margin-bottom: 5px;
 }
 
 .remove-item-btn {
     background-color: #dc3545;
     color: white;
     border: none;
-    padding: 5px 10px;
+    padding: 3px 8px;
     border-radius: 3px;
     cursor: pointer;
-    font-size: 0.9em;
+    font-size: 0.8em;
+    /* position: absolute; */
+    top: 5px;
+    right: 5px;
+    z-index: 10;
 }
 
 .remove-item-btn:hover {
     background-color: #c82333;
+}
+
+.menu-label {
+    position: relative;
+    margin: 10px 0;
+    padding-top: 10px;
+    border: none;
 }
 
 .quantity-controls {
@@ -290,4 +301,13 @@ input[type=number]::-webkit-outer-spin-button {
 
 .quantity-controls button:hover {
     background-color: #5a6268;
+}
+
+/* Container for all menu items */
+.all-menu-items {
+    border: 2px solid #333;
+    padding: 15px;
+    margin: 20px 0;
+    background-color: #f8f9fa;
+    border-radius: 5px;
 }
