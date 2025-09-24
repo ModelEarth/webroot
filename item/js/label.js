@@ -8,6 +8,412 @@ function hashChangedProfile() {
 }
 loadProfile();
 
+let menuItems = []; // { profileObject, quantity }
+let aggregateProfile = {};
+let searchResults = []; // Store current search results
+let hasSampleItem = false; // Track if sample item is present
+
+document.addEventListener('DOMContentLoaded', function() {
+    addUSDASearchBar();
+    loadSampleFood();
+});
+
+function loadSampleFood() {
+    // Add a sample food item (apple) to show the user how it works
+    const sampleFood = {
+        description: "Apples, raw, with skin (Sample)",
+        brandOwner: null,
+        foodCategory: "Fruits and Fruit Juices",
+        foodNutrients: [
+            { nutrientName: "Energy", value: 52, unitName: "KCAL" },
+            { nutrientName: "Total lipid (fat)", value: 0.17, unitName: "G" },
+            { nutrientName: "Carbohydrate, by difference", value: 13.81, unitName: "G" },
+            { nutrientName: "Fiber, total dietary", value: 2.4, unitName: "G" },
+            { nutrientName: "Total Sugars", value: 10.39, unitName: "G" },
+            { nutrientName: "Protein", value: 0.26, unitName: "G" },
+            { nutrientName: "Sodium, Na", value: 1, unitName: "MG" },
+            { nutrientName: "Potassium, K", value: 107, unitName: "MG" },
+            { nutrientName: "Calcium, Ca", value: 6, unitName: "MG" },
+            { nutrientName: "Iron, Fe", value: 0.12, unitName: "MG" }
+        ]
+    };
+
+    addFoodToMenu(sampleFood);
+    hasSampleItem = true; // Mark that we have a sample item
+}
+
+function addUSDASearchBar() {
+    let searchDiv = document.getElementById("usda-search-div");
+    if (searchDiv && !searchDiv.innerHTML.trim()) {
+        searchDiv.style.marginBottom = "1em";
+        searchDiv.innerHTML = `
+            <input type="text" id="usda-search-input" placeholder="Search USDA Food Database" style="width:300px;">
+            <button id="usda-search-button">Search</button>
+            <button id="usda-clear-button">Clear Results</button>
+        `;
+    }
+    document.getElementById("usda-search-button").onclick = function() {
+        const query = document.getElementById("usda-search-input").value.trim();
+        searchUSDAFood(query);
+    };
+
+    document.getElementById("usda-clear-button").onclick = function() {
+        clearSearchResults();
+    };
+    document.getElementById("usda-search-input").addEventListener("keypress", function(e) {
+        if (e.key === "Enter") {
+            document.getElementById("usda-search-button").click();
+        }
+    });
+}
+
+function searchUSDAFood(query = "apple") {
+    const apiKey = "bLecediTVa2sWd8AegmUZ9o7DxYFSYoef9B4i1Ml";
+    const apiUrl = `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${apiKey}&query=${encodeURIComponent(query)}&pageSize=10&pageNumber=1`;
+    fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+            if (data.foods && data.foods.length > 0) {
+                searchResults = data.foods;
+                displaySearchResults();
+            } else {
+                console.log('No foods found for query:', query);
+                clearSearchResults();
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching USDA data:', error);
+            clearSearchResults();
+        });
+}
+
+function displaySearchResults() {
+    const container = document.getElementById("search-results-container");
+    container.innerHTML = "<h3>Search Results - Click to Add Item:</h3>";
+
+    searchResults.forEach((food, index) => {
+        const resultDiv = document.createElement("div");
+        resultDiv.className = "search-result-item";
+        resultDiv.innerHTML = `
+            <div class="food-info">
+                <strong>${food.description}</strong>
+                <br><small>Brand: ${food.brandOwner || 'Generic'}</small>
+                <br><small>Category: ${food.foodCategory || 'N/A'}</small>
+            </div>
+            <button class="add-to-menu-btn" data-index="${index}">Add Item</button>
+        `;
+        container.appendChild(resultDiv);
+    });
+
+    // Add event listeners for "Add Item" buttons
+    container.querySelectorAll(".add-to-menu-btn").forEach(button => {
+        button.onclick = function() {
+            const index = parseInt(button.dataset.index);
+            addFoodToMenu(searchResults[index]);
+        };
+    });
+}
+
+function clearSearchResults() {
+    const container = document.getElementById("search-results-container");
+    container.innerHTML = "";
+}
+
+function addFoodToMenu(food) {
+    // If this is the first real food item being added and we have a sample, remove the sample
+    if (hasSampleItem && !food.description.includes("(Sample)")) {
+        menuItems = []; // Clear sample item
+        hasSampleItem = false;
+    }
+
+    // Check if food is already in menu
+    const existingIndex = menuItems.findIndex(item =>
+        item.profileObject.itemName === food.description
+    );
+
+    if (existingIndex >= 0) {
+        // Increase quantity if already in menu
+        menuItems[existingIndex].quantity++;
+    } else {
+        // Add new item to menu
+        menuItems.push({
+            profileObject: usdaProfileObject(food),
+            quantity: 1,
+        });
+    }
+
+    renderMenuLabels();
+}
+
+function usdaProfileObject(usdaItem) {
+    const nutrients = {};
+    (usdaItem.foodNutrients || []).forEach(nutrient => {
+        if (nutrient.nutrientName && nutrient.value !== undefined) {
+            nutrients[nutrient.nutrientName] = nutrient.value;
+        }
+    });
+
+    // Handle energy/calories
+    let calories = 0;
+    (usdaItem.foodNutrients || []).forEach(nutrient => {
+        if ((nutrient.nutrientName === "Energy" || nutrient.nutrientName === "Calories") && nutrient.unitName === "KCAL") {
+            calories = nutrient.value;
+        }
+    });
+
+    // Create a more flexible lookup that tries multiple possible names
+    const getValue = (nutrientName) => {
+        if (nutrients[nutrientName] !== undefined) {
+            return nutrients[nutrientName];
+        }
+        return 0;
+    };
+
+    return {
+        itemName: usdaItem.description,
+        sections: [
+            { name: "Calories", value: calories },
+            {
+                name: "Calories from Fat",
+                value: getValue(["Total lipid (fat)"]) * 9
+            },
+            {
+                name: "Total Fat",
+                value: getValue("Total lipid (fat)"),
+                dailyValue: calculateDailyValue(getValue("Total lipid (fat)"), 'fat'),
+                subsections: [
+                    {
+                        name: "Saturated Fat",
+                        value: getValue("Fatty acids, total saturated"),
+                        dailyValue: calculateDailyValue(getValue("Fatty acids, total saturated"), 'satFat')
+                    },
+                    {
+                        name: "Trans Fat",
+                        value: getValue("Fatty acids, total trans")
+                    }
+                ]
+            },
+            {
+                name: "Cholesterol",
+                value: getValue(["Cholesterol"]),
+                dailyValue: calculateDailyValue(getValue(["Cholesterol"]), 'cholesterol')
+            },
+            {
+                name: "Sodium",
+                value: getValue("Sodium, Na"),
+                dailyValue: calculateDailyValue(getValue("Sodium, Na"), 'sodium')
+            },
+            {
+                name: "Total Carbohydrate",
+                value: getValue("Carbohydrate, by difference"),
+                dailyValue: calculateDailyValue(getValue("Carbohydrate, by difference"), 'carb'),
+                subsections: [
+                    {
+                        name: "Dietary Fiber",
+                        value: getValue("Fiber, total dietary"),
+                        dailyValue: calculateDailyValue(getValue("Fiber, total dietary"), 'fiber')
+                    },
+                    {
+                        name: "Sugars",
+                        value: getValue("Total Sugars")
+                    }
+                ]
+            },
+            { name: "Protein", value: getValue("Protein") },
+            {
+                name: "Vitamin D",
+                value: getValue("Vitamin D (D2 + D3)"),
+                dailyValue: calculateDailyValue(getValue("Vitamin D (D2 + D3)"), 'vitaminD')
+            },
+            {
+                name: "Potassium",
+                value: getValue("Potassium, K"),
+                dailyValue: calculateDailyValue(getValue("Potassium, K"), 'potassium')
+            },
+            {
+                name: "Calcium",
+                value: getValue("Calcium, Ca"),
+                dailyValue: calculateDailyValue(getValue("Calcium, Ca"), 'calcium')
+            },
+            {
+                name: "Iron",
+                value: getValue("Iron, Fe"),
+                dailyValue: calculateDailyValue(getValue(["Iron, Fe", "Iron"]), 'iron')
+            },
+            { name: "Added Sugars", value: 0, dailyValue: null },
+            { name: "Caffeine", value: getValue(["Caffeine"]) }
+        ]
+    };
+}
+
+function renderMenuLabels() {
+    const container = document.getElementById("menu-container");
+    container.innerHTML = "";
+
+    // Only show aggregate if there are menu items
+    if (menuItems.length > 0) {
+        updateAggregateProfile();
+        container.appendChild(renderNutritionLabel(aggregateProfile, 1, true));
+    }
+
+    // Create a single container div for all menu items
+    const allItemsContainer = document.createElement("div");
+    allItemsContainer.classList.add("all-menu-items");
+
+    menuItems.forEach((item, idx) => {
+        const itemDiv = document.createElement("div");
+        itemDiv.classList.add("menu-label");
+        itemDiv.appendChild(renderNutritionLabel(item.profileObject, item.quantity, false, idx));
+        allItemsContainer.appendChild(itemDiv);
+    });
+
+    // Add the container with all items to the main container
+    if (menuItems.length > 0) {
+        container.appendChild(allItemsContainer);
+    }
+
+    // Event listeners for quantity controls inside nutrition labels
+    container.querySelectorAll(".quantity-input").forEach(input => {
+        input.onchange = function () {
+            const idx = +input.dataset.index;
+            menuItems[idx].quantity = Math.max(1, parseInt(input.value) || 1);
+            renderMenuLabels();
+        };
+    });
+
+    container.querySelectorAll(".remove-item-btn").forEach(button => {
+        button.onclick = function () {
+            const idx = +button.dataset.idx;
+            removeFromMenu(idx);
+        };
+    });
+}
+
+function removeFromMenu(index) {
+    menuItems.splice(index, 1);
+    renderMenuLabels();
+}
+
+function renderNutritionLabel(profileObject, quantity = 1, isAggregate = false, itemIndex = null) {
+    const div = document.createElement("div");
+    div.className = isAggregate ? "nutrition-label aggregate" : "nutrition-label";
+
+    // Add nutrition facts header
+    div.innerHTML = `
+        <div class="nutrition-facts-header">
+            ${isAggregate ? 'Menu Total - Nutrition Facts' : 'Nutrition Facts'}
+            ${!isAggregate ? `<button class="remove-item-btn" data-idx="${itemIndex}">Remove</button>` : ''}
+        </div>
+        <div class="item-label-header">
+            <div class="item-name">${profileObject.itemName}</div>
+            ${!isAggregate ? `
+                <div class="quantity-controls">
+                    <input class="quantity-input" type="number" value="${quantity}" min="1" step="1" data-index="${itemIndex}" style="width:45px">
+                </div>
+            ` : ''}
+        </div>
+        <hr class="thick-line">
+        <div class="serving-size">Amount Per Serving</div>
+        <hr class="thin-line">
+    `;
+
+    profileObject.sections.forEach(section => {
+        const val = (section.value * quantity);
+        const unit = getUnit(section.name);
+        const formattedVal = formatValue(val, section.name);
+        const dailyValue = section.dailyValue ? Math.round(section.dailyValue * quantity) : null;
+
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "nutrition-section";
+        sectionDiv.innerHTML = `
+            <div class="section-title">
+                <span><strong>${section.name}</strong> <span class="value">${formattedVal}${unit}</span></span>
+                <span class="daily-value">${dailyValue ? dailyValue + '%' : ''}</span>
+            </div>
+        `;
+
+        if (section.subsections) {
+            section.subsections.forEach(subsection => {
+                const subVal = (subsection.value * quantity);
+                const subUnit = getUnit(subsection.name);
+                const subFormattedVal = formatValue(subVal, subsection.name);
+                const subDailyValue = subsection.dailyValue ? Math.round(subsection.dailyValue * quantity) : null;
+
+                const subSectionDiv = document.createElement("div");
+                subSectionDiv.className = "sub-section";
+                subSectionDiv.innerHTML = `
+                    <span>${subsection.name}</span>
+                    <span class="value">${subFormattedVal}${subUnit}</span>
+                    <span class="daily-value">${subDailyValue ? subDailyValue + '%' : ''}</span>
+                `;
+                sectionDiv.appendChild(subSectionDiv);
+            });
+        }
+
+        div.appendChild(sectionDiv);
+        div.appendChild(document.createElement('hr')).classList.add('thin-line');
+    });
+
+    return div;
+}
+
+function getUnit(nutrientName) {
+    const name = nutrientName.toLowerCase();
+    if (name.includes('calories')) return '';
+    if (name.includes('sodium') || name.includes('potassium') || name.includes('calcium') || name.includes('iron') || name.includes('vitamin d') || name.includes('cholesterol')) return 'mg';
+    if (name.includes('caffeine')) return 'mg';
+    return 'g'; // Default for fats, carbs, protein, fiber, etc.
+}
+
+function formatValue(value, nutrientName) {
+    const name = nutrientName.toLowerCase();
+    if (name.includes('calories')) {
+        return Math.round(value).toString();
+    }
+    return value.toFixed(1);
+}
+
+function updateAggregateProfile() {
+    const aggSections = {};
+    menuItems.forEach(item => {
+        item.profileObject.sections.forEach(section => {
+            if (!aggSections[section.name]) {
+                aggSections[section.name] = 0;
+            }
+            aggSections[section.name] += section.value * item.quantity;
+            if (section.subsections) {
+                section.subsections.forEach(subsection => {
+                    const key = section.name + " - " + subsection.name;
+                    if (!aggSections[key]) {
+                        aggSections[key] = 0;
+                    }
+                    aggSections[key] += subsection.value * item.quantity;
+                });
+            }
+        });
+    });
+
+    const sections = [];
+    Object.keys(aggSections).forEach(name => {
+        if (name.includes(" - ")) {
+            const [parent, sub] = name.split(" - ");
+            let parentSection = sections.find(s => s.name === parent);
+            if (!parentSection) {
+                parentSection = { name: parent, value: 0, subsections: [] };
+                sections.push(parentSection);
+            }
+            parentSection.subsections = parentSection.subsections || [];
+            parentSection.subsections.push({ name: sub, value: aggSections[name] });
+        } else {
+            sections.push({ name, value: aggSections[name] });
+        }
+    });
+    aggregateProfile = {
+        itemName: "Menu Total",
+        sections
+    };
+}
+
 function getUrlHash() {
   return (function (pairs) {
     if (pairs == "") return {};
