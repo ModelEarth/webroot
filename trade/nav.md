@@ -30,7 +30,7 @@ Check where these are used. Maybe they could be new reports?
 
 <b>Details</b>
 <a href="../state/">About State Reports</a>
-<a href="../../io/about/">State Models</a>
+<a href="../../io/about/">About State Models</a>
 <a href="../../profile/item/">Profile YAML</a></a>
 <a href="../../io/charts/">React IO Widgets</a>
 <a href="../footprint/model.html">Model Info/Demands</a>
