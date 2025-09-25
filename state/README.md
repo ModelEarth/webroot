@@ -15,16 +15,14 @@ State model json files reside in <a href="https://github.com/modelearth/useeio-j
 
 <!--
 We also have a slower python pre-processed report at <a href="/data-pipeline/research/economy/">Python Commodities Report</a>.
--->
- 
-<a href="/io/about/">USEEIO State Models</a> - Includes work on SQL tables for Microsoft Power BI and Tableau
 
 <a href="https://colab.research.google.com/drive/1CYKNTnLiZ_PbP5WS_dMVtYyYDIAFwzq8?usp=sharing" target="useeio_colab">Generate Supabase USEEIO (CoLab)</a> - Upcoming python to migrate for SQL tables
+-->
 
 <a href="/profile/trade/">Exiobase International Trade Flow SQL</a> - Parallel work on international trade reports
 
 
-## US EPA State Data
+## US State Data
 
 [View Feb 2024 State Models Report](https://cfpub.epa.gov/si/si_public_record_Report.cfm?dirEntryId=360453&Lab=CESER) regarding new data files for v1.0 of the USEEIO State Models. 
 
