@@ -3,8 +3,25 @@
 # git.sh - Streamlined git operations for webroot repository
 # Usage: ./git.sh [command] [options]
 # Push commands automatically pull first unless 'nopull' or 'no pull' is specified
+#
+# IMPORTANT: This script includes safeguards against submodule rollbacks
+# - Uses safe_submodule_update() to preserve newer commits in submodules
+# - Prevents accidental reversion to older commits during merges/pulls
 
 set -e  # Exit on any error
+
+# Global setting for safe submodule updates (can be overridden with --unsafe-submodules)
+SAFE_SUBMODULE_UPDATES=true
+
+# Parse command line arguments for global flags
+for arg in "$@"; do
+    case $arg in
+        --unsafe-submodules)
+            SAFE_SUBMODULE_UPDATES=false
+            echo "⚠️ WARNING: Safe submodule protection DISABLED"
+            ;;
+    esac
+done
 
 # Helper function to check if we're in webroot
 check_webroot() {
@@ -267,6 +284,102 @@ update_webroot_submodule_reference() {
     fi
 }
 
+# Safely update submodules without reverting to older commits
+safe_submodule_update() {
+    if [ "$SAFE_SUBMODULE_UPDATES" = "false" ]; then
+        echo "⚠️ Using UNSAFE submodule update (may revert to older commits)"
+        git submodule update --remote --recursive
+        return
+    fi
+    
+    echo "🛡️ Performing safe submodule update (preserving newer commits)..."
+    
+    # List of all known submodules
+    local submodules=(cloud comparison feed home localsite products projects realitystream swiper team trade codechat exiobase io profile reports community-forecasting)
+    
+    for sub in "${submodules[@]}"; do
+        if [ -d "$sub" ] && [ -d "$sub/.git" ]; then
+            echo "🔍 Checking submodule: $sub"
+            cd "$sub"
+            
+            # Get current commit hash and timestamp
+            local current_commit=$(git rev-parse HEAD 2>/dev/null || echo "")
+            local current_timestamp=""
+            if [ -n "$current_commit" ]; then
+                current_timestamp=$(git show -s --format=%ct "$current_commit" 2>/dev/null || echo "0")
+            fi
+            
+            # Check what commit the parent repository wants
+            cd ..
+            local expected_commit=$(git ls-tree HEAD "$sub" | awk '{print $3}' || echo "")
+            
+            if [ -n "$expected_commit" ] && [ -n "$current_commit" ]; then
+                cd "$sub"
+                # Get timestamp of expected commit
+                local expected_timestamp=$(git show -s --format=%ct "$expected_commit" 2>/dev/null || echo "0")
+                
+                # Only update if expected commit is newer than current commit
+                if [ "$expected_timestamp" -gt "$current_timestamp" ]; then
+                    echo "⬆️ Updating $sub to newer commit: $expected_commit ($(git show -s --format='%ci' "$expected_commit" 2>/dev/null || echo 'unknown date'))"
+                    git checkout "$expected_commit" 2>/dev/null || echo "⚠️ Failed to checkout $expected_commit in $sub"
+                elif [ "$expected_timestamp" -lt "$current_timestamp" ]; then
+                    echo "🛡️ Preserving newer commit in $sub: $current_commit ($(git show -s --format='%ci' "$current_commit" 2>/dev/null || echo 'unknown date'))"
+                    echo "   ↳ Parent repo wants older commit: $expected_commit ($(git show -s --format='%ci' "$expected_commit" 2>/dev/null || echo 'unknown date'))"
+                    
+                    # Update parent repo to point to the newer commit
+                    cd ..
+                    git add "$sub"
+                    echo "📌 Updated parent repo to preserve newer $sub commit"
+                else
+                    echo "✅ $sub is already at the correct commit"
+                fi
+                cd ..
+            else
+                echo "⚠️ Could not determine commit information for $sub"
+                cd ..
+            fi
+        fi
+    done
+    
+    echo "✅ Safe submodule update completed"
+}
+
+# Safely update a single submodule without reverting to older commits
+safe_single_submodule_update() {
+    local sub="$1"
+    echo "🛡️ Safely updating submodule: $sub"
+    
+    if [ -d "$sub" ] && [ -d "$sub/.git" ]; then
+        cd "$sub"
+        
+        # Get current commit hash and timestamp
+        local current_commit=$(git rev-parse HEAD 2>/dev/null || echo "")
+        local current_timestamp=""
+        if [ -n "$current_commit" ]; then
+            current_timestamp=$(git show -s --format=%ct "$current_commit" 2>/dev/null || echo "0")
+        fi
+        
+        # Update to latest from remote main branch (safer than parent repo reference)
+        git fetch origin main 2>/dev/null || git fetch origin master 2>/dev/null
+        local latest_commit=$(git rev-parse origin/main 2>/dev/null || git rev-parse origin/master 2>/dev/null || echo "")
+        
+        if [ -n "$latest_commit" ] && [ -n "$current_commit" ]; then
+            local latest_timestamp=$(git show -s --format=%ct "$latest_commit" 2>/dev/null || echo "0")
+            
+            # Only update if remote has newer commits
+            if [ "$latest_timestamp" -gt "$current_timestamp" ]; then
+                echo "⬆️ Updating $sub to latest: $latest_commit"
+                git checkout "$latest_commit" 2>/dev/null || echo "⚠️ Failed to checkout latest in $sub"
+            else
+                echo "✅ $sub is already up to date"
+            fi
+        fi
+        cd ..
+    else
+        echo "⚠️ Submodule $sub not found or not initialized"
+    fi
+}
+
 # Fix detached HEAD state by merging into main branch
 fix_detached_head() {
     local name="$1"
@@ -515,9 +628,9 @@ pull_command() {
         cd ..
     done
     
-    # Update submodule references
+    # Update submodule references safely (preserve newer commits)
     echo "🔄 Updating submodule references..."
-    git submodule update --remote --recursive
+    safe_submodule_update
     
     # Check for and fix any detached HEAD states after pulls
     echo "🔍 Checking for detached HEAD states after pull..."
@@ -579,7 +692,7 @@ pull_specific_repo() {
             fi
             
             cd ..
-            git submodule update --remote "$repo_name"
+            safe_single_submodule_update "$repo_name"
             echo "✅ $repo_name submodule pull completed!"
         else
             echo "⚠️ Submodule not found: $repo_name"
@@ -924,7 +1037,7 @@ push_specific_repo() {
             
             # Update webroot submodule reference
             cd ..
-            git submodule update --remote "$name"
+            safe_single_submodule_update "$name"
             if [ -n "$(git status --porcelain | grep $name)" ]; then
                 git add "$name"
                 git commit -m "Update $name submodule reference"
@@ -998,7 +1111,7 @@ push_submodules() {
     done
     
     # Update webroot submodule references
-    git submodule update --remote
+    safe_submodule_update
     if [ -n "$(git status --porcelain)" ]; then
         git add .
         git commit -m "Update submodule references"
@@ -1229,7 +1342,7 @@ case "$1" in
         exit 1
         ;;
     *)
-        echo "Usage: ./git.sh [pull|push|fix|remotes|auth] [repo_name|submodules|all] [nopr]"
+        echo "Usage: ./git.sh [pull|push|fix|remotes|auth] [repo_name|submodules|all] [nopr] [--unsafe-submodules]"
         echo ""
         echo "Commands:"
         echo "  ./git.sh pull                      - Pull all repositories (webroot + submodules + extra repos)"
@@ -1249,6 +1362,11 @@ case "$1" in
         echo ""
         echo "Options:"
         echo "  nopr                               - Skip PR creation on push failures"
+        echo "  --unsafe-submodules                - Disable safe submodule protection (may revert to older commits)"
+        echo ""
+        echo "Safety Features:"
+        echo "  🛡️ Safe submodule updates enabled by default - preserves newer commits during merges"
+        echo "  🔍 Prevents accidental rollback to older submodule commits from merged PRs"
         echo ""
         echo "Legacy Commands (deprecated):"
         echo "  update  -> use 'pull' or 'pull all'"

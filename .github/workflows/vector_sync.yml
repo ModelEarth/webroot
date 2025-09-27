@@ -63,3 +63,28 @@ jobs:
           fi
           echo "[info] Sync range: $BASE..$HEAD"
           python codechat/vectordb_sync.py --from-commit "$BASE" --to-commit "$HEAD" --repo-root .
+
+      - name: Error summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -f codechat/.vector_sync_errors.jsonl ]; then
+            {
+              echo "## Vector Sync Errors";
+              echo;
+              echo '```jsonl';
+              tail -n 200 codechat/.vector_sync_errors.jsonl;
+              echo '```';
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No errors file present."
+          fi
+
+      - name: Upload VectorDB Sync errors
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vector-sync-errors
+          path: codechat/.vector_sync_errors.jsonl
+          if-no-files-found: ignore
+          retention-days: 7
