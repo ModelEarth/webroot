@@ -10,6 +10,8 @@
   <link href="https://unpkg.com/tabulator-tables@5.2.7/dist/css/tabulator.min.css" rel="stylesheet">
   <script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.2.7/dist/js/tabulator.min.js"></script>
 
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+
   <script type="text/javascript" src="/localsite/js/localsite.js?showheader=true&showsearch=true"></script>
   <script src="js/useeio.js"></script>
 </head>
@@ -28,12 +30,20 @@
   
   <p id="info">Loading ...</p>
   <div id="table" style="clear:both"></div>
+
+  <!-- Heatmap visualization for the indicator table -->
+  <div id="heatmapCard" style="display:none;margin-top:12px">
+    <h3 style="margin:4px 0 6px">Direct vs Total Heatmap</h3>
+    <div id="sectorHeatmap" style="height:420px;background:#fff;border-radius:8px;padding:0"></div>
+  </div>
   
   <!-- Matrix and Data Sources Section -->
   <div id="matrixSection" style="margin-top: 40px; display: none;">
     <h3>Technical Coefficient Matrix</h3>
     <p id="matrixInfo">Loading matrix data...</p>
     <div id="matrixTable"></div>
+    <div id="matrixTreemap" style="height:360px;background:#fff;border-radius:8px;padding:8px;margin-top:12px;display:none"></div>
+    <div id="matrixTreemapTagline" style="font-size:13px;color:#444;margin-top:8px;display:none">Treemap: rectangles sized by absolute coefficient magnitude; color indicates normalized magnitude (low → high).</div>
   </div>
   
   <div id="dataSourcesSection" style="margin-top: 40px; display: none;">
@@ -97,7 +107,9 @@ async function main() {
   if (!hash.demand) {
     sector = await getRandomSector();
     // update URL with random sector's hash
-    hash.demand = `${sector.code}/${sector.location}`;
+    // Only include location when it's a non-empty string (avoid appending booleans like 'true')
+    const loc = (typeof sector.location === 'string' && sector.location) ? `/${sector.location}` : '';
+    hash.demand = `${sector.code}${loc}`;
     updateHash({"demand":hash.demand});
   }
   
@@ -217,12 +229,20 @@ async function loadMatrixData(sector, analysis) {
       
       // Create data for the top contributing sectors
       matrixData = sectors
-        .map((s, index) => ({
-          sector: s.name,
-          coefficient: sectorRow[index] || 0,
-          sectorCode: s.code,
-          sectorId: s.id
-        }))
+        .map((s, index) => {
+          // Ensure sector name is a usable string. Some models may have
+          // non-string or boolean values in the name field; fall back to
+          // the sector code or a generated label to avoid literal 'true'.
+          const sectorNameSafe = (typeof s.name === 'string' && s.name.trim().length > 0)
+            ? s.name.trim()
+            : (typeof s.code === 'string' && s.code.trim().length > 0 ? s.code.trim() : `Sector ${index}`);
+          return {
+            sector: sectorNameSafe,
+            coefficient: sectorRow[index] || 0,
+            sectorCode: s.code,
+            sectorId: s.id
+          };
+        })
         .filter(item => Math.abs(item.coefficient) > 0.0001) // Filter out very small values
         .sort((a, b) => Math.abs(b.coefficient) - Math.abs(a.coefficient))
         .slice(0, 25); // Show top 25 contributors
@@ -269,6 +289,10 @@ async function loadMatrixData(sector, analysis) {
             { column: "coefficient", dir: "desc" }
           ]
         });
+      // Render a treemap visualization of the matrix contributions
+      try {
+        renderMatrixTreemap(matrixData);
+      } catch (e) { console.warn('renderMatrixTreemap failed', e); }
     } else {
       matrixTableDiv.innerHTML = '<p>No significant technical coefficients found for this sector.</p>';
     }
@@ -279,6 +303,88 @@ async function loadMatrixData(sector, analysis) {
     document.getElementById('matrixInfo').innerHTML = `Technical coefficients for sector: <strong>${sector.name}</strong><br><em>Error loading matrix data: ${error.message}</em>`;
     document.getElementById('matrixSection').style.display = 'block';
   }
+}
+
+function renderMatrixTreemap(matrixData) {
+  try {
+    const el = document.getElementById('matrixTreemap');
+    const taglineEl = document.getElementById('matrixTreemapTagline');
+    if (!el) return;
+    if (!matrixData || matrixData.length === 0) {
+      el.style.display = 'none';
+      if (taglineEl) taglineEl.style.display = 'none';
+      if (matrixTreemapChart) { try{ matrixTreemapChart.dispose(); }catch(e){} matrixTreemapChart=null; }
+      return;
+    }
+
+    el.style.display = 'block';
+    // Update tagline below treemap
+    try {
+      if (taglineEl) {
+        const sectorName = (document.querySelector('#info h3') || {}).textContent || '';
+        taglineEl.style.display = 'block';
+        taglineEl.textContent = `${sectorName} — Treemap of top ${matrixData.length} contributing sectors: rectangle area = |coefficient|; color = normalized magnitude (low → high).`;
+      }
+    } catch (e) { /* ignore tagline errors */ }
+
+    // Dispose previous chart if present
+    if (matrixTreemapChart) { try { matrixTreemapChart.dispose(); } catch (e) { console.warn('dispose previous treemap failed', e); } matrixTreemapChart = null; }
+    if (typeof echarts === 'undefined') { el.innerHTML = '<div style="color:#a00">ECharts not loaded</div>'; return; }
+    const chart = echarts.init(el);
+    matrixTreemapChart = chart;
+
+    // Build nodes: each top contributor becomes a child node sized by abs(coefficient)
+    const sizes = matrixData.map(d => Math.abs(d.coefficient || 0));
+    const norm = norm100(sizes);
+    const children = matrixData.map((d, i) => ({
+      name: d.sector,
+      value: sizes[i] || 0,
+      coefficient: d.coefficient,
+      sectorCode: d.sectorCode,
+      sectorId: d.sectorId,
+      // color by normalized magnitude
+      itemStyle: { color: `hsl(${200 - Math.round((norm[i]||0) )}deg 65% ${Math.round(80 - (norm[i]||0)/1.5)}%)` }
+    }));
+
+    const option = {
+      tooltip: {
+        formatter: params => {
+          const p = params.data || {};
+          return `${p.name}<br/>Coefficient: ${formatCell(p.coefficient || 0, 'easy')}`;
+        }
+      },
+      series: [{
+        type: 'treemap',
+        roam: false,
+        nodeClick: false,
+        breadcrumb: { show: false },
+        label: { show: true, formatter: '{b}', ellipsis: true },
+        data: [{ name: 'contributors', children: children }]
+      }]
+    };
+
+    // Show loading and compute options asynchronously to avoid blocking the UI
+    try { chart.showLoading(); } catch (e) {}
+    // remove previous resize handler if present
+    try { if (matrixTreemapResizeHandler) { window.removeEventListener('resize', matrixTreemapResizeHandler); matrixTreemapResizeHandler = null; } } catch (e) {}
+    setTimeout(() => {
+      try {
+  chart.setOption(option);
+  try { chart.hideLoading(); } catch (e) {}
+  // Force a few resize/paint cycles so layout completes even when
+  // DevTools isn't open (some browsers delay layout otherwise).
+  try { matrixTreemapChart.resize(); } catch (e) {}
+  try { requestAnimationFrame(() => { try { matrixTreemapChart.resize(); } catch (e) {} }); } catch (e) {}
+  try { setTimeout(() => { try { matrixTreemapChart.resize(); } catch (e) {} }, 200); } catch (e) {}
+  // attach a single resize handler for the treemap
+  matrixTreemapResizeHandler = () => { try { if (matrixTreemapChart) matrixTreemapChart.resize(); } catch (e) {} };
+  window.addEventListener('resize', matrixTreemapResizeHandler);
+      } catch (err) {
+        console.error('treemap setOption failed', err);
+        try { chart.hideLoading(); } catch (e) {}
+      }
+    }, 20);
+  } catch (e) { console.error('renderMatrixTreemap failed', e); }
 }
 
 async function loadDataSources(sector) {
@@ -414,8 +520,15 @@ async function loadDataSources(sector) {
 // Store table references for updating
 var mainTable, matrixTable;
 
+// Keep a global reference to the matrix treemap chart so we can dispose/resize reliably
+let matrixTreemapChart = null;
+// Keep a reference to the resize handler so we don't add many listeners
+let matrixTreemapResizeHandler = null;
+
 // Global variable to store results data
 let tableData = [];
+// Keep a global reference to the heatmap chart so we can dispose/resize reliably
+let sectorHeatmapChart = null;
 
 function displayTable() {
   const formatType = getCurrentNumberFormat() || "simple";
@@ -479,6 +592,8 @@ function displayTable() {
     { title: "Unit", field: "unit", width: 100 }
   ];
 
+  renderHeatmap();
+
   mainTable = new Tabulator("#table", {
     data: tableData,
     layout: "fitColumns",
@@ -488,6 +603,190 @@ function displayTable() {
       { column: "total", dir: "desc" },
     ]
   });
+
+  // After table is created, render the heatmap based on the table data
+  
+}
+
+function renderHeatmap() {
+  try {
+    console.debug('renderHeatmap: tableData length=', (tableData && tableData.length));
+    console.debug('renderHeatmap: tableData sample=', (tableData && tableData.slice(0,3)));
+    const heatCard = document.getElementById('heatmapCard');
+    const el = document.getElementById('sectorHeatmap');
+    if (!tableData || tableData.length === 0) {
+      heatCard.style.display = 'none';
+      // dispose any existing chart
+      if (sectorHeatmapChart) { try { sectorHeatmapChart.dispose(); } catch(e){}; sectorHeatmapChart = null; }
+      return;
+    }
+    heatCard.style.display = 'block';
+    // Move the heatmap card above the main table so the heatmap is shown on top
+    try {
+      const tableDiv = document.getElementById('table');
+      if (tableDiv && heatCard.parentNode !== tableDiv.parentNode) {
+        tableDiv.parentNode.insertBefore(heatCard, tableDiv);
+      } else if (tableDiv && heatCard.compareDocumentPosition(tableDiv) & Node.DOCUMENT_POSITION_FOLLOWING) {
+        // already before
+      } else if (tableDiv) {
+        // ensure inserted before table
+        tableDiv.parentNode.insertBefore(heatCard, tableDiv);
+      }
+    } catch (e) { console.warn('Could not move heatmap above table', e); }
+    if (typeof echarts === 'undefined') {
+      el.innerHTML = '<div style="color:#a00">ECharts not loaded</div>';
+      return;
+    }
+    // dispose previous instance if present
+    if (sectorHeatmapChart) {
+      try { sectorHeatmapChart.dispose(); } catch (e) { console.warn('dispose previous heatmap failed', e); }
+      sectorHeatmapChart = null;
+    }
+    const chart = echarts.init(el);
+    sectorHeatmapChart = chart;
+
+    // Use the current tableData (which contains indicator, direct, total, unit, directValue, totalValue)
+    // Preserve both normalized numeric values (direct/total) used for coloring
+    // and the preformatted "easy" display strings used by the table so tooltips
+    // and hover labels can show the same human-friendly values.
+    const rows = tableData.map(r => ({
+      indicator: r.indicator,
+      direct: Number(r.direct) || 0,
+      total: Number(r.total) || 0,
+      unit: r.unit,
+      rawDirect: r.directValue,
+      rawTotal: r.totalValue,
+      directEasy: r.directValueEasy, // already formatted by formatCell(...,'easy')
+      totalEasy: r.totalValueEasy
+    }));
+  // y-axis should show a short label (first 4 letters of the indicator name)
+    // but keep the full indicator string in rows for tooltips.
+    const labels = rows.map(r => {
+      // indicator is usually formatted as "CODE - Name". Try to extract the name
+      const parts = (r.indicator || '').split(' - ');
+      const namePart = parts.length > 1 ? parts.slice(0).join(' - ').trim() : (parts[0] || '');
+      return namePart.substring(0, 4);
+    });
+
+    // Adjust the heatmap container height so that each indicator row has
+    // enough vertical space. This makes labels readable and avoids clipping.
+    // Use a per-row pixel height and add padding; cap the height to avoid
+    // excessively tall charts and fall back to scroll when necessary.
+    try {
+      const minHeight =400;
+  const rowHeight = 60; // pixels per indicator row (increased for better readability)
+      const padding = 70; // header/legend/padding
+      const maxHeight = 500; // cap to keep page usable
+      const desiredHeight = Math.max(minHeight, labels.length * rowHeight + padding);
+      const finalHeight = Math.min(desiredHeight, maxHeight);
+      // set height on the chart container
+      el.style.height = finalHeight + 'px';
+      // enable scrolling on the card if we hit the cap
+      const heatCard = document.getElementById('heatmapCard');
+      if (desiredHeight > maxHeight && heatCard) {
+        heatCard.style.overflowY = 'auto';
+      } else if (heatCard) {
+        heatCard.style.overflowY = '';
+      }
+    } catch (e) {
+      // ignore layout errors
+      console.warn('Failed to adjust heatmap height', e);
+    }
+
+    // Build heatmap data: two columns (Direct, Total)
+    // Assign a consistent hue per unit and shade by the normalized value so
+    // indicators with the same unit look related.
+    const units = Array.from(new Set(rows.map(r => r.unit || '').filter(u => u !== ''))).sort();
+    const unitHue = {};
+    units.forEach((u, idx) => { unitHue[u] = Math.round((idx * 360) / Math.max(1, units.length)); });
+    function colorFor(unit, normVal) {
+      // normVal expected 0..100. Map to lightness 92% (low) -> 36% (high).
+      const h = unitHue[unit] || 200; // fallback hue
+      const light = Math.round(92 - (normVal / 100) * 56);
+      return `hsl(${h}deg 65% ${light}%)`;
+    }
+
+    const data = [];
+    rows.forEach((r, i) => {
+      data.push({ value: [0, i, r.direct], itemStyle: { color: colorFor(r.unit, r.direct) }, unit: r.unit });
+      data.push({ value: [1, i, r.total], itemStyle: { color: colorFor(r.unit, r.total) }, unit: r.unit });
+    });
+
+    // Build a small unit legend (gradient swatches) under the heatmap
+    // Each swatch is a gradient from colorFor(unit,0) -> colorFor(unit,100)
+    try {
+      const legend = document.getElementById('unitLegend') || (() => {
+        const n = document.createElement('div'); n.id = 'unitLegend'; n.style.marginTop = '8px'; n.style.display = 'flex'; n.style.gap = '12px'; n.style.flexWrap = 'wrap'; n.style.alignItems = 'center';
+        const card = document.getElementById('heatmapCard'); if (card) card.appendChild(n);
+        return n;
+      })();
+      legend.innerHTML = '';
+      units.forEach(u => {
+        const sw = document.createElement('div');
+        sw.style.display = 'flex'; sw.style.alignItems = 'center'; sw.style.gap = '6px';
+        const box = document.createElement('div');
+        box.style.width = '60px'; box.style.height = '14px'; box.style.borderRadius = '4px'; box.style.marginRight = '6px';
+        // Use an exact left->right gradient that matches the cell color mapping
+        const left = colorFor(u, 0);
+        const right = colorFor(u, 100);
+        box.style.background = `linear-gradient(90deg, ${left}, ${right})`;
+        box.style.border = '1px solid rgba(0,0,0,0.08)';
+        box.title = `${u || '(no unit)'} — low → high`;
+        const lbl = document.createElement('div'); lbl.style.fontSize = '12px'; lbl.style.whiteSpace = 'nowrap'; lbl.textContent = u || '(no unit)';
+        sw.appendChild(box); sw.appendChild(lbl); legend.appendChild(sw);
+      });
+      // Add explanatory note for legend if not already present
+      if (!legend.dataset.note) {
+        const note = document.createElement('div'); note.style.fontSize = '11px'; note.style.color = '#444'; note.style.marginLeft = '8px'; note.textContent = 'Legend: gradient shows unit color mapping (low → high)';
+        legend.appendChild(note);
+        legend.dataset.note = '1';
+      }
+    } catch (e) { console.warn('unit legend build failed', e); }
+
+    const option = {
+      tooltip: { position: 'top', formatter: params => {
+        const p = Array.isArray(params) ? params[0] : params;
+        const valArr = p.data && p.data.value ? p.data.value : p.data;
+        const colIdx = valArr[0];
+        const rowIdx = valArr[1];
+        const col = colIdx === 0 ? 'Direct' : 'Total';
+        const row = rows[rowIdx];
+        const easy = colIdx === 0 ? row.directEasy : row.totalEasy;
+        return `${row.indicator}<br/>${col}: ${easy} ${row.unit || ''}`;
+      }},
+  // Use tighter grid bounds and containLabel to remove unnecessary whitespace
+  // Increase top margin so there is room when the visualMap (scale) is placed above
+  grid: { top: 96, bottom: 12, left: 80, right: 16, containLabel: true },
+  xAxis: { type: 'category', data: ['Direct','Total'] },
+  yAxis: { type: 'category', data: labels, inverse: true },
+  // NOTE: visualMap removed so the built-in scale doesn't show a palette
+  // The unit-specific legend below the chart shows gradients that exactly
+  // match the colors used for cells (colorFor(unit,0) -> colorFor(unit,100)).
+      series: [{
+        name: 'Direct vs Total',
+        type: 'heatmap',
+        data: data,
+        label: { show: false },
+        emphasis: {
+          itemStyle: { borderColor: '#000', borderWidth: 1 },
+          label: {
+            show: true,
+            // Show the same easy formatted value on hover (emphasis)
+            formatter: params => {
+              const valArr = params.data && params.data.value ? params.data.value : params.data;
+              const colIdx = valArr[0];
+              const rowIdx = valArr[1];
+              const row = rows[rowIdx] || {};
+              return colIdx === 0 ? (row.directEasy + (row.unit ? ' ' + row.unit : '')) : (row.totalEasy + (row.unit ? ' ' + row.unit : ''));
+            }
+          }
+        }
+      }]
+    };
+
+    chart.setOption(option);
+    window.addEventListener('resize', ()=>{ try{ if (sectorHeatmapChart) sectorHeatmapChart.resize(); }catch(e){} });
+  } catch (e) { console.error('renderHeatmap failed', e); }
 }
 
 // Initialize dropdowns and add event listeners
