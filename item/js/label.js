@@ -16,6 +16,7 @@ let hasSampleItem = false; // Track if sample item is present
 document.addEventListener('DOMContentLoaded', function() {
     addUSDASearchBar();
     loadSampleFood();
+    displayInitialFoodItems();
 });
 
 function loadSampleFood() {
@@ -117,6 +118,47 @@ function displaySearchResults() {
 function clearSearchResults() {
     const container = document.getElementById("search-results-container");
     container.innerHTML = "";
+    displayInitialFoodItems();
+}
+
+function displayInitialFoodItems() {
+    const initialFoods = [
+        { description: "Bananas, raw", brandOwner: null, foodCategory: "Fruits and Fruit Juices" },
+        { description: "Chicken breast, boneless, skinless, raw", brandOwner: null, foodCategory: "Poultry Products" },
+        { description: "Broccoli, raw", brandOwner: null, foodCategory: "Vegetables and Vegetable Products" },
+        { description: "Salmon, Atlantic, farmed, raw", brandOwner: null, foodCategory: "Finfish and Shellfish Products" },
+        { description: "Brown rice, medium-grain, raw", brandOwner: null, foodCategory: "Cereal Grains and Pasta" },
+        { description: "Almonds", brandOwner: null, foodCategory: "Nut and Seed Products" },
+        { description: "Greek yogurt, plain, nonfat", brandOwner: null, foodCategory: "Dairy and Egg Products" },
+        { description: "Sweet potato, raw", brandOwner: null, foodCategory: "Vegetables and Vegetable Products" },
+        { description: "Eggs, whole, raw", brandOwner: null, foodCategory: "Dairy and Egg Products" },
+        { description: "Spinach, raw", brandOwner: null, foodCategory: "Vegetables and Vegetable Products" }
+    ];
+
+    const container = document.getElementById("search-results-container");
+    container.innerHTML = "<h3>Popular Foods - Click to Add Item:</h3>";
+
+    initialFoods.forEach((food, index) => {
+        const resultDiv = document.createElement("div");
+        resultDiv.className = "search-result-item initial-food-item";
+        resultDiv.innerHTML = `
+            <div class="food-info">
+                <strong>${food.description}</strong>
+                <br><small>Brand: ${food.brandOwner || 'Generic'}</small>
+                <br><small>Category: ${food.foodCategory || 'N/A'}</small>
+            </div>
+            <button class="add-initial-food-btn" data-index="${index}">Search Item</button>
+        `;
+        container.appendChild(resultDiv);
+    });
+
+    // Add event listeners for "Add Item" buttons
+    container.querySelectorAll(".add-initial-food-btn").forEach(button => {
+        button.onclick = function() {
+            const index = parseInt(button.dataset.index);
+            searchUSDAFood(initialFoods[index].description);
+        };
+    });
 }
 
 function addFoodToMenu(food) {
