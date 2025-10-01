@@ -14,6 +14,14 @@
 
 <link type="text/css" rel="stylesheet" href="css/label.css" />
 <script type="text/javascript" src="js/label.js"></script>
+<script>
+document.addEventListener('hashChangeEvent', hashChangedProfile, false);
+function hashChangedProfile() {
+    console.log("Profile hash changed");
+    loadProfile();
+}
+loadProfile();
+</script>
 
 <style>
 </style>
@@ -27,8 +35,6 @@ loadMarkdown("README.md", "readmeDiv", "_parent");
 <body>
 <div class="content contentpadding large-list">
   <div id="readmeDiv"></div>
-
-  <p><a href="menu.html">View Nutrition Menu Builder</a></p>
   
     <div class="floatRight hideMobile" style="width:100%;max-width:600px;">
 

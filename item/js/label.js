@@ -1,13 +1,6 @@
 // Displays a label for food nutrition or product impact.
 // profileObject is built by createProfileObject() in layout-.js template.
 
-document.addEventListener('hashChangeEvent', hashChangedProfile, false);
-function hashChangedProfile() {
-    console.log("Profile hash changed");
-    loadProfile();
-}
-loadProfile();
-
 let menuItems = []; // { profileObject, quantity }
 let aggregateProfile = {};
 let searchResults = []; // Store current search results
@@ -16,6 +9,7 @@ let hasSampleItem = false; // Track if sample item is present
 document.addEventListener('DOMContentLoaded', function() {
     addUSDASearchBar();
     loadSampleFood();
+    displayInitialFoodItems();
 });
 
 function loadSampleFood() {
@@ -52,17 +46,19 @@ function addUSDASearchBar() {
             <button id="usda-clear-button">Clear Results</button>
         `;
     }
-    document.getElementById("usda-search-button").onclick = function() {
-        const query = document.getElementById("usda-search-input").value.trim();
-        searchUSDAFood(query);
-    };
-
-    document.getElementById("usda-clear-button").onclick = function() {
-        clearSearchResults();
-    };
-    document.getElementById("usda-search-input").addEventListener("keypress", function(e) {
-        if (e.key === "Enter") {
-            document.getElementById("usda-search-button").click();
+    document.addEventListener('click', (e) => {
+        if (e.target && e.target.id === 'usda-search-button') {
+            const query = document.getElementById("usda-search-input").value.trim();
+            searchUSDAFood(query);
+        }
+        if (e.target && e.target.id === 'usda-clear-button') {
+            clearSearchResults();
+        }
+    });
+    document.addEventListener("keypress", function(e) {
+        if (e.target && e.target.id === "usda-search-input" && e.key === "Enter") {
+            const btn = document.getElementById("usda-search-button");
+            if (btn) btn.click();
         }
     });
 }
@@ -117,6 +113,49 @@ function displaySearchResults() {
 function clearSearchResults() {
     const container = document.getElementById("search-results-container");
     container.innerHTML = "";
+    displayInitialFoodItems();
+}
+
+function displayInitialFoodItems() {
+    const initialFoods = [
+        { description: "Bananas, raw", brandOwner: null, foodCategory: "Fruits and Fruit Juices" },
+        { description: "Chicken breast, boneless, skinless, raw", brandOwner: null, foodCategory: "Poultry Products" },
+        { description: "Broccoli, raw", brandOwner: null, foodCategory: "Vegetables and Vegetable Products" },
+        { description: "Salmon, Atlantic, farmed, raw", brandOwner: null, foodCategory: "Finfish and Shellfish Products" },
+        { description: "Brown rice, medium-grain, raw", brandOwner: null, foodCategory: "Cereal Grains and Pasta" },
+        { description: "Almonds", brandOwner: null, foodCategory: "Nut and Seed Products" },
+        { description: "Greek yogurt, plain, nonfat", brandOwner: null, foodCategory: "Dairy and Egg Products" },
+        { description: "Sweet potato, raw", brandOwner: null, foodCategory: "Vegetables and Vegetable Products" },
+        { description: "Eggs, whole, raw", brandOwner: null, foodCategory: "Dairy and Egg Products" },
+        { description: "Spinach, raw", brandOwner: null, foodCategory: "Vegetables and Vegetable Products" }
+    ];
+
+    const container = document.getElementById("search-results-container");
+    if (container) {
+        container.innerHTML = "<h3>Popular Foods - Click to Add Item:</h3>";
+
+        initialFoods.forEach((food, index) => {
+            const resultDiv = document.createElement("div");
+            resultDiv.className = "search-result-item initial-food-item";
+            resultDiv.innerHTML = `
+                <div class="food-info">
+                    <strong>${food.description}</strong>
+                    <br><small>Brand: ${food.brandOwner || 'Generic'}</small>
+                    <br><small>Category: ${food.foodCategory || 'N/A'}</small>
+                </div>
+                <button class="add-initial-food-btn" data-index="${index}">Search Item</button>
+            `;
+            container.appendChild(resultDiv);
+        });
+
+        // Add event listeners for "Add Item" buttons
+        container.querySelectorAll(".add-initial-food-btn").forEach(button => {
+            button.onclick = function() {
+                const index = parseInt(button.dataset.index);
+                searchUSDAFood(initialFoods[index].description);
+            };
+        });
+    }
 }
 
 function addFoodToMenu(food) {
@@ -248,45 +287,53 @@ function usdaProfileObject(usdaItem) {
 
 function renderMenuLabels() {
     const container = document.getElementById("menu-container");
-    container.innerHTML = "";
+    if (container) {
+        container.innerHTML = "";
+        
+        // Only show aggregate if there are menu items
+        if (menuItems.length > 0) {
+            updateAggregateProfile();
+            container.appendChild(renderNutritionLabel(aggregateProfile, 1, true));
+        }
 
-    // Only show aggregate if there are menu items
-    if (menuItems.length > 0) {
-        updateAggregateProfile();
-        container.appendChild(renderNutritionLabel(aggregateProfile, 1, true));
+        // Create a single container div for all menu items
+        const allItemsContainer = document.createElement("div");
+        allItemsContainer.classList.add("all-menu-items");
+
+        menuItems.forEach((item, idx) => {
+            const itemDiv = document.createElement("div");
+            itemDiv.classList.add("menu-label");
+            itemDiv.appendChild(renderNutritionLabel(item.profileObject, item.quantity, false, idx));
+            allItemsContainer.appendChild(itemDiv);
+        });
+
+        // Add the container with all items to the main container
+        if (menuItems.length > 0) {
+            container.appendChild(allItemsContainer);
+        }
+
+        // Event listeners for quantity controls inside nutrition labels
+        container.querySelectorAll(".quantity-input").forEach(input => {
+            input.onchange = function () {
+                const idx = +input.dataset.index;
+                menuItems[idx].quantity = Math.max(1, parseInt(input.value) || 1);
+                renderMenuLabels();
+            };
+        });
+
+        container.querySelectorAll(".remove-item-btn").forEach(button => {
+            button.onclick = function () {
+                const idx = +button.dataset.idx;
+                removeFromMenu(idx);
+            };
+        });
+    } else {
+        console.log("Item menu-container not found");
     }
 
-    // Create a single container div for all menu items
-    const allItemsContainer = document.createElement("div");
-    allItemsContainer.classList.add("all-menu-items");
 
-    menuItems.forEach((item, idx) => {
-        const itemDiv = document.createElement("div");
-        itemDiv.classList.add("menu-label");
-        itemDiv.appendChild(renderNutritionLabel(item.profileObject, item.quantity, false, idx));
-        allItemsContainer.appendChild(itemDiv);
-    });
 
-    // Add the container with all items to the main container
-    if (menuItems.length > 0) {
-        container.appendChild(allItemsContainer);
-    }
 
-    // Event listeners for quantity controls inside nutrition labels
-    container.querySelectorAll(".quantity-input").forEach(input => {
-        input.onchange = function () {
-            const idx = +input.dataset.index;
-            menuItems[idx].quantity = Math.max(1, parseInt(input.value) || 1);
-            renderMenuLabels();
-        };
-    });
-
-    container.querySelectorAll(".remove-item-btn").forEach(button => {
-        button.onclick = function () {
-            const idx = +button.dataset.idx;
-            removeFromMenu(idx);
-        };
-    });
 }
 
 function removeFromMenu(index) {
@@ -301,16 +348,16 @@ function renderNutritionLabel(profileObject, quantity = 1, isAggregate = false, 
     // Add nutrition facts header
     div.innerHTML = `
         <div class="nutrition-facts-header">
-            ${isAggregate ? 'Menu Total - Nutrition Facts' : 'Nutrition Facts'}
-            ${!isAggregate ? `<button class="remove-item-btn" data-idx="${itemIndex}">Remove</button>` : ''}
-        </div>
-        <div class="item-label-header">
-            <div class="item-name">${profileObject.itemName}</div>
             ${!isAggregate ? `
                 <div class="quantity-controls">
                     <input class="quantity-input" type="number" value="${quantity}" min="1" step="1" data-index="${itemIndex}" style="width:45px">
                 </div>
             ` : ''}
+            <!--${isAggregate ? 'Nutrition Facts' : 'Nutrition Facts'}-->
+            ${!isAggregate ? `<button class="remove-item-btn" data-idx="${itemIndex}">X</button>` : ''}
+        </div>
+        <div class="item-label-header">
+            <div class="item-name">${profileObject.itemName}</div>
         </div>
         <hr class="thick-line">
         <div class="serving-size">Amount Per Serving</div>
@@ -409,7 +456,7 @@ function updateAggregateProfile() {
         }
     });
     aggregateProfile = {
-        itemName: "Menu Total",
+        itemName: "Meal Total",
         sections
     };
 }
@@ -618,29 +665,28 @@ function loadProfile() {
             }
 
             // Event listeners for quantity input
-            document.getElementById('quantity-input').addEventListener('change', (e) => {
-                const quantity = parseFloat(e.target.value) || 1;
-                updateNutritionLabel(quantity);
-            });
-
-            document.getElementById('decrease-quantity').addEventListener('click', () => {
-                const input = document.getElementById('quantity-input');
-                let quantity = parseFloat(input.value) || 1;
-                if (quantity > 1) {
-                    quantity--;
+            document.addEventListener('change', (e) => {
+                if (e.target && e.target.id === 'quantity-input') {
+                    const quantity = parseFloat(e.target.value) || 1;
+                    updateNutritionLabel(quantity);
+                }
+                if (e.target && e.target.id === 'decrease-quantity') {
+                    const input = document.getElementById('quantity-input');
+                    let quantity = parseFloat(input.value) || 1;
+                    if (quantity > 1) {
+                        quantity--;
+                        input.value = quantity;
+                        updateNutritionLabel(quantity);
+                    }
+                }
+                if (e.target && e.target.id === 'increase-quantity') {
+                    const input = document.getElementById('quantity-input');
+                    let quantity = parseFloat(input.value) || 1;
+                    quantity++;
                     input.value = quantity;
                     updateNutritionLabel(quantity);
                 }
             });
-
-            document.getElementById('increase-quantity').addEventListener('click', () => {
-                const input = document.getElementById('quantity-input');
-                let quantity = parseFloat(input.value) || 1;
-                quantity++;
-                input.value = quantity;
-                updateNutritionLabel(quantity);
-            });
-
             // Initial population - HTML
             populateNutritionLabel(profileObject);
             
