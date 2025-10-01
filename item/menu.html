@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-<title>Nutrition Menu</title>
+<title>Nutritious Meal Planner</title>
 <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -16,6 +16,23 @@
 <script type="text/javascript" src="js/label.js"></script>
 
 <style>
+.aggregate {
+  float:right;
+  min-width:260px;
+  margin-left:20px;
+}
+.all-menu-items {
+  overflow:auto;
+  padding: 0px;
+  margin: 0px;
+}
+.menu-label {
+  min-width: 220px;
+  max-width: 250px;
+  float: left;
+  padding: 0px;
+  margin: 0px;
+}
 </style>
 
 <script>
@@ -25,10 +42,10 @@ loadMarkdown("README.md", "readmeDiv", "_parent");
 </head>
 
 <body>
-<div class="content contentpadding large-list">
+<div class="content contentpadding large-list" style="max-width: 1500px;">
   <p><a href="index.html">Back</a></p>
 
-  <h1>Nutrition Menu Builder</h1>
+  <h1>Nutritious Meal Planner</h1>
 
   <div style="overflow: auto;">
     <div id="usda-search-div"></div>

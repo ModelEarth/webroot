@@ -2,7 +2,7 @@
 
 # Profile YAML and JS
 
-**What's New:** <a href="menu.html">Nutrition Menu Builder</a>
+**What's New:** <a href="menu.html">Nutritious Meal Planner</a>
 
 Toggle between [Nutrition Layout](#layout=nutrition) and [Product Layout](#layout=product)
 

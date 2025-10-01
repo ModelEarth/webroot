@@ -46,7 +46,7 @@ function addUSDASearchBar() {
             <button id="usda-clear-button">Clear Results</button>
         `;
     }
-    document.addEventListener('change', (e) => {
+    document.addEventListener('click', (e) => {
         if (e.target && e.target.id === 'usda-search-button') {
             const query = document.getElementById("usda-search-input").value.trim();
             searchUSDAFood(query);
@@ -289,11 +289,13 @@ function renderMenuLabels() {
     const container = document.getElementById("menu-container");
     if (container) {
         container.innerHTML = "";
+        
         // Only show aggregate if there are menu items
         if (menuItems.length > 0) {
             updateAggregateProfile();
             container.appendChild(renderNutritionLabel(aggregateProfile, 1, true));
         }
+
         // Create a single container div for all menu items
         const allItemsContainer = document.createElement("div");
         allItemsContainer.classList.add("all-menu-items");
@@ -346,16 +348,16 @@ function renderNutritionLabel(profileObject, quantity = 1, isAggregate = false, 
     // Add nutrition facts header
     div.innerHTML = `
         <div class="nutrition-facts-header">
-            ${isAggregate ? 'Menu Total - Nutrition Facts' : 'Nutrition Facts'}
-            ${!isAggregate ? `<button class="remove-item-btn" data-idx="${itemIndex}">Remove</button>` : ''}
-        </div>
-        <div class="item-label-header">
-            <div class="item-name">${profileObject.itemName}</div>
             ${!isAggregate ? `
                 <div class="quantity-controls">
                     <input class="quantity-input" type="number" value="${quantity}" min="1" step="1" data-index="${itemIndex}" style="width:45px">
                 </div>
             ` : ''}
+            <!--${isAggregate ? 'Nutrition Facts' : 'Nutrition Facts'}-->
+            ${!isAggregate ? `<button class="remove-item-btn" data-idx="${itemIndex}">X</button>` : ''}
+        </div>
+        <div class="item-label-header">
+            <div class="item-name">${profileObject.itemName}</div>
         </div>
         <hr class="thick-line">
         <div class="serving-size">Amount Per Serving</div>
@@ -454,7 +456,7 @@ function updateAggregateProfile() {
         }
     });
     aggregateProfile = {
-        itemName: "Menu Total",
+        itemName: "Meal Total",
         sections
     };
 }
