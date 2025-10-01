@@ -103,7 +103,6 @@ input[type=number]::-webkit-outer-spin-button {
     margin-bottom: 20px;
     padding: 10px;
     border: 1px solid #ccc;
-    background-color: #f9f9f9;
 }
 
 #usda-search-input {
@@ -126,7 +125,6 @@ input[type=number]::-webkit-outer-spin-button {
     margin: 10px 0;
     font-family: Arial, sans-serif;
     max-width: 400px;
-    background-color: white;
 }
 
 .nutrition-facts-header {
@@ -142,16 +140,10 @@ input[type=number]::-webkit-outer-spin-button {
     margin: 2px 0;
 }
 
-.nutrition-label.aggregate {
-    background-color: #f0f8ff;
-    border: 2px solid #007acc;
-}
-
 .menu-label {
     margin: 20px 0;
     padding: 10px;
     border: 1px solid #ddd;
-    background-color: #fafafa;
 }
 
 .menu-label h4 {
@@ -181,7 +173,6 @@ input[type=number]::-webkit-outer-spin-button {
     margin: 20px 20px 20px 0;
     padding: 15px;
     border: 1px solid #ddd;
-    background-color: #f8f9fa;
     border-radius: 5px;
 }
 
@@ -193,7 +184,6 @@ input[type=number]::-webkit-outer-spin-button {
 
 #search-results-container h3 {
     margin: 0 0 15px 0;
-    color: #333;
     font-size: 1.2em;
 }
 
@@ -204,7 +194,6 @@ input[type=number]::-webkit-outer-spin-button {
     padding: 10px;
     margin: 5px 0;
     border: 1px solid #ccc;
-    background-color: white;
     border-radius: 3px;
     transition: background-color 0.2s;
 }
@@ -262,7 +251,6 @@ input[type=number]::-webkit-outer-spin-button {
     border-radius: 3px;
     cursor: pointer;
     font-size: 0.8em;
-    /* position: absolute; */
     top: 5px;
     right: 5px;
     z-index: 10;
@@ -308,6 +296,27 @@ input[type=number]::-webkit-outer-spin-button {
     border: 2px solid #333;
     padding: 15px;
     margin: 20px 0;
-    background-color: #f8f9fa;
     border-radius: 5px;
+}
+
+.dark .all-menu-items {
+  border: 2px solid #666;
+}
+
+.dark .food-info {
+  & strong, small {
+    color: #eee;
+  }
+}
+
+.dark .search-result-item {
+  border: 1px solid #666;
+
+  &:hover {
+    background-color: #444;
+  }
+}
+
+.dark #search-results-container, #usda-search-div {
+  border: 1px solid #666;
 }
