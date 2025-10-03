@@ -1516,7 +1516,7 @@
                 console.log('Loading US state data for:', statesToLoad);
                 console.log('Using USEEIO source:', isLocalAvailable ? 'local' : 'GitHub');
                 
-                // Process states in batches (similar to useeio.js/footprint/states.html)
+                // Process states in batches (similar to profile/footprint/states.html)
                 for (let i = 0; i < statesToLoad.length; i += batchSize) {
                     const batch = statesToLoad.slice(i, i + batchSize);
                     console.log(`Processing batch ${Math.floor(i/batchSize) + 1}:`, batch);
