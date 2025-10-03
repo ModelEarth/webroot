@@ -34,7 +34,7 @@
   <p id="info">Loading ...</p>
   <div id="table" style="clear:both"></div>
 
-  <!-- Heatmap removed -->
+  
   
   <!-- Matrix and Data Sources Section -->
   <div id="matrixSection" style="margin-top: 40px; display: none;">
@@ -534,8 +534,42 @@ function displayTable() {
   
   const columns = [
     { title: "Indicator", field: "indicator", widthGrow: 2 },
-    { title: "Direct", field: "direct", formatter: "progress", sorter: "number", headerSortTristate: false, headerSortStartingDir: "desc", minWidth: 160 },
-    { title: "Total", field: "total", formatter: "progress", sorter: "number", minWidth: 160 },
+    // Custom progress formatter: color by sign of underlying (un-normalized) value
+    { title: "Direct", field: "direct", sorter: "number", headerSortTristate: false, headerSortStartingDir: "desc", minWidth: 160,
+      formatter: function(cell){
+        try{
+          const val = Number(cell.getValue()) || 0;
+          const row = cell.getRow().getData() || {};
+          const pct = Math.max(0, Math.min(100, val));
+          // Determine whether this indicator is a positive benefit (jobs, value added, wages, income)
+          const name = (row.indicator || '').toString();
+          const positiveKeywords = [/jobs?/i, /value\s*added/i, /value-added/i, /employment/i, /wage/i, /income/i];
+          const isPositive = positiveKeywords.some(rx => rx.test(name));
+          const color = isPositive ? '#4caf50' : '#ff9800'; // green for positive, orange for negative impacts
+          // outer wrapper is transparent so no gray rectangle shows beneath the bar
+          return `<div style="height:16px"><div style="width:${pct}%;height:100%;background:${color};border-radius:6px;"></div></div>`;
+        }catch(e){
+          return '';
+        }
+      }
+    },
+    { title: "Total", field: "total", sorter: "number", minWidth: 160,
+      formatter: function(cell){
+        try{
+          const val = Number(cell.getValue()) || 0;
+          const row = cell.getRow().getData() || {};
+          const pct = Math.max(0, Math.min(100, val));
+          const name = (row.indicator || '').toString();
+          const positiveKeywords = [/jobs?/i, /value\s*added/i, /value-added/i, /employment/i, /wage/i, /income/i];
+          const isPositive = positiveKeywords.some(rx => rx.test(name));
+          const color = isPositive ? '#4caf50' : '#ff9800';
+          // outer wrapper is transparent so no gray rectangle shows beneath the bar
+          return `<div style="height:16px"><div style="width:${pct}%;height:100%;background:${color};border-radius:6px;"></div></div>`;
+        }catch(e){
+          return '';
+        }
+      }
+    },
     {
       title: "Direct",
       field: formatType === "simple" ? "directValueEasy" : "directValue",
@@ -601,7 +635,7 @@ function displayTable() {
     ]
   });
 
-  // After table is created, render the heatmap based on the table data
+  
 }
 
 
