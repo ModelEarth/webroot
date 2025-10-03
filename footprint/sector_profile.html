@@ -89,54 +89,38 @@ async function getRandomSector() {
 async function main() {
   let hash = getHash();
   try { console.log('[sector_profile] entering main, hash=', JSON.stringify(hash)); } catch (e) {}
-  // One-time session-only default: add geoview=country to URL on first load
+  // Ensure geoview=country is present on every page load (merge with existing tokens)
   try {
-    if (!hash.geoview && !sessionStorage.getItem('sector_profile_geoview_set')) {
-      sessionStorage.setItem('sector_profile_geoview_set', '1');
-      // Use updateHash if available (merges tokens) to avoid overwriting sector/demand
+    if (!hash.geoview) {
+      // Prefer updateHash (merge) to avoid overwriting demand/sector
       if (typeof updateHash === 'function') {
         updateHash({ geoview: 'country' });
-      } else if (typeof goHash === 'function') {
-        // goHash may trigger other handlers; prefer updateHash, fallback to goHash without altering other tokens
-        const existing = getHash();
-        existing.geoview = 'country';
-        goHash(existing);
       } else {
-        // As last resort, set location.hash minimally to include geoview while preserving others
+        // Fallback: merge current hash object and call goHash
         try {
           const current = getHash();
           current.geoview = 'country';
-          let parts = [];
-          for (const k in current) {
-            if (current[k] !== undefined && current[k] !== null && String(current[k]).length > 0) parts.push(encodeURIComponent(k) + '=' + encodeURIComponent(current[k]));
+          if (typeof goHash === 'function') {
+            goHash(current);
+          } else {
+            // Last resort: build a safe location.hash string
+            const parts = [];
+            for (const k in current) {
+              if (current[k] !== undefined && current[k] !== null && String(current[k]).length > 0) {
+                parts.push(encodeURIComponent(k) + '=' + encodeURIComponent(current[k]));
+              }
+            }
+            location.hash = parts.join('&');
           }
-          location.hash = parts.join('&');
-        } catch (e) {}
+        } catch (e) {
+          console.warn('sector_profile: fallback failed to set geoview=country', e);
+        }
       }
       // Refresh local hash reference after mutation
       hash = getHash();
     }
   } catch (e) {
-    console.warn('sector_profile: failed to apply one-time geoview default', e);
-  }
-  // One-time session default: set geoview=country on first load only, without changing sector/demand
-  try {
-    if (!hash.geoview && !sessionStorage.getItem('sector_profile_geoview_set')) {
-      sessionStorage.setItem('sector_profile_geoview_set', '1');
-      // Use updateHash to avoid altering other tokens; this will add geoview=country to the URL
-      if (typeof updateHash === 'function') {
-        updateHash({ geoview: 'country' });
-      } else {
-        // Fallback: directly set location.hash minimally to preserve other tokens
-        const params = getHash();
-        params.geoview = 'country';
-        updateHash && updateHash({ geoview: 'country' });
-      }
-      // refresh local view of the hash
-      hash = getHash();
-    }
-  } catch (err) {
-    console.warn('Failed to apply one-time geoview default', err);
+    console.warn('sector_profile: failed to ensure geoview=country', e);
   }
   if (hash.state) {
     // Append to links at top of page.
