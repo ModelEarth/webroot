@@ -89,6 +89,36 @@ async function getRandomSector() {
 async function main() {
   let hash = getHash();
   try { console.log('[sector_profile] entering main, hash=', JSON.stringify(hash)); } catch (e) {}
+  // One-time session-only default: add geoview=country to URL on first load
+  try {
+    if (!hash.geoview && !sessionStorage.getItem('sector_profile_geoview_set')) {
+      sessionStorage.setItem('sector_profile_geoview_set', '1');
+      // Use updateHash if available (merges tokens) to avoid overwriting sector/demand
+      if (typeof updateHash === 'function') {
+        updateHash({ geoview: 'country' });
+      } else if (typeof goHash === 'function') {
+        // goHash may trigger other handlers; prefer updateHash, fallback to goHash without altering other tokens
+        const existing = getHash();
+        existing.geoview = 'country';
+        goHash(existing);
+      } else {
+        // As last resort, set location.hash minimally to include geoview while preserving others
+        try {
+          const current = getHash();
+          current.geoview = 'country';
+          let parts = [];
+          for (const k in current) {
+            if (current[k] !== undefined && current[k] !== null && String(current[k]).length > 0) parts.push(encodeURIComponent(k) + '=' + encodeURIComponent(current[k]));
+          }
+          location.hash = parts.join('&');
+        } catch (e) {}
+      }
+      // Refresh local hash reference after mutation
+      hash = getHash();
+    }
+  } catch (e) {
+    console.warn('sector_profile: failed to apply one-time geoview default', e);
+  }
   // One-time session default: set geoview=country on first load only, without changing sector/demand
   try {
     if (!hash.geoview && !sessionStorage.getItem('sector_profile_geoview_set')) {
