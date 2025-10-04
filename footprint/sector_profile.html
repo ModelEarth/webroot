@@ -88,6 +88,40 @@ async function getRandomSector() {
 
 async function main() {
   let hash = getHash();
+  try { console.log('[sector_profile] entering main, hash=', JSON.stringify(hash)); } catch (e) {}
+  // Ensure geoview=country is present on every page load (merge with existing tokens)
+  try {
+    if (!hash.geoview) {
+      // Prefer updateHash (merge) to avoid overwriting demand/sector
+      if (typeof updateHash === 'function') {
+        updateHash({ geoview: 'country' });
+      } else {
+        // Fallback: merge current hash object and call goHash
+        try {
+          const current = getHash();
+          current.geoview = 'country';
+          if (typeof goHash === 'function') {
+            goHash(current);
+          } else {
+            // Last resort: build a safe location.hash string
+            const parts = [];
+            for (const k in current) {
+              if (current[k] !== undefined && current[k] !== null && String(current[k]).length > 0) {
+                parts.push(encodeURIComponent(k) + '=' + encodeURIComponent(current[k]));
+              }
+            }
+            location.hash = parts.join('&');
+          }
+        } catch (e) {
+          console.warn('sector_profile: fallback failed to set geoview=country', e);
+        }
+      }
+      // Refresh local hash reference after mutation
+      hash = getHash();
+    }
+  } catch (e) {
+    console.warn('sector_profile: failed to ensure geoview=country', e);
+  }
   if (hash.state) {
     // Append to links at top of page.
     document.getElementById('footprintLink').setAttribute('href', '../state/#state=' + hash.state);
@@ -109,13 +143,16 @@ async function main() {
     // Only include location when it's a non-empty string (avoid appending booleans like 'true')
     const loc = (typeof sector.location === 'string' && sector.location) ? `/${sector.location}` : '';
     hash.demand = `${sector.code}${loc}`;
+    try { console.log('[sector_profile] no demand in hash; setting random demand ->', hash.demand); } catch (e) {}
     updateHash({"demand":hash.demand});
   }
   
   // Handle demand parameter (new format)
   if (hash.demand) {
+    try { console.log('[sector_profile] processing demand ->', hash.demand); } catch (e) {}
     const [code, location] = hash.demand.split("/");
     sector = sectors.find(s => s.code === code && s.location === location);
+    try { console.log('[sector_profile] resolved sector ->', sector ? sector.code + '/' + sector.location : null); } catch (e) {}
   }
   // Handle index parameter (legacy format)
   else if (hash.index) {
@@ -255,7 +292,6 @@ async function loadMatrixData(sector, analysis) {
         matrixTable = new Tabulator("#matrixTable", {
           data: matrixData,
           layout: "fitColumns",
-          width: "100%",
           columns: [
             { title: "Sector Name", field: "sector", widthGrow: 3 },
             { title: "Code", field: "sectorCode", width: 80 },
@@ -400,13 +436,17 @@ async function loadDataSources(sector) {
     
     dataSourcesInfo.innerHTML = `Data sources and methodology for sector: <strong>${sector.name}</strong> (${modelName})`;
     
-    // Get model metadata
-    let metadata;
-    try {
-      metadata = await model.metadata();
-    } catch (e) {
-      console.warn('Could not load metadata:', e);
-      metadata = { version: modelName };
+    // Get model metadata (guard against models that don't expose metadata())
+    let metadata = { version: modelName };
+    if (model && typeof model.metadata === 'function') {
+      try {
+        metadata = await model.metadata();
+      } catch (e) {
+        console.warn('Could not load metadata:', e);
+        // leave fallback metadata in place
+      }
+    } else {
+      console.log('model.metadata() not available; using fallback metadata');
     }
     
     // Get indicators and demands to show what data is actually used
@@ -490,7 +530,6 @@ async function loadDataSources(sector) {
     new Tabulator("#dataSourcesTable", {
       data: dataSourcesData,
       layout: "fitColumns",
-      width: "100%",
       columns: [
         { title: "Dataset", field: "dataset", width: 180 },
         { title: "Description", field: "description", widthGrow: 2 },
@@ -628,7 +667,6 @@ function displayTable() {
   mainTable = new Tabulator("#table", {
     data: tableData,
     layout: "fitColumns",
-    width: "100%",
     columns: columns,
     initialSort: [
       { column: "total", dir: "desc" },
