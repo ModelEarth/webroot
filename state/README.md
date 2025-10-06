@@ -1,6 +1,7 @@
 # US State Reports<!-- ScoreCards -->
 
-View reports via the links to the left. We have a [new chord and sankey display](../footprint/sector_supply_impacts.html).
+View reports via the links to the left. We have a [new chord and sankey display](../footprint/sector_supply_impacts.html).  
+A new CO2e column has been added to the [commodities report](../footprint/commodities.html).
 
 <!--
 Contributors: Sunny (toggle for scietific notation), Laksh (TS build debugging, Sector Profile)
@@ -68,11 +69,7 @@ Send specific questions to USEEIO@epa.gov
 
 ## Build for new State Models
 
-On Sept 15, 2024 - Laksh and Anubhav fixed the [tslib error](https://github.com/USEPA/useeio.js/issues/2) in the npm build which resulted in a new dist/useeio.js and dist/useeio.min.js files.
-
-We're not sure if the fix will now get the new state models working.
-
-If the useeio_widgets.js file doesn't change we'll need to figure out what needs to be done for the new 50 state model structure.
+On Sept 15, 2024 - Laksh and Anubhav fixed the [tslib error](https://github.com/USEPA/useeio.js/issues/2) in the npm build which resulted in a new dist/useeio.js and dist/useeio.min.js files. We're not sure if the fix will now get the new state models working with the prior [React IO charts](../../io/charts/). If the useeio_widgets.js file remains unchanged after the tslib error fix, we'll need to figure out what needs to be done for the new 50 state model structure.
 
 
 1. Fork the useeio-widgets repo (Have Loren sync with the parent USEPA repo.)
