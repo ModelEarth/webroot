@@ -1,0 +1,320 @@
+#item-label {
+  font-family: Arial, sans-serif;
+  border: 1px solid #000;
+  padding: 10px;
+  max-width: 300px;
+}
+
+.item-label-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+}
+
+.quantity-controls button {
+  background-color: #eee;
+  border: 1px solid #ccc;
+  width: 20px;
+  height: 20px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.quantity-controls input {
+  width: 40px;
+  text-align: center;
+  margin: 0 5px;
+}
+
+.item-name {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.thick-line {
+  border-top: 8px solid black;
+}
+
+.thin-line {
+  border-top: 1px solid black;
+  margin: 4px 0;
+}
+
+.serving-size {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.section-title, .sub-section {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 12px;
+  line-height: 11px;
+}
+
+.sub-section {
+  margin-left: 15px;
+}
+
+.extra-indent {
+  margin-left: 30px;
+}
+
+.daily-value {
+  text-align: right;
+}
+
+.footer {
+  font-size: 0.9em;
+  margin-top: 10px;
+}
+
+.disclaimer {
+  margin-bottom: 5px;
+  font-size: 0.9em;
+  line-height: 1em;
+}
+
+.ingredients {
+  font-weight: normal;
+}
+
+input[type=number] {
+    -webkit-appearance: textfield; /* Ensure the textfield appearance is used */
+    appearance: textfield; /* Standard property */
+    position: relative; /* This might help retain arrow visibility */
+}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    opacity: 1; /* Force visibility */
+    display: inline-block; /* Make sure they display */
+}
+
+/* USDA Search and Menu Styles */
+#usda-search-div {
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+#usda-search-input {
+    padding: 5px;
+    border: 1px solid #ccc;
+    margin-right: 10px;
+}
+
+#usda-search-button {
+    padding: 6px 12px;
+    background-color: #007acc;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.nutrition-label {
+    border: 1px solid #000;
+    padding: 10px;
+    font-family: Arial, sans-serif;
+    max-width: 400px;
+}
+
+.nutrition-facts-header {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nutrition-section {
+    margin: 2px 0;
+}
+
+.menu-label {
+    margin: 20px 0;
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+.menu-label h4 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.decrease-qty, .increase-qty {
+    background-color: #eee;
+    border: 1px solid #ccc;
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+    margin: 0 5px;
+}
+
+.qty-input {
+    text-align: center;
+    width: 50px;
+    padding: 2px;
+}
+
+/* Search Results Styling */
+#search-results-container {
+    float: left;
+    width: 380px;
+    margin: 20px 20px 20px 0;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+#menu-container {
+    padding: 20px 0;
+    overflow:auto;
+}
+
+#search-results-container h3 {
+    margin: 0 0 15px 0;
+    font-size: 1.2em;
+}
+
+.search-result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+}
+
+.search-result-item:hover {
+    background-color: #f0f8ff;
+}
+
+.food-info {
+    flex: 1;
+}
+
+.food-info strong {
+    color: #333;
+    font-size: 1em;
+}
+
+.food-info small {
+    color: #666;
+    display: block;
+    margin-top: 2px;
+}
+
+.add-to-menu-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.add-to-menu-btn:hover {
+    background-color: #218838;
+}
+
+.add-to-menu-btn:active {
+    background-color: #1e7e34;
+}
+
+/* Menu Item Styling */
+.menu-item-header {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.remove-item-btn {
+    background-color: #555;
+    color: white;
+    border: none;
+    padding: 3px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8em;
+    top: 5px;
+    right: 5px;
+    z-index: 10;
+}
+
+.remove-item-btn:hover {
+    background-color: #c82333;
+}
+
+.menu-label {
+    position: relative;
+    margin: 10px 0;
+    padding-top: 10px;
+    border: none;
+}
+
+.quantity-controls {
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.quantity-controls button {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 3px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quantity-controls button:hover {
+    background-color: #5a6268;
+}
+
+/* Container for all menu items */
+.all-menu-items {
+    border: 2px solid #333;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 5px;
+}
+
+.dark .all-menu-items {
+  border: 2px solid #666;
+}
+
+.dark .food-info {
+  & strong, small {
+    color: #eee;
+  }
+}
+
+.dark .search-result-item {
+  border: 1px solid #666;
+
+  &:hover {
+    background-color: #444;
+  }
+}
+
+.dark #search-results-container, #usda-search-div {
+  border: 1px solid #666;
+}

@@ -1,150 +1,217 @@
 <!DOCTYPE html>
 <html lang="en-us">
 <head>
-<meta charset="utf-8">
-<meta http-equiv="content-type" content="text/html; charset=UTF-8">
-<title>Webroot</title>
-<link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link type="text/css" rel="stylesheet" href="localsite/css/base.css" id="/localsite/css/base.css" />
-<link type="text/css" rel="stylesheet" href="team/css/common.css" />
-<script type="text/javascript" src="localsite/js/localsite.js?showheader=true&showsearch=true"></script>
-<script type="text/javascript" src="team/js/common.js"></script>
-<script type="text/javascript" src="team/js/setup.js"></script>
-
-
 <script>
-// Create OS detection panel using shared function
-autoCreateOSDetectionPanel('#commonSetupDiv');
-
-loadMarkdown("README.md", "readmeDiv", "_parent", 1, function() {
-    // https://partnertools.github.io/webroot/
-    // Process content after README loads into #readmeDiv
-
-    let currentPath = window.location.href;
-    let myRepo = "PartnerTools"; // Default
-    
-    // Extract GitHub account from URL if available
-    // Pattern: https://[account].github.io/webroot/ or similar GitHub Pages patterns
-    const githubPagesMatch = currentPath.match(/\/\/([^.]+)\.github\.io/);
-    if (githubPagesMatch && githubPagesMatch[1]) {
-        myRepo = githubPagesMatch[1];
-    } else if (currentPath.includes("localhost") || currentPath.includes("model.earth")) {
-        myRepo = "modelearth";
+    if (location.host.indexOf("democracylab") >= 0) {
+        window.location="preferences";
     }
-    
-    let linkString = "<a href='https://github.com/" + myRepo + "/webroot/' target='github_fork'>github.com/" + myRepo + "/webroot</a>";
-    
-    // Replace "the webroot repo" with linkString in the #textInPage div
-    setTimeout(() => {
-        const textInPage = document.getElementById('textInPage');
-        if (textInPage) {
-            // Preserve field values before innerHTML replacement
-            const gitAccountField = document.getElementById("gitAccount");
-            const myWebrootForkNameField = document.getElementById("myWebrootForkName");
-            const gitAccountValue = gitAccountField ? gitAccountField.value : '';
-            const myWebrootForkNameValue = myWebrootForkNameField ? myWebrootForkNameField.value : '';
-            
-            // Replace the content
-            textInPage.innerHTML = textInPage.innerHTML.replace(/the webroot repo/g, linkString);
-            
-            // Restore field values after replacement
-            const newGitAccountField = document.getElementById("gitAccount");
-            const newMyWebrootForkNameField = document.getElementById("myWebrootForkName");
-            if (newGitAccountField && gitAccountValue) {
-                newGitAccountField.value = gitAccountValue;
-            }
-            if (newMyWebrootForkNameField && myWebrootForkNameValue) {
-                newMyWebrootForkNameField.value = myWebrootForkNameValue;
-            }
-            
-            // Fields will be initialized when setupGitAccountFields is called later
-        }
-    }, 100);
-    
-    // Setup webroot setup content and Git account fields after content processing
-    setTimeout(() => {
-        setupWebrootSetup('webrootSetup');
-        setupGitAccountFields('textInPage');
-        setupTradeFlowRepos('tradeFlowRepos');
-        setupBackendInfo('backendInfo');
-        // Load deploy.md into deployDiv
-        loadMarkdown("deploy.md", "deployDiv", "_parent", 1);
-        // Update fork repos commands after README loads and fields are setup
-        setTimeout(() => {
-            updateForkReposCommands();
-        }, 100);
-    }, 200);
-    
-    // Process webroot path and port adjustments in #readmeDiv after README loads
-    //setTimeout(() => {
-        const readmeDiv = document.getElementById('readmeDiv');
-        if (readmeDiv) {
-            let content = readmeDiv.innerHTML;
-            
-            // Detect current port from window.location
-            const currentPort = window.location.port;
-            const hasExplicitPort = currentPort !== '';
-            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            
-            // Detect webroot folder from current path
-            const currentPathname = window.location.pathname;
-            const pathSegments = currentPathname.split('/').filter(segment => segment);
-            
-            // Check if we're in a webroot container (has a parent folder) and on localhost
-            let webrootFolder = '';
-            if (pathSegments.length > 0 && isLocalhost) {
-                // Only use webroot folder for localhost URLs with explicit ports
-                if (hasExplicitPort) {
-                    webrootFolder = pathSegments[0];
-                }
-            }
-            
-            // Replace localhost:8887 with current port if different and port is explicitly in URL
-            if (hasExplicitPort && currentPort !== '8887') {
-                content = content.replace(/localhost:8887/g, `localhost:${currentPort}`);
-                
-                // Add port notice at the top
-                const portNotice = `<div style="background-color: #e7f3ff; border: 1px solid #b3d9ff; padding: 10px; margin-bottom: 15px; border-radius: 5px;"><strong>Your current port ${currentPort} has been used to replace 8887 in the display below.</strong></div>`;
-                content = portNotice + content;
-            }
-            
-            // If we're in a webroot folder on localhost with explicit port, insert it after "localhost:port/"
-            if (webrootFolder) {
-                const portPattern = new RegExp(`localhost:${currentPort || '8887'}/`, 'g');
-                content = content.replace(portPattern, `localhost:${currentPort || '8887'}/${webrootFolder}/`);
-                
-                // Populate the #myWebrootForkName field if webroot folder is detected and different from "webroot"
-                if (webrootFolder !== "webroot") {
-                    setTimeout(() => {
-                        const webrootForkNameField = document.getElementById("myWebrootForkName");
-                        if (webrootForkNameField && !webrootForkNameField.value) {
-                            webrootForkNameField.value = webrootFolder;
-                            updateGitAccountFields(); // Update storage and links
-                        }
-                    }, 100);
-                }
-            }
-            
-            readmeDiv.innerHTML = content;
-        }
-    //}, 200);
-});
-
 </script>
 
+<meta charset="utf-8">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>Profile Tools</title>
+<link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- For menu.js -->
+<link type="text/css" href="../localsite/css/base.css" rel="stylesheet" id="/localsite/css/base.css" />
+<script type="text/javascript" src="../localsite/js/jquery.min.js" id="/localsite/js/jquery.min.js"></script>
+<script type="text/javascript" src="../localsite/js/localsite.js?showheader=true&showsearch=true"></script>
+
+<!-- Side Nav -->
+<link rel="stylesheet" href="../localsite/css/nav.css">
+<script src="../localsite/js/nav.js"></script>
+
+<script>
+loadMarkdown("prep/README.md", "readmeDiv", "_parent");
+loadMarkdown("sources.md", "sourcesDiv", "_parent");
+loadMarkdown("processes.md", "processesDiv", "_parent");
+loadMarkdown("play.md", "playDiv", "_parent");
+loadMarkdown("menu.md", "menuDiv", "_parent");
+loadMarkdown("/io/coders/api.md", "apiDiv", "_parent");
+</script>
+
+<style>
+h2 {
+    font-size: 32px;
+    padding-top: 20px;
+    font-weight: 300;
+    font-family: "Amaze", "Helvetica Neue", Helvetica, "Lato", sans-serif;
+}
+.headerImage{
+    display: none;
+}
+#main-container {
+    backgroundX: #fafafa;
+}
+.gobutton {
+    margin: 0px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 18px;
+    padding: 14px 12px 15px 12px;
+    min-height: 38px;
+    color: #fff;
+    box-sizing: border-box;
+    background: #555;
+    height: 48px;
+    text-decoration: none;
+}
+.resultsHolder {
+    background: rgba(33,33,33,0.95);
+    color: #fff;
+    padding: 10px 20px 10px 20px;
+    font-size: 18px;
+    border-radius: 5px;
+    margin-bottom: 8px;
+    line-height: 26px;
+}
+.txtbox {
+    position: relative;
+    overflow: hidden;
+    outline: none;
+    width: 100%;
+    max-width: 190px;
+    padding: 0 20px;
+    height: 48px;
+    line-height: 60px;
+    font-size: 24px;
+    color: #777;
+    border: solid 1px #b7b7b7;
+    border-radius: 5px;
+    margin-right: 7px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    float: left;
+}
+@media (max-width: 1200px) {
+    #rightcolumn {
+        display:none;
+    }
+}
+.popout {
+    border: 1px solid #ccc;
+    padding: 30px;
+    width:100%;
+    background:#eee;
+}
+.popout > h3 {
+    margin-top:0px;
+}
+
+/* not yet working in widget bucket */
+ol > li:before {
+    border-radius:20px;
+    background: red;
+}
+ol > li {
+    colorX: blue;
+}
+.hideOnProjectsPage {
+    display: none;
+}
+.projectsPage {
+    display: block !important;
+}
+.sideMenuColumn {
+  width: auto !important;
+}
+.dark .menuBuddyRight {
+    background: #222 !important;
+}
+</style>
 </head>
 
 <body>
+
 <div class="content contentpadding">
-    <div class="card" id="textInPage">
-      <div id="webrootSetup"></div>
+
+<div style="margin:0px 30px 30px 30px">
+    <div id="readmeDiv"></div>
+
+    <h2>Development</h2>
+
+    <div style="float:left; width:33%">
+      <div id="playDiv"></div>
     </div>
-    <div id="commonSetupDiv"></div>
-    <div id="readmeDiv" class="card"></div>
-    <div class="card" id="tradeFlowRepos"></div>
-    <div class="card" id="backendInfo"></div>
-    <div class="card" id="deployDiv"></div>
+    <div style="float:left; padding-right:30px; width:33%">
+      <div id="sourcesDiv"></div>
+    </div>
+    <div style="float:left; padding-right:30px; width:33%">
+      <div id="processesDiv"></div>
+    </div>
+    
+    <div style="clear:both"></div>
 </div>
+
+<!--
+Cement is about 50% of state product listings, so we store cement profiles separately in the [cement folder](https://github.com/ModelEarth/profile/tree/main/cement/).
+-->
+
+
+
+  <!-- Also update community/projects -->
+  <!-- Profile -->
+    <section id="widgets">
+    <div class="pagecard">
+        <div class="cardstyle rowX" style="padding:0px">
+          <!-- background-color:#eee; background-color:#f5fafb; -->
+          <div class="table-cell sideMenuColumn" style="padding-top:30px;">
+                <!-- style="width:150px" -->
+                
+                <div id="scopeMenu"></div>
+                <!--
+                <link type="text/css" rel="stylesheet" href="/localsite/css/menu.css" id="/localsite/css/menu.css" />
+                -->
+                <script type="text/javascript" src="/localsite/js/menu.js" id="/localsite/js/menu.js"></script>
+
+                <script>
+                scopeMenu={};
+                scopeMenu.current = "Special"
+                scopeMenu.layerJson = "/localsite/info/data/scope-menu.json";
+                scopeMenu.revealButton = "#showScope"
+                scopeMenu.menuDiv = "#scopeMenu";
+                initMenu(scopeMenu);
+                </script>
+    
+          </div>
+          <div class="table-cell menuBuddy" style="padding-top:18px;padding-left:8px;padding-right:18px">
+              <div id="widgetsDiv" style="padding:0 40px"></div>
+              <div id="menuDiv"></div>
+          </div>
+          <div class="table-cell menuBuddyRight" style="padding:20px; padding-top:30px; min-width:350px;max-width:400px;background-color: #f5fafb;">
+                <div style="text-align: center;">
+                    <div style="display:inline-block; background-color:#ddd; border-radius:100px; width:200px; height:200px">&nbsp;</div>
+                    <h1 style="margin:0px; padding:0px">Product Profile</h1>
+                    <h5 style="margin:0px; padding:0px">Nutrition and Environmental Impacts</h5>
+                    <br>
+                    <!-- YAML TO HTML -->
+                    Latest label in our <a href="/profile/item/">Profile YAML Object</a>.
+                    <br>
+                </div>
+
+                <!--
+                <div style="padding:0 20px;">
+                The label above is formated in HTML on our <a href="../../io/template/">Environmental Impact Profiles page</a>.
+                </div>
+                -->
+
+          </div>
+        </div>
+    </div>
+    </section>
+
+    <div id="apiDiv"></div>
+
+    <p class="section-subtitle">Mockups:</p>
+    <p>
+        <a href="../team/preferences/preferences.html">Project Preferences - Prototype</a><br>
+        <a href="preferences/projects">Project Details - US DFC Funded Projects - Prototype</a><br>
+        <a href="preferences/manager.html">Preferences Manager - Prototype</a><br>
+    </p>
+
+  </div>
+</div>
+
 </body>
 </html>
