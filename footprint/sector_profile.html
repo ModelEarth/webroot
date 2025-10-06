@@ -21,8 +21,8 @@
 <div class="content contentpadding">
   <div style="margin-bottom: 10px; float:right"><select id="number-format-select"></select></div>
   <div style="margin-bottom: 10px; float:right"><select id="locale-select"></select></div>
-  <div style="margin-bottom: 10px; float:right; margin-right:8px">
-    <label style="font-size:13px;white-space:nowrap">Show: <select id="impact-filter-select"><option value="negative" selected>Negative Impacts</option><option value="positive">Positive Impacts</option><option value="all">All Impacts</option></select></label>
+  <div style="margin-bottom: 10px; float:right;">
+    <label style="font-size:13px;white-space:nowrap"><select id="impact-filter-select"><option value="all">All Impacts</option><option value="negative">Negative Impacts</option><option value="positive">Positive Impacts</option></select></label>
   </div>
   
   <div style="margin-bottom:10px">
@@ -88,6 +88,8 @@ async function getRandomSector() {
 
 async function main() {
   let hash = getHash();
+
+  /* TO DELETE
   try { console.log('[sector_profile] entering main, hash=', JSON.stringify(hash)); } catch (e) {}
   // Ensure geoview=country is present on every page load (merge with existing tokens)
   try {
@@ -122,6 +124,8 @@ async function main() {
   } catch (e) {
     console.warn('sector_profile: failed to ensure geoview=country', e);
   }
+  */
+
   if (hash.state) {
     // Append to links at top of page.
     document.getElementById('footprintLink').setAttribute('href', '../state/#state=' + hash.state);
