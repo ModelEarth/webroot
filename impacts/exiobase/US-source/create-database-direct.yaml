@@ -1,0 +1,141 @@
+# This is not exact.
+# Sync with names used in "year" folder here: https://github.com/ModelEarth/exiobase/tree/main/tradeflow
+
+factors:
+  index: factor_id
+  indextype: 1-based
+  columns:
+    factor_id: (1,2,3,...)
+    flow: FlowUUID
+    name: Flowable
+    unit: Unit
+    context: Context
+
+industries:
+  columns:
+    industry_id: Sector (5-char sectors)
+    name: SectorName
+
+industry_factor:
+  similar: US_summary_import_factors_exiobase_2019_17sch.csv
+  index: industry_id, factor_id
+  indextype: foreign key
+  columns:
+    industry_id: Sector
+    factor_id: factor_id
+    flow: FlowUUID
+    amount: FlowAmount
+  omit:
+    - Year
+    - Unit
+    - ReferenceCurrency
+    - PriceType
+    - Flowable
+    - Context
+    - BaseIOLevel
+
+regions:
+  region_id: (the CountryCode)
+  name:
+
+commodityies:
+  commodity_id: Sector (6-char sectors)
+  commodity_name: SectorName
+
+commodity_factor:
+  similar: US_detail_import_factors_exiobase_2019_17sch.csv - EPA File
+  index: commodity_id, factor_id
+  indextype: 1-based
+  columns:
+    year: Year
+    commodity_id: Sector
+    factor_id: factor_id
+    flow: FlowUUID (to be removed later)
+    amount: FlowAmount
+  omit:
+    - Unit
+    - ReferenceCurrency
+    - PriceType
+    - Flowable
+    - Context
+    - BaseIOLevel
+
+industry_importfactor:
+  similar: Regional_summary_import_factors_exiobase_2019_17sch.csv - - EPA File
+  foreign key: year, region_id, industry_id, factor_id
+  indextype: 1-based
+  columns:
+    year: Year
+    region_id: Region
+    industry_id: Sector
+    factor_id: factor_id
+    flow: FlowUUID (to be removed later)
+    amount: FlowAmount
+    
+  omit:
+    - Unit
+    - ReferenceCurrency
+    - PriceType
+    - Flowable
+    - Context
+    - BaseIOLevel
+
+importcommodity_factor:
+  similar: Regional_detail_import_factors_exiobase_2019_17sch.csv
+  index: factor_id
+  indextype: 1-based
+  columns:
+    region_id: Region
+    commodity_id: Sector
+    flow: FlowUUID
+    amount: FlowAmount
+    year: Year
+  omit:
+    - Unit
+    - ReferenceCurrency
+    - PriceType
+    - Flowable
+    - Context
+    - BaseIOLevel
+
+importcontributions:
+  similar: country_contributions_by_sector_2019.csv
+  columns:
+    year: Year
+    CountryCode: CountryCode
+    commodity_id: "BEA_Detail"
+    ImportQuantity: "Import_Quantity"
+    ContributionImportSector: cntry_cntrb_to_national_detail   
+    ContributionImportCommodity: cntry_cntrb_to_region_detail
+    ContributionSector: cntry_cntrb_to_national_summary
+    ContributionCommodity: cntry_cntrb_to_region_summary
+  omit:
+    - Unit
+    - Source
+    - BEA Summary
+    - Region
+
+importmultiplier_factor:
+  similar: multiplier_df_exio_2019_17sch.csv
+  columns:
+    region_id: Region
+    commodity_id: "BEA_Detail"
+    output: Output
+    importquantity: "Import_Quantity"
+    Contribution_import_sector: cntry_cntrb_to_national_detail   
+    Contribution_import_commodity: cntry_cntrb_to_region_detail
+    Contribution_sector: cntry_cntrb_to_national_summary
+    Contribution_commodity: cntry_cntrb_to_region_summary
+    flow: FlowUUID
+    footprint: EF
+  omit:
+    - BaseIOSchema
+    - BEA Summary
+    - Year
+    - Source
+    - Country
+    - Unit
+    - ReferenceCurrency
+    - PriceType
+    - Flowable
+    - Context
