@@ -1,6 +1,9 @@
 [submodule "localsite"]
 	path = localsite
 	url = https://github.com/ModelEarth/localsite
+[submodule "team"]
+	path = team
+	url = https://github.com/ModelEarth/team
 [submodule "feed"]
 	path = feed
 	url = https://github.com/modelearth/feed
@@ -10,30 +13,36 @@
 [submodule "home"]
 	path = home
 	url = https://github.com/ModelEarth/home
-[submodule "products"]
-	path = products
-	url = https://github.com/modelearth/products
-[submodule "comparison"]
-	path = comparison
-	url = https://github.com/modelearth/comparison
-[submodule "team"]
-	path = team
-	url = https://github.com/ModelEarth/team
-[submodule "realitystream"]
-	path = realitystream
-	url = https://github.com/modelearth/realitystream
-[submodule "projects"]
-	path = projects
-	url = https://github.com/modelearth/projects
 [submodule "cloud"]
 	path = cloud
 	url = https://github.com/modelearth/cloud
 [submodule "codechat"]
 	path = codechat
 	url = https://github.com/modelearth/codechat
+[submodule "comparison"]
+	path = comparison
+	url = https://github.com/modelearth/comparison
+[submodule "realitystream"]
+	path = realitystream
+	url = https://github.com/modelearth/realitystream
+[submodule "streamlit"]
+	path = streamlit
+	url = https://github.com/modelearth/streamlit
+[submodule "products"]
+	path = products
+	url = https://github.com/modelearth/products
+[submodule "products-data"]
+	path = products-data
+	url = https://github.com/modelearth/products-data
+[submodule "projects"]
+	path = projects
+	url = https://github.com/modelearth/projects
 [submodule "exiobase"]
 	path = exiobase
 	url = https://github.com/modelearth/exiobase
+[submodule "trade"]
+	path = trade
+	url = https://github.com/modelearth/trade
 [submodule "io"]
 	path = io
 	url = https://github.com/modelearth/io
@@ -46,6 +55,3 @@
 [submodule "community-forecasting"]
 	path = community-forecasting
 	url = https://github.com/modelearth/community-forecasting
-[submodule "products-data"]
-	path = products-data
-	url = https://github.com/modelearth/products-data

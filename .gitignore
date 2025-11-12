@@ -23,10 +23,12 @@ useeio.js
 wiki
 
 # Configuration files
+config
 config/settings.js
 config/keys.json
 config/.env
 settings.local.json
+.claude/settings.local.json
 
 # Auth keys and secrets
 *.key
