@@ -27,7 +27,9 @@
       "Bash(git checkout:*)",
       "Bash(awk:*)",
       "Bash(node:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(rustc:*)",
+      "Bash(cargo check:*)"
     ],
     "deny": [
       "Read(../**)"
