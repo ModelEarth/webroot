@@ -60,6 +60,25 @@ services:
       - webroot-network
     restart: unless-stopped
 
+  cloud-run:
+    build:
+      context: ./cloud/run
+      dockerfile: Dockerfile
+    container_name: webroot-cloud-run
+    working_dir: /app
+    volumes:
+      - ./cloud/run:/app
+    ports:
+      - "8100:8100"
+    environment:
+      - PORT=8100
+      - FLASK_ENV=development
+    env_file:
+      - ./cloud/run/.env
+    networks:
+      - webroot-network
+    restart: unless-stopped
+
 networks:
   webroot-network:
     driver: bridge
