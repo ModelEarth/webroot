@@ -65,9 +65,9 @@ services:
       context: ./cloud/run
       dockerfile: Dockerfile
     container_name: webroot-cloud-run
-    working_dir: /app
+    working_dir: /app/cloud_run
     volumes:
-      - ./cloud/run:/app
+      - ./cloud/run:/app/cloud_run
     ports:
       - "8100:8100"
     environment:
