@@ -6,24 +6,20 @@
 <title>Webroot</title>
 <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <link type="text/css" rel="stylesheet" href="localsite/css/base.css" id="localsite/css/base.css" />
 <link type="text/css" rel="stylesheet" href="team/css/common.css" />
+
 <script>
-  // Dynamic Root Detection: Works for localhost, forks, and main repo
-  var path = window.location.pathname;
-  // Remove "index.html" if it appears in the path
-  if ( path.indexOf(".") > -1 ) {
-      path = path.substring(0, path.lastIndexOf("/") + 1);
-  }
-  // If we are at the server root, path is just "/"
-  window.param = {
-    root: path + "localsite/"
-  };
+  var siteRoot = window.location.pathname.replace("index.html", "");
+  if (!siteRoot.endsWith("/")) siteRoot += "/";
+  window.localsite_root = siteRoot + "localsite/";
 </script>
-  
+
 <script type="text/javascript" src="localsite/js/localsite.js?showheader=true&showsearch=true"></script>
 <script type="text/javascript" src="team/js/common.js"></script>
 <script type="text/javascript" src="team/js/setup.js"></script>
+
 <script>
 // Create OS detection panel using shared function
 autoCreateOSDetectionPanel('#commonSetupDiv');
@@ -66,7 +62,7 @@ loadMarkdown("README.md", "readmeDiv", "_parent", 1, function() {
         setupWebrootSetup('webrootSetup');
         setupGitAccountFields('textInPage');
         setupTradeFlowRepos('tradeFlowRepos');
-        setupGeminiResources();
+        setupGeminiResources('gemini-resources-main');
         setupBackendInfo('backendInfo');
         loadMarkdown("deploy.md", "deployDiv", "_parent", 1);
         setTimeout(() => { updateForkReposCommands(); }, 100);
@@ -123,10 +119,10 @@ loadMarkdown("README.md", "readmeDiv", "_parent", 1, function() {
     <div id="commonSetupDiv"></div>
     <div id="readmeDiv" class="card"></div>
     <div class="card" id="tradeFlowRepos"></div>
+    <div id="gemini-resources-main"></div>
     <div class="card" id="backendInfo"></div>
     <div class="card" id="deployDiv"></div>
 
-    <!-- Natural-language search -->
     <div id="nl-search-wrapper" style="display:none; margin-top:12px;">
       <label for="nl-search-input" style="display:block;margin-bottom:6px;">Natural language search (Gemini + Claude)</label>
       <div style="display:flex;gap:8px;">
@@ -155,12 +151,10 @@ loadMarkdown("README.md", "readmeDiv", "_parent", 1, function() {
       }
 
       var queue = [];
-      // Fixed: Removed starting "/" to support sub-folders
+      // CHANGE 3: Removed starting slash from these two lines
       if (typeof window.apiCall !== 'function') queue.push('team/js/common.js');
-      // projects.js contains AI helpers (queryGeminiAI etc.) used by the team pages
       if (typeof window.setupGeminiIntegration !== 'function' && typeof window.queryGeminiAI !== 'function') queue.push('team/js/projects.js');
 
-      
       function runQueue(){
         if (queue.length === 0) return initNL();
         var src = queue.shift();
