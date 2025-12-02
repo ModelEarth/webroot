@@ -11,13 +11,15 @@
 <link type="text/css" rel="stylesheet" href="team/css/common.css" />
 
 <script>
-  var rootPath = "/webroot-earth/localsite/";
+  // This is the ONLY way to stop the script from stripping your folder name
+  var rootPath = "https://harimayooram.github.io/webroot-earth/localsite/";
+  
   window.param = { root: rootPath };
   window.localsite_root = rootPath;
+  
+  console.log("Forcing Root to:", rootPath);
 </script>
 
-
-    
 <script type="text/javascript" src="/webroot-earth/localsite/js/localsite.js?showheader=true&showsearch=true"></script>
 <script type="text/javascript" src="team/js/common.js"></script>
 <script type="text/javascript" src="team/js/setup.js"></script>
