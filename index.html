@@ -14,7 +14,7 @@
   var rootPath = "https://harimayooram.github.io/webroot-earth/localsite/";
   window.param = { root: rootPath };
   window.localsite_root = rootPath;
-  console.log("Configured Root:", rootPath);
+  console.log("FINAL CONFIG: " + rootPath);
 </script>
 
 <script type="text/javascript" src="localsite/js/localsite.js?showheader=true&showsearch=true"></script>
@@ -28,6 +28,7 @@ loadMarkdown("README.md", "readmeDiv", "_parent", 1, function() {
     let currentPath = window.location.href;
     let myRepo = "PartnerTools";
 
+    // Detect repo name for links
     const githubPagesMatch = currentPath.match(/\/\/([^.]+)\.github\.io\/([^/]+)/);
     if (githubPagesMatch && githubPagesMatch[2]) {
         myRepo = githubPagesMatch[2]; 
@@ -101,7 +102,7 @@ loadMarkdown("README.md", "readmeDiv", "_parent", 1, function() {
       }
 
       var queue = [];
-      // 4. QUEUE: Keep relative (No slashes)
+      // 4. QUEUE: RELATIVE PATHS (No starting slash)
       if (typeof window.apiCall !== 'function') queue.push('team/js/common.js');
       if (typeof window.setupGeminiIntegration !== 'function' && typeof window.queryGeminiAI !== 'function') queue.push('team/js/projects.js');
 
