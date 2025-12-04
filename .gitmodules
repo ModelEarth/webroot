@@ -3,7 +3,7 @@
 	url = https://github.com/modelearth/docker
 [submodule "localsite"]
 	path = localsite
-	url = https://github.com/ModelEarth/localsite
+	url = https://github.com/HariMayooram/localsite
 [submodule "team"]
 	path = team
 	url = https://github.com/ModelEarth/team
