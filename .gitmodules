@@ -64,3 +64,6 @@
 [submodule "community-forecasting"]
 	path = community-forecasting
 	url = https://github.com/modelearth/community-forecasting
+[submodule "auth-system"]
+	path = auth-system
+	url = https://github.com/HariMayooram/auth-system.git
