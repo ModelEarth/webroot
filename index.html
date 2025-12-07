@@ -9,21 +9,46 @@
 <link type="text/css" rel="stylesheet" href="https://model.earth/localsite/css/base.css" id="/localsite/css/base.css" />
 
 <link type="text/css" rel="stylesheet" href="team/css/common.css" />
+<link type="text/css" rel="stylesheet" href="css/auth.css?v=2" />
 
 <script>
   var engineRoot = "https://model.earth/localsite/";
   window.param = { root: engineRoot };
   window.localsite_root = engineRoot;
 
-  // Auth API URL - Cloud Run production endpoint
-  window.AUTH_API_URL = 'https://webroot-auth-api-quzhut35ba-uc.a.run.app/api';
+  // Auth API URL configuration
+  // For LOCAL DEVELOPMENT: Comment out this line to use localhost:3002
+  // For PRODUCTION: Uncomment to use Cloud Run
+  // window.AUTH_API_URL = 'https://webroot-auth-api-336235334145.us-central1.run.app/api';
+
+  // Auto-detect: js/auth.js will use localhost:3002 when running locally
 </script>
 
 <script type="text/javascript" src="https://model.earth/localsite/js/localsite.js?showheader=true&showsearch=true"></script>
 
+<script src="https://unpkg.com/feather-icons"></script>
 <script type="text/javascript" src="team/js/common.js"></script>
 <script type="text/javascript" src="team/js/setup.js"></script>
-<script type="text/javascript" src="team/js/auth.js"></script>
+<script type="text/javascript" src="js/auth.js?v=2"></script>
+<script type="text/javascript" src="js/auth-modal.js?v=2"></script>
+
+<script>
+// Initialize auth button when page loads - wait for authManager to be ready
+document.addEventListener('DOMContentLoaded', function() {
+  // Wait for authManager to be initialized
+  const checkAuthManager = setInterval(function() {
+    if (window.authManager && typeof authManager.createSignInButton === 'function') {
+      clearInterval(checkAuthManager);
+      authManager.createSignInButton('auth-container');
+    }
+  }, 100);
+
+  // Timeout after 5 seconds
+  setTimeout(function() {
+    clearInterval(checkAuthManager);
+  }, 5000);
+});
+</script>
 
 <script>
 // Create OS detection panel using shared function
@@ -117,6 +142,11 @@ loadMarkdown("README.md", "readmeDiv", "_parent", 1, function() {
 </head>
 
 <body>
+<!-- Auth Section - Same as team/index.html -->
+<div style="position: fixed; top: 20px; right: 20px; z-index: 10000;">
+  <div id="auth-container"></div>
+</div>
+
 <div class="content contentpadding">
     <div class="card" id="textInPage">
       <div id="webrootSetup"></div>
