@@ -6,25 +6,47 @@
 <title>Webroot</title>
 <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link type="text/css" rel="stylesheet" href="localsite/css/base.css" id="/localsite/css/base.css" />
-
-<link type="text/css" rel="stylesheet" href="team/css/common.css" />
-<link type="text/css" rel="stylesheet" href="auth-system/public/css/auth.css?v=2" />
 
 <script>
-  var engineRoot = "https://model.earth/localsite/";
-  window.param = { root: engineRoot };
-  window.localsite_root = engineRoot;
+  // Dynamically determine the application's base web root
+  window.appBaseUrl = (function() {
+    let base = location.protocol + '//' + location.host;
+    // For GitHub Pages Project sites (e.g., username.github.io/repo-name/)
+    if (location.host.endsWith('.github.io') && window.location.pathname.length > 1) {
+      let pathSegments = window.location.pathname.split('/').filter(s => s.length > 0);
+      if (pathSegments.length > 0) {
+        return base + '/' + pathSegments[0] + '/'; // e.g., https://harimayooram.github.io/webroot-earth/
+      }
+    }
+    // For custom domain with a known subpath like "model.earth/webroot/"
+    if (location.host === 'model.earth' || location.host === 'www.model.earth') {
+      // Assuming 'webroot' is the consistent application subpath on this custom domain
+      return base + '/webroot/'; 
+    }
+    // Default to domain root (e.g., for localhost or other direct deployments)
+    return base + '/';
+  })();
+
+  // Dynamically set AUTH_API_URL
+  window.AUTH_API_URL = 'http://localhost:3002/api'; // Default to localhost
+  if (window.appBaseUrl.includes('harimayooram.github.io/webroot-earth') || window.appBaseUrl.includes('model.earth/webroot')) {
+    window.AUTH_API_URL = 'https://webroot-auth-api-336235334145.us-central1.run.app/api'; // Production/deployed URL including /api
+  }
 </script>
 
-<script type="text/javascript" src="localsite/js/localsite.js?showheader=true&showsearch=true"></script>
+<link type="text/css" rel="stylesheet" href="<script>document.write(window.appBaseUrl);</script>localsite/css/base.css" id="/localsite/css/base.css" />
+
+<link type="text/css" rel="stylesheet" href="<script>document.write(window.appBaseUrl);</script>team/css/common.css" />
+<link type="text/css" rel="stylesheet" href="<script>document.write(window.appBaseUrl);</script>auth-system/public/css/auth.css?v=2" />
+
+<script type="text/javascript" src="<script>document.write(window.appBaseUrl);</script>localsite/js/localsite.js?showheader=true&showsearch=true"></script>
 
 <script src="https://unpkg.com/feather-icons"></script>
-<script type="text/javascript" src="auth-system/public/js/env-config.js"></script>
-<script type="text/javascript" src="team/js/common.js"></script>
-<script type="text/javascript" src="team/js/setup.js"></script>
-<script type="text/javascript" src="auth-system/public/js/auth.js?v=2"></script>
-<script type="text/javascript" src="auth-system/public/js/auth-modal.js?v=2"></script>
+<script type="text/javascript" src="<script>document.write(window.appBaseUrl);</script>auth-system/public/js/env-config.js"></script>
+<script type="text/javascript" src="<script>document.write(window.appBaseUrl);</script>team/js/common.js"></script>
+<script type="text/javascript" src="<script>document.write(window.appBaseUrl);</script>team/js/setup.js"></script>
+<script type="text/javascript" src="<script>document.write(window.appBaseUrl);</script>auth-system/public/js/auth.js?v=2"></script>
+<script type="text/javascript" src="<script>document.write(window.appBaseUrl);</script>auth-system/public/js/auth-modal.js?v=2"></script>
 
 <script>
 // Initialize auth button when page loads - wait for authManager to be ready
