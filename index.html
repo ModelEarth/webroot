@@ -226,7 +226,7 @@ loadMarkdown("README.md", "readmeDiv", "_parent", 1, function() {
 
         if (btn && input){
           btn.addEventListener('click', function(){ doRunQuery(input.value); });
-          input.addEventListener('keyup', function(e){ if (e.key === 'Enter') doRunQuery(input..value); });
+          input.addEventListener('keyup', function(e){ if (e.key === 'Enter') doRunQuery(input.value); });
         } else if (input){
           input.addEventListener('keyup', function(e){ if (e.key === 'Enter') doRunQuery(input.value); });
         }
