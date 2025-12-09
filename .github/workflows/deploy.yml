@@ -24,19 +24,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: recursive   # <--- THIS IS THE MAGIC LINE
+          submodules: recursive
           fetch-depth: 0
 
-      - name: Copy submodule static files for auth-system
-        run: |
-          mkdir -p auth-system/public
-          cp -r auth-system/public/* auth-system/public/
-
-      - name: Copy localsite submodule files
-        run: |
-          mkdir -p localsite
-          cp -r localsite/* localsite/
-
+      - name: Initialize and update submodules
+        run: git submodule update --init --recursive
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
