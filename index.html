@@ -9,28 +9,22 @@
 <link type="text/css" rel="stylesheet" href="https://model.earth/localsite/css/base.css" id="/localsite/css/base.css" />
 
 <link type="text/css" rel="stylesheet" href="team/css/common.css" />
-<link type="text/css" rel="stylesheet" href="css/auth.css?v=2" />
+<link type="text/css" rel="stylesheet" href="auth-system/public/css/auth.css?v=2" />
 
 <script>
   var engineRoot = "https://model.earth/localsite/";
   window.param = { root: engineRoot };
   window.localsite_root = engineRoot;
-
-  // Auth API URL configuration
-  // For LOCAL DEVELOPMENT: Comment out this line to use localhost:3002
-  // For PRODUCTION: Uncomment to use Cloud Run
-  // window.AUTH_API_URL = 'https://webroot-auth-api-336235334145.us-central1.run.app/api';
-
-  // Auto-detect: js/auth.js will use localhost:3002 when running locally
 </script>
 
 <script type="text/javascript" src="https://model.earth/localsite/js/localsite.js?showheader=true&showsearch=true"></script>
 
 <script src="https://unpkg.com/feather-icons"></script>
+<script type="text/javascript" src="auth-system/public/js/env-config.js"></script>
 <script type="text/javascript" src="team/js/common.js"></script>
 <script type="text/javascript" src="team/js/setup.js"></script>
-<script type="text/javascript" src="js/auth.js?v=2"></script>
-<script type="text/javascript" src="js/auth-modal.js?v=2"></script>
+<script type="text/javascript" src="auth-system/public/js/auth.js?v=2"></script>
+<script type="text/javascript" src="auth-system/public/js/auth-modal.js?v=2"></script>
 
 <script>
 // Initialize auth button when page loads - wait for authManager to be ready
@@ -232,7 +226,7 @@ loadMarkdown("README.md", "readmeDiv", "_parent", 1, function() {
 
         if (btn && input){
           btn.addEventListener('click', function(){ doRunQuery(input.value); });
-          input.addEventListener('keyup', function(e){ if (e.key === 'Enter') doRunQuery(input.value); });
+          input.addEventListener('keyup', function(e){ if (e.key === 'Enter') doRunQuery(input..value); });
         } else if (input){
           input.addEventListener('keyup', function(e){ if (e.key === 'Enter') doRunQuery(input.value); });
         }
