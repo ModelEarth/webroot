@@ -91,6 +91,7 @@ apps
 community
 community-data
 community-timelines
+community-zipcodes
 contributors
 coreutilities
 cv
@@ -106,6 +107,7 @@ modelearth.github.io
 nisar
 panels
 photos
+products-data
 products-big-files-to-delete
 reality.streamlit*
 recycling
@@ -119,3 +121,4 @@ useeio
 useeio-json
 useeio.js
 wiki
+zip
