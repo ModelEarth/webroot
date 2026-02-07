@@ -1,12 +1,4 @@
-Run the following in your local "webroot" folder using Claude to start an http server on port 8887:
-
-	start server
-
-Or run without Claude.:
-
-	python -m http.server 8887
-
-Then view pages at:
+<h1 class="card-title">Then view pages at:</h1>
 
 [localhost:8887/](http://localhost:8887/)  
 [localhost:8887/team](http://localhost:8887/team/)  
@@ -16,47 +8,4 @@ Then view pages at:
 [localhost:8887/home](http://localhost:8887/home/)  
 [localhost:8887/feed](http://localhost:8887/feed/)  
 
-<div style="margin: 16px 0;">
-  <a href="http://localhost:8887/team/admin/sql/panel/" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background-color: #3B82F6; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; margin-right: 12px;">
-    <span>🗄️</span>
-    Rust API and Database
-  </a>
-</div>  
-
 Look at the code in your webroot with an editor like [Sublime Text](https://www.sublimetext.com/) ($99), [VS Code](https://code.visualstudio.com/) or [WebStorm](https://www.jetbrains.com/webstorm/).
-
-<div id="tradeFlowRepos"></div>
-
-## How to deploy changes
-
-Update and make commits often (at least hourly).
-Append nopr" or "No PR" if you are not yet ready to send a Pull Request.
-
-Run "pull" hourly to safely pull updates to the modelearth repos residing in your webroot
-
-When making any change, run "push" to send a PR. 
-"push" updates the webroot, submodules and forks. It does a "pull" automatically first.
-
-	push
-
-If you find "push" is asking for mulitple approvals, Claude may not have read the claude.md instructions.
-For the first usage, include extra guidance:
-
-	push using claude.md with git.sh  
-
-Addtional deployment commands:
-
-	push [folder name]  # Deploy a specific submodule or fork
-	push submodules  # Deploy changes in all submodules
-	push forks  # Deploy the extra forks added
-
-
-## Alternative to using Claude Code CLI
-
-You can also use Github Desktop to choose a repo inthe webroot using "File > Add Local Repository". 
-Then submit a PR through the Github.com website. (The "push" with Claude will send a PR automatically.)
-
-
-You can refresh all your local submodule by running:
-
-	git submodule foreach 'git pull origin main || git pull origin master'

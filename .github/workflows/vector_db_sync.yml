@@ -1,0 +1,62 @@
+name: VectorDB Sync
+
+on:
+  pull_request:
+    types: [closed]
+  push:
+    branches: [ main ]
+
+jobs:
+  sync:
+    if: |
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo with submodules
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r chat/ingestion/requirements.txt
+
+      - name: Run VectorDB Sync
+        env:
+          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+          VOYAGE_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
+        run: python chat/ingestion/vector_db_sync.py --skip-on-missing-keys
+
+      - name: Error summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -f chat/.vector_sync_errors.jsonl ]; then
+            {
+              echo "## Vector Sync Errors";
+              echo;
+              echo '```jsonl';
+              tail -n 200 chat/.vector_sync_errors.jsonl;
+              echo '```';
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No errors file present."
+          fi
+
+      - name: Upload VectorDB Sync errors
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vector-sync-errors
+          path: chat/.vector_sync_errors.jsonl
+          if-no-files-found: ignore
+          retention-days: 7

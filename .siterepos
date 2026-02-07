@@ -1,0 +1,12 @@
+[siterepo "community"]
+	path = community
+	url = https://github.com/modelearth/community
+[siterepo "data-pipeline"]
+	path = data-pipeline
+	url = https://github.com/modelearth/data-pipeline
+[siterepo "trade-data"]
+	path = trade-data
+	url = https://github.com/modelearth/trade-data
+[siterepo "nisar"]
+	path = nisar
+	url = https://github.com/modelearth/nisar

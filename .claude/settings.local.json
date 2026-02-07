@@ -2,6 +2,7 @@
   "permissions": {
     "allow": [
       "Bash(python:*)",
+      "Bash(python3:*)",
       "Bash(grep:*)",
       "Bash(find:*)",
       "Bash(rg:*)",
@@ -25,7 +26,30 @@
       "Bash(yarn build)",
       "Bash(git rm:*)",
       "Bash(git checkout:*)",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "Bash(node:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill:*)",
+      "Bash(cat:*)",
+      "WebSearch",
+      "Bash(cargo check:*)",
+      "Bash(cargo build:*)",
+      "Bash(claude:*)",
+      "Bash(npm update:*)",
+      "Bash(npm audit:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:www.ars.usda.gov)",
+      "Bash(for dir in cv/*/)",
+      "Bash(do [ -f \"$dir/index.html\" ])",
+      "Bash(done)",
+      "Bash(while read dir)",
+      "Bash(do [ -d \"cv/$dir\" ]:*)",
+      "Bash([ -f \"cv/$dir/detailed.json\" ])",
+      "Bash([ -d \"cv/$dir\" ])",
+      "Bash(git config:*)",
+      "WebFetch(domain:en.wikipedia.org)"
     ],
     "deny": [
       "Read(../**)"

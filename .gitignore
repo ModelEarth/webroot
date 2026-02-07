@@ -1,40 +1,19 @@
-# Extra repos that are not submodules
-apps
-community
-community-data
-community-timelines
-data-commons
-data-pipeline
-display
-explore
-membersense
-nisar
-panels
-products-big-files-to-delete
-reality.streamlit*
-recycling
-requests
-resources
-trade-data
-topojson
-useeio
-useeio-json
-useeio.js
-wiki
-
 # Configuration files
+config
 config/settings.js
 config/keys.json
 config/.env
 settings.local.json
+.claude/settings.local.json
 
 # Auth keys and secrets
 *.key
 *.pem
 env/*
 .env
-.env.local
-.env.production
+.env.*
+!.env.example
+*.env
 
 # Logs
 *.log
@@ -106,3 +85,41 @@ target/
 # Backup files
 *.bak
 *.backup
+
+# Extra repos that are not submodules
+apps
+community
+community-data
+community-timelines
+community-zipcodes
+contributors
+coreutilities
+cv
+data-commons
+data-pipeline
+data-pipeline-garage
+*nuclear
+display
+explore
+inspire
+membersense
+modelearth.github.io
+nisar
+panels
+photos
+products-data
+products-big-files-to-delete
+reality.streamlit*
+recycling
+requests
+resources
+setup
+storm
+swarmui
+trade-data
+topojson
+useeio
+useeio-json
+useeio.js
+wiki
+zip
