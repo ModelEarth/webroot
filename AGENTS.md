@@ -3,8 +3,8 @@
 This is the equivalent to `CLAUDE.md`.
 
 Use a modern, clean response design that has rounded corners on boarderless panels.
-Each panel should use the "Panel Menu Toggle System" from localsite/js/localsite.js to place a cirlce icon in its upper right with options for Expand, Close, etc.
-Include .dark mode css. Set responsive layouts to parent divs rather than browser width. When possible, reuse common css from localsite/css/base.css
+Each new panel should use the "Panel Menu Toggle System" from localsite/js/localsite.js to place a cirlce icon in its upper right with options for Expand, Close, etc.
+Include .dark mode css. Set responsive layouts based on parent div widths rather than browser width. When possible, reuse common css from localsite/css/base.css
 
 Primary guidance files:
 - `/localsite/AGENTS.md`
