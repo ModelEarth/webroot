@@ -1,12 +1,13 @@
 <h1 class="card-title">How to deploy changes</h1>
 
 Update and make commits often. (At least hourly if you are editing code.)
-Append "nopr" or "No PR" if you are not yet ready to send a Pull Request.
+Append "nopr" if you are not yet ready to send a Pull Request.
 
 
-## Using your CLI with ./git.sh push
+## Using your Code CLI to push and pull
 
-For the first usage, include extra guidance. Your push will also pull recent updates from others on Github.
+For the first usage, include extra guidance. 
+Your push will also pull recent updates from others on Github.
 
 	push using webroot/AGENTS.md with git.sh  
 
@@ -34,7 +35,7 @@ You can refresh all your local submodules by running:
 
 ## Git Workflow with git.sh
 
-<p>The <code>git.sh</code> script manages git operations across webroot, submodules, and site repos.</p>
+Rather than using the simple Code CLI commands above, the <code>git.sh</code> script can be callled directly to manage git operations across webroot, submodules, and site repos.</p>
 
 <h3>Basic Commands</h3>
 <pre style="background:#f5f5f5;padding:12px;border-radius:4px;overflow-x:auto;">
@@ -61,13 +62,7 @@ You can refresh all your local submodules by running:
 </ul>
 
 
-## Using git.sh (Recommended)
-
-Your Code CLI can write your PR comments if you run the "push" command below.
-
-Or run your git.sh commands as follows in a separate terminal from your CLI.
-
-Start a secure virtual session in your local webroot and give the git.sh files permission.  
+If needed, start a secure virtual session in your local webroot and give the git.sh file permission.  
 
 
 	python3 -m venv env
@@ -77,22 +72,14 @@ Start a secure virtual session in your local webroot and give the git.sh files p
 
 Run ./git.sh in your webroot.  In the root git.sh is a pass-through to the team/git.sh file.
 
-You can watch your webroot's file status change in Github Desktop to confirm updates are deployed.
-
-	./git.sh push           # Push all repositories with changes (auto-pulls first)
-	./git.sh pull           # Pull all repositories (webroot + submodules + extra repos)
-	./git.sh push [name]    # Push specific repository (webroot, submodule, or extra repo)
-	./git.sh pull [name]    # Pull specific repository
-
 You probably won't need these since cmds above resolve detached heads for submodules that differ from their parent repos.
 
 	./git.sh fix                    # Fix detached HEAD states
 	./git.sh remotes                # Update remotes for current GitHub user
 
-"push" also sends a Pull Request (PR) unless you include "nopr" 
+"push" also sends a Pull Request (PR) unless you include "nopr"
 
-### Wait to submit Pull Request:
-- Add `nopr` to skip PR creation: `./git.sh push nopr`
+	./git.sh push nopr
 
 <!-- 
 Advanced option (not recommended for typical use):
@@ -114,13 +101,14 @@ To recover previously committed work that was overwritten locally:
 - **Submodules**: Automatically detected from .gitmodules file
 - **Extra Repos**: Automatically detected from .siterepos file
 
-## Using Github Desktop
+## Using Github Desktop (recommended)
 
-You can also use Github Desktop to choose a repo in the webroot using "File > Add Local Repository". 
+Use Github Desktop to choose a repo in the webroot using "File > Add Local Repository". 
+
 Then submit a PR through the Github.com website.  
-Or "./git.sh push" to send a PR automatically, but there won't be detailed comments from your CLI coding.
-Or prompt "push" with your CLI to have a description of your changes included.  
-Note: Sometimes CLIs gets confused and treat the team folder as the webroot.
 
+Or prompt "push" with your CLI to have a description of your changes included.  
+
+Note: Sometimes CLIs gets confused and treat the team folder as the webroot.
 
 IMPORTANT: If you're using Github Desktop to push, you'll still need to send the PR from within Github.com.
