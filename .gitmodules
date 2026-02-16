@@ -1,3 +1,6 @@
+[submodule "airports"]
+	path = airports
+	url = https://github.com/modelearth/airports
 [submodule "docker"]
 	path = docker
 	url = https://github.com/modelearth/docker
@@ -28,6 +31,9 @@
 [submodule "comparison"]
 	path = comparison
 	url = https://github.com/modelearth/comparison
+[submodule "data-pipeline"]
+	path = data-pipeline
+	url = https://github.com/ModelEarth/data-pipeline.git
 [submodule "desktop"]
 	path = desktop
 	url = https://github.com/ModelEarth/desktop.git
@@ -67,6 +73,3 @@
 [submodule "better-auth"]
 	path = better-auth
 	url = https://github.com/modelearth/better-auth
-[submodule "data-pipeline"]
-	path = data-pipeline
-	url = https://github.com/ModelEarth/data-pipeline.git
