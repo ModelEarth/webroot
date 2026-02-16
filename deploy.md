@@ -3,6 +3,64 @@
 Update and make commits often. (At least hourly if you are editing code.)
 Append "nopr" or "No PR" if you are not yet ready to send a Pull Request.
 
+
+## Using your CLI with ./git.sh push
+
+For the first usage, include extra guidance. Your push will also pull recent updates from others on Github.
+
+	push using webroot/AGENTS.md with git.sh  
+
+
+If you find "push" is asking for multiple approvals, your CLI isn't following its AGENTS.md instructions.
+When AGENTS.md is followed, "push" uses the git.sh file to first pull, then update the webroot, submodules and forks.
+
+	push
+
+Additional deployment commands:
+
+	push [folder name]  # Deploy a specific submodule or fork
+	push submodules  # Deploy changes in all submodules
+	push forks  # Deploy the extra forks added
+
+"push" also sends a Pull Request (PR) unless you include "nopr" 
+
+
+## Manual submodule refresh
+
+You can refresh all your local submodules by running:
+
+	git submodule foreach 'git pull origin main || git pull origin master'
+
+
+## Git Workflow with git.sh
+
+<p>The <code>git.sh</code> script manages git operations across webroot, submodules, and site repos.</p>
+
+<h3>Basic Commands</h3>
+<pre style="background:#f5f5f5;padding:12px;border-radius:4px;overflow-x:auto;">
+./git.sh pull            # Pull all repositories (webroot + submodules + site repos)
+./git.sh push            # Push all repositories with changes (auto-pulls first)
+./git.sh push nopull     # Push without auto-pull (use after git filter-repo or when history diverges)
+./git.sh push [repo]     # Push specific repository
+./git.sh push nopr       # Push without creating PRs on failure
+./git.sh push nopull nopr # Combine options: skip pull and skip PR creation
+</pre>
+
+<h3>Options</h3>
+<ul>
+    <li><strong>nopr</strong> - Skip PR creation on push failures</li>
+    <li><strong>nopull</strong> - Skip auto-pull before push (use when history has diverged, after git filter-repo, or when you need to force push)</li>
+</ul>
+
+<h3>When to use nopull</h3>
+<ul>
+    <li>After using <code>git filter-repo</code> to clean git history (histories have diverged)</li>
+    <li>When you need to force push without pulling first</li>
+    <li>When you know the local history is correct and should overwrite remote</li>
+    <li><strong>Warning:</strong> Only use when you understand the implications of not pulling first</li>
+</ul>
+
+
 ## Using git.sh (Recommended)
 
 Your Code CLI can write your PR comments if you run the "push" command below.
@@ -66,31 +124,3 @@ Note: Sometimes CLIs gets confused and treat the team folder as the webroot.
 
 
 IMPORTANT: If you're using Github Desktop to push, you'll still need to send the PR from within Github.com.
-
-
-## Using your CLI with ./git.sh push
-
-For the first usage, include extra guidance. Your push will also pull recent updates from others on Github.
-
-	push using webroot/AGENTS.md with git.sh  
-
-
-If you find "push" is asking for multiple approvals, your CLI isn't following its AGENTS.md instructions.
-When AGENTS.md is followed, "push" uses the git.sh file to first pull, then update the webroot, submodules and forks.
-
-	push
-
-Additional deployment commands:
-
-	push [folder name]  # Deploy a specific submodule or fork
-	push submodules  # Deploy changes in all submodules
-	push forks  # Deploy the extra forks added
-
-"push" also sends a Pull Request (PR) unless you include "nopr" 
-
-
-## Manual submodule refresh
-
-You can refresh all your local submodules by running:
-
-	git submodule foreach 'git pull origin main || git pull origin master'

@@ -67,3 +67,6 @@
 [submodule "better-auth"]
 	path = better-auth
 	url = https://github.com/modelearth/better-auth
+[submodule "data-pipeline"]
+	path = data-pipeline
+	url = https://github.com/ModelEarth/data-pipeline.git

@@ -14,6 +14,7 @@ env/*
 .env.*
 !.env.example
 *.env
+env
 
 # Logs
 *.log
@@ -25,6 +26,7 @@ pids
 *.seed
 *.pid.lock
 __pycache__
+.~lock.*#
 
 # Coverage reports are used for local dev and test by tools like:
 # Jest (JavaScript testing framework), Istanbul/nyc (JavaScript/Node.js) and
@@ -96,7 +98,6 @@ contributors
 coreutilities
 cv
 data-commons
-data-pipeline
 data-pipeline-garage
 *nuclear
 display
