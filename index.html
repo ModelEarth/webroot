@@ -54,10 +54,12 @@ loadMarkdown("README.md", "readmeDiv", "_parent", 1, function() {
         setupWebrootSetup('webrootSetup');
         setupGitAccountFields('textInPage');
         setupQuickstartInstructions('quickstartDiv');
+        createRustApiStatusPanel('combined-rust-api-container', false);
         setupTradeFlowRepos('tradeFlowRepos');
         setupGeminiResources();
         setupBackendInfo('backendInfo');
-        loadMarkdown("deploy.md", "deployDiv", "_parent", 1);
+        loadMarkdown("team/admin/github/deploy-cli.md", "deployCliDiv", "_parent", 1);
+        loadMarkdown("team/admin/github/deploy-git.md", "deployGitDiv", "_parent", 1);
         setTimeout(() => { updateForkReposCommands(); }, 100);
     }, 200);
 
@@ -101,6 +103,18 @@ loadMarkdown("README.md", "readmeDiv", "_parent", 1, function() {
         readmeDiv.innerHTML = content;
     }
 });
+
+waitForElm('#showDeployGit').then(() => { // Toggle display of additional git.sh commands
+    const showDeployGitBtn = document.getElementById('showDeployGit');
+    const deployGitPanel = document.getElementById('deployGit');
+    if (!showDeployGitBtn || !deployGitPanel) return;
+
+    showDeployGitBtn.addEventListener('click', () => {
+        const isHidden = getComputedStyle(deployGitPanel).display === 'none';
+        deployGitPanel.style.display = isHidden ? 'block' : 'none';
+        showDeployGitBtn.textContent = isHidden ? 'Hide Deploy Options' : 'More Deploy Options';
+    });
+});
 </script>
 </head>
 
@@ -111,96 +125,15 @@ loadMarkdown("README.md", "readmeDiv", "_parent", 1, function() {
     </div>
     <div id="commonSetupDiv"></div>
     <div id="quickstartDiv" class="card"></div>
+    <div id="combined-rust-api-container"></div>
     <div id="readmeDiv" class="card"></div>
     <div class="card" id="tradeFlowRepos"></div>
     <div class="card" id="backendInfo"></div>
-    <div class="card" id="deployDiv"></div>
-
-    <!-- Natural-language search -->
-    <div id="nl-search-wrapper" style="display:none; margin-top:12px;">
-      <label for="nl-search-input" style="display:block;margin-bottom:6px;">Natural language search (Gemini + Claude)</label>
-      <div style="display:flex;gap:8px;">
-        <input id="nl-search-input" type="text" placeholder="Try: 'recent methane reports near California dairy farms'" style="flex:1;padding:8px;" />
-        <button id="nl-search-btn" style="padding:8px 12px;">Search</button>
-      </div>
-      <div id="nl-search-note" style="margin-top:6px;color:#666;font-size:90%;">
-        Sample search: "Find recent methane emission reports for California dairy farms"
-      </div>
-      <pre id="nl-search-results" style="margin-top:10px;white-space:pre-wrap;"></pre>
+    <div class="card" id="deployCliDiv"></div>
+    <button id="showDeployGit" class="btn btn-success">More Deploy Options</button>
+    <div id="deployGit" style="display:none">
+        <div class="card" id="deployGitDiv"></div>
     </div>
-
-<script>
-  // show NL search only on localhost (include IPv6) and guard element existence
-  const isLocal = ['localhost','127.0.0.1','::1'].includes(location.hostname);
-  const wrapper = document.getElementById('nl-search-wrapper');
-  if (isLocal && wrapper) {
-    wrapper.style.display = '';
-
-    (function loadSharedInsights(){
-      // Load required shared scripts (if not already present) and wire the NL search
-      function loadScript(src, cb){
-        var s = document.createElement('script'); s.src = src;
-        s.onload = cb; s.onerror = function(){ console.warn('Could not load script', src); cb(); };
-        document.head.appendChild(s);
-      }
-
-      var queue = [];
-      if (typeof window.apiCall !== 'function') queue.push('/team/js/common.js');
-      // projects.js contains AI helpers (queryGeminiAI etc.) used by the team pages
-      if (typeof window.setupGeminiIntegration !== 'function' && typeof window.queryGeminiAI !== 'function') queue.push('/team/js/projects.js');
-
-      function runQueue(){
-        if (queue.length === 0) return initNL();
-        var src = queue.shift();
-        loadScript(src, runQueue);
-      }
-
-      function initNL(){
-        try { window.ENABLE_CLAUDE_HAIKU_4_5 = true; } catch(e){}
-
-        var btn = document.getElementById('nl-search-btn');
-        var input = document.getElementById('nl-search-input');
-        var out = document.getElementById('nl-search-results');
-
-        function renderResponse(resp){
-          if (!out) return;
-          out.textContent = typeof resp === 'string' ? resp : JSON.stringify(resp, null, 2);
-        }
-
-        function doRunQuery(q){
-          if (!out) return;
-          out.textContent = 'Running query...';
-
-          // Preferred: use apiCall to backend endpoint that proxies Gemini/Claude
-          if (typeof window.apiCall === 'function'){
-            window.apiCall('/ai/query', 'POST', { prompt: q }).then(function(resp){
-              renderResponse(resp);
-            }).catch(function(err){ renderResponse('Error: ' + (err && err.message ? err.message : String(err))); });
-            return;
-          }
-
-          // Fallbacks to any globally exposed run function
-          var run = window.runNLQuery || window.runInsightsQuery || window.runQuery || window.queryGeminiAI;
-          if (typeof run === 'function'){
-            Promise.resolve(run(q)).then(renderResponse).catch(function(err){ renderResponse('Error: ' + (err && err.message ? err.message : String(err))); });
-            return;
-          }
-
-          renderResponse('No NL API available (start Rust API server to enable /ai/query).');
-        }
-
-        if (btn && input){
-          btn.addEventListener('click', function(){ doRunQuery(input.value); });
-          input.addEventListener('keyup', function(e){ if (e.key === 'Enter') doRunQuery(input.value); });
-        } else if (input){
-          input.addEventListener('keyup', function(e){ if (e.key === 'Enter') doRunQuery(input.value); });
-        }
-      }
-
-      runQueue();
-    })();
-  }
-</script>
 </div>
 </body>
 </html>
