@@ -24,9 +24,12 @@ Key standards (from linked AGENTS files):
   - "push team" → push only team submodule changes
   - "push" or "push all" → push webroot + all submodules via `./git.sh push`
 
-Claude Code sessions:
-- Session history: `~/.claude/history.jsonl` (JSONL format with sessionId, timestamp, display, project)
-- Use Python or `jq` to parse efficiently; avoid multiple `awk` attempts on macOS
+CLI assistant sessions (Claude, Codex, etc):
+- Use the session store for the active CLI tool. Do not assume Claude by default.
+- Claude session history: `~/.claude/history.jsonl` (JSONL format with sessionId, timestamp, display, project)
+- Codex session history: `~/.codex/history.jsonl` (JSONL format with session_id, ts, text)
+- For future CLIs, detect and use their native session/history location and restore command.
+- Use Python or `jq` to parse efficiently; avoid multiple `awk` attempts on macOS.
 
 Start commands:
 - `start server` — starts Python HTTP server and Python backend (not Flask) (`desktop/install/quickstart.sh`)
