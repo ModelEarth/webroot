@@ -4,7 +4,7 @@
 
 PartnerTools CRM is a high-performance, cost-efficient Customer Relationship Management platform. It aims to replace expensive Salesforce per-user licensing with a JAMstack architecture powered by a Rust API.
 
-By leveraging the Salesforce -like SuiteCRM SQL table structure aligned with the Microsoft Common Data Model (CDM), the system ensures data interoperability across agencies while reducing infrastructure costs. The platform focuses on speed, type safety, and "write-once, deploy-everywhere" web standards.
+By leveraging the Salesforce -like [SuiteCRM SQL](https://model.earth/profile/crm/) table structure aligned with the Microsoft Common Data Model (CDM), the system ensures data interoperability across agencies while reducing infrastructure costs. The platform focuses on speed, type safety, and "write-once, deploy-everywhere" web standards.
 
 ## 2. Problem Statement
 
