@@ -112,7 +112,7 @@ products-data
 products-big-files-to-delete
 reality.streamlit*
 recycling
-requests
+requests*
 resources
 setup
 storm
