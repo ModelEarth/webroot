@@ -1,75 +1,78 @@
 [submodule "airports"]
 	path = airports
 	url = https://github.com/modelearth/airports
-[submodule "docker"]
-	path = docker
-	url = https://github.com/modelearth/docker
-[submodule "localsite"]
-	path = localsite
-	url = https://github.com/ModelEarth/localsite
-[submodule "team"]
-	path = team
-	url = https://github.com/ModelEarth/team
-[submodule "feed"]
-	path = feed
-	url = https://github.com/modelearth/feed
-[submodule "swiper"]
-	path = swiper
-	url = https://github.com/modelearth/swiper
-[submodule "home"]
-	path = home
-	url = https://github.com/ModelEarth/home
-[submodule "cloud"]
-	path = cloud
-	url = https://github.com/modelearth/cloud
+[submodule "better-auth"]
+	path = better-auth
+	url = https://github.com/modelearth/better-auth
 [submodule "chat"]
 	path = chat
 	url = https://github.com/modelearth/chat
+[submodule "cloud"]
+	path = cloud
+	url = https://github.com/modelearth/cloud
 [submodule "codechat"]
 	path = codechat
 	url = https://github.com/modelearth/codechat
 [submodule "comparison"]
 	path = comparison
 	url = https://github.com/modelearth/comparison
+[submodule "community-forecasting"]
+	path = community-forecasting
+	url = https://github.com/modelearth/community-forecasting
 [submodule "data-pipeline"]
 	path = data-pipeline
 	url = https://github.com/ModelEarth/data-pipeline.git
 [submodule "desktop"]
 	path = desktop
 	url = https://github.com/ModelEarth/desktop.git
-[submodule "grid"]
-	path = grid
-	url = https://github.com/modelearth/grid
-[submodule "realitystream"]
-	path = realitystream
-	url = https://github.com/modelearth/realitystream
-[submodule "streamlit"]
-	path = streamlit
-	url = https://github.com/modelearth/streamlit
-[submodule "products"]
-	path = products
-	url = https://github.com/modelearth/products
-[submodule "projects"]
-	path = projects
-	url = https://github.com/modelearth/projects
+[submodule "docker"]
+	path = docker
+	url = https://github.com/modelearth/docker
+[submodule "engage"]
+	path = engage
+	url = https://github.com/modelearth/engage
 [submodule "exiobase"]
 	path = exiobase
 	url = https://github.com/modelearth/exiobase
-[submodule "trade"]
-	path = trade
-	url = https://github.com/modelearth/trade
+[submodule "feed"]
+	path = feed
+	url = https://github.com/modelearth/feed
+[submodule "grid"]
+	path = grid
+	url = https://github.com/modelearth/grid
+[submodule "home"]
+	path = home
+	url = https://github.com/ModelEarth/home
 [submodule "io"]
 	path = io
 	url = https://github.com/modelearth/io
+[submodule "localsite"]
+	path = localsite
+	url = https://github.com/ModelEarth/localsite
+[submodule "products"]
+	path = products
+	url = https://github.com/modelearth/products
 [submodule "profile"]
 	path = profile
 	url = https://github.com/modelearth/profile
+[submodule "projects"]
+	path = projects
+	url = https://github.com/modelearth/projects
+[submodule "realitystream"]
+	path = realitystream
+	url = https://github.com/modelearth/realitystream
 [submodule "reports"]
 	path = reports
 	url = https://github.com/modelearth/reports
-[submodule "community-forecasting"]
-	path = community-forecasting
-	url = https://github.com/modelearth/community-forecasting
-[submodule "better-auth"]
-	path = better-auth
-	url = https://github.com/modelearth/better-auth
+[submodule "streamlit"]
+	path = streamlit
+	url = https://github.com/modelearth/streamlit
+[submodule "swiper"]
+	path = swiper
+	url = https://github.com/modelearth/swiper
+[submodule "team"]
+	path = team
+	url = https://github.com/ModelEarth/team
+[submodule "trade"]
+	path = trade
+	url = https://github.com/modelearth/trade
