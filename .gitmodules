@@ -64,6 +64,9 @@
 [submodule "reports"]
 	path = reports
 	url = https://github.com/modelearth/reports
+[submodule "requests"]
+	path = requests
+	url = https://github.com/modelearth/requests
 [submodule "streamlit"]
 	path = streamlit
 	url = https://github.com/modelearth/streamlit
