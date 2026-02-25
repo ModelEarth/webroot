@@ -55,9 +55,8 @@ waitForElm('#textInPage').then(() => {
         setupGitAccountFields('textInPage');
         setupQuickstartInstructions('quickstartDiv');
         createRustApiStatusPanel('combined-rust-api-container', false);
-        setupTradeFlowRepos('tradeFlowRepos');
+        setupTradeFlowRepos('extraRepos');
         setupGeminiResources();
-        setupBackendInfo('backendInfo');
         loadMarkdown("team/admin/github/deploy-cli.md", "deployCliDiv", "_parent", 1);
         loadMarkdown("team/admin/github/deploy-git.md", "deployGitDiv", "_parent", 1);
         setTimeout(() => { updateForkReposCommands(); }, 100);
@@ -87,8 +86,7 @@ waitForElm('#showDeployGit').then(() => { // Toggle display of additional git.sh
     <div id="commonSetupDiv"></div>
     <div id="quickstartDiv" class="card"></div>
     <div id="combined-rust-api-container"></div>
-    <div class="card" id="tradeFlowRepos"></div>
-    <div class="card" id="backendInfo"></div>
+    <div class="card" id="extraRepos"></div>
     <div class="card" id="deployCliDiv"></div>
     <button id="showDeployGit" class="btn btn-success">More Deploy Options</button>
     <div id="deployGit" style="display:none">

@@ -1,6 +1,9 @@
 [siterepo "community"]
 	path = community
 	url = https://github.com/modelearth/community
+[siterepo "cv"]
+	path = cv
+	url = https://github.com/modelearth/cv
 [siterepo "trade-data"]
 	path = trade-data
 	url = https://github.com/modelearth/trade-data

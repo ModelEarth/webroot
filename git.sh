@@ -5,7 +5,7 @@
 #
 # Expected behavior when running "./git.sh push" from webroot:
 # - Commit all submodules of the webroot repo (including the team submodule)
-# - Commit extra repos that are not submodules  
+# - Commit extra repos from .siterepos that are not submodules (for example, not data-pipeline)
 # - Commit the webroot repo itself
 # - Push all repositories with changes
 
