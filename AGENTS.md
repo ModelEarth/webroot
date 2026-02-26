@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This is the equivalent to `CLAUDE.md`.
+This `AGENTS.md` is the equivalent to `CLAUDE.md`.
 
 Use a modern, clean response design that has rounded corners on boarderless panels.
 Each new panel should use the "Panel Menu Toggle System" from localsite/js/localsite.js to place a cirlce icon in its upper right with options for Expand, Close, etc.
