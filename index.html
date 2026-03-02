@@ -76,6 +76,12 @@ waitForElm('#showDeployGit').then(() => { // Toggle display of additional git.sh
     });
 });
 </script>
+<style>
+#textInPage { container-type: inline-size; }
+@container (max-width: 450px) {
+    #githubAccountFields { float: none; }
+}
+</style>
 </head>
 
 <body>
