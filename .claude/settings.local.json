@@ -57,7 +57,10 @@
       "Bash(/Users/Loren/env/bin/pip install:*)",
       "Bash(~/env/bin/python3 bea/main.py)",
       "Bash(git:*)",
-      "Bash(jupyter nbconvert:*)"
+      "Bash(jupyter nbconvert:*)",
+      "Bash(node -e \"const l = require\\(''''/Users/Loren/Documents/webroot/chat/node_modules/.pnpm/lucide-react@0.511.0_react@19.0.0-rc-45804af1-20241021/node_modules/lucide-react/dist/cjs/lucide-react.js''''\\); const names = Object.keys\\(l\\).filter\\(k => /bot|brain|cpu|sparkle|wand|circuit|zap|model|ai|chip|neural/i.test\\(k\\)\\); console.log\\(names.join\\('''', ''''\\)\\)\")",
+      "Bash(pnpm type-check:*)",
+      "Bash(pnpm install:*)"
     ],
     "deny": [
       "Read(../**)"
