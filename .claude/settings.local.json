@@ -61,7 +61,8 @@
       "Bash(node -e \"const l = require\\(''''/Users/Loren/Documents/webroot/chat/node_modules/.pnpm/lucide-react@0.511.0_react@19.0.0-rc-45804af1-20241021/node_modules/lucide-react/dist/cjs/lucide-react.js''''\\); const names = Object.keys\\(l\\).filter\\(k => /bot|brain|cpu|sparkle|wand|circuit|zap|model|ai|chip|neural/i.test\\(k\\)\\); console.log\\(names.join\\('''', ''''\\)\\)\")",
       "Bash(pnpm type-check:*)",
       "Bash(pnpm install:*)",
-      "Bash(export CLAUDE_COMMIT_DATA=\":*)"
+      "Bash(export CLAUDE_COMMIT_DATA=\":*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [
       "Read(../**)"
