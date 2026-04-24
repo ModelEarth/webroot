@@ -1,3 +1,6 @@
+[siterepo "project"]
+	path = project
+	url = https://github.com/modelearth/project
 [siterepo "community"]
 	path = community
 	url = https://github.com/modelearth/community
@@ -7,3 +10,6 @@
 [siterepo "nisar"]
 	path = nisar
 	url = https://github.com/modelearth/nisar
+[siterepo "space"]
+	path = space
+	url = https://github.com/modelearth/space
