@@ -1,0 +1,9 @@
+# Site-level config for sveltia-cms and themes preview page.
+# Loaded at runtime from /config.yaml by sveltia-cms and themes/index.html.
+# This file is site-specific and should not be committed to the sveltia-cms repo.
+
+extra_css:
+  - /localsite/css/base.css
+
+extra_js:
+  - /localsite/js/localsite.js?showheader=true&showsearch=false
