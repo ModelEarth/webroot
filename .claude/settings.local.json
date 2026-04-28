@@ -62,7 +62,19 @@
       "Bash(pnpm type-check:*)",
       "Bash(pnpm install:*)",
       "Bash(export CLAUDE_COMMIT_DATA=\":*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:unpkg.com)",
+      "WebFetch(domain:sveltiacms.app)",
+      "Bash(nvm ls *)",
+      "Bash(nvm install *)",
+      "Bash(nvm use *)",
+      "Bash(sed -n '2930,2940p' /Users/Loren/Documents/webroot/localsite/js/navigation.js)",
+      "Bash(sed -n '7243,7252p' /Users/Loren/Documents/webroot/localsite/js/navigation.js)",
+      "Bash(sed -n '7697,7703p' /Users/Loren/Documents/webroot/localsite/js/navigation.js)",
+      "Bash(sed -n '8408,8415p' /Users/Loren/Documents/webroot/localsite/js/navigation.js)",
+      "Bash(sed -n '8510,8516p' /Users/Loren/Documents/webroot/localsite/js/navigation.js)",
+      "Bash(sed -n '9340,9346p' /Users/Loren/Documents/webroot/localsite/js/navigation.js)"
     ],
     "deny": [
       "Read(../**)"

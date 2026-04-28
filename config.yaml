@@ -1,0 +1,19 @@
+# Site-level config for sveltia-cms and themes preview page.
+# Loaded at runtime from /config.yaml by sveltia-cms and themes/index.html.
+# This file is site-specific and should not be committed to the sveltia-cms repo.
+
+app_title: Svelte Editor
+
+# Set to true to show the editor inline within the page instead of full-page takeover.
+# Per-page override: launchCMS({ inline: true, target: '#editPageBtn' })
+inline_editor: true
+
+logo:
+  show_in_header: false
+  show_in_intro: false
+
+extra_css:
+  - /localsite/css/base.css
+
+extra_js:
+  - /localsite/js/localsite.js?showheader=true&showsearch=false
