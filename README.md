@@ -1,4 +1,4 @@
-<h1 class="card-title">PartnerTools Webroot</h1>
+<h1 class="card-title">PartnerTools Webroot 2.0</h1>
 
 Install steps: [model.earth/webroot](https://model.earth/webroot)
 
