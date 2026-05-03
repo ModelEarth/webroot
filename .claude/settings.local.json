@@ -67,7 +67,8 @@
       "Bash(nvm ls *)",
       "Bash(nvm install *)",
       "Bash(nvm use *)",
-      "Bash(export CLAUDE_COMMIT_DATA=\" *)"
+      "Bash(export CLAUDE_COMMIT_DATA=\" *)",
+      "Bash(document)"
     ],
     "deny": [
       "Read(../**)"
