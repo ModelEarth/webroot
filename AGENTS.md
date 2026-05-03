@@ -9,6 +9,7 @@ Include .dark mode css. Set responsive layouts based on parent div widths rather
 Primary guidance files:
 - `/localsite/AGENTS.md`
 - `/team/AGENTS.md`
+- `/host/net/NET.md`
 
 Submodule overview:
 - `codechat/README.md`
@@ -34,13 +35,20 @@ CLI assistant sessions (Claude, Codex, etc):
 Start commands:
 - `start server` — starts Python HTTP server and Python backend (not Flask) (`desktop/install/quickstart.sh`)
 - `start rust` — Rust API server (from `team` repo)
+- `start net` — shared .NET host using `host/net/net.sh` and `host/net/NET.md` guidance
 - `start flask` — starts both `cloud` and `pipeline`
 - `start cloud` — Flask for `cloud/run` (RealityStream), local + deploy to Google Cloud
 - `start pipeline` — Flask for `data-pipeline/admin`
 - `start html` — bare bones without Python (not needed if you ran `start server`)
 
+.NET / C#:
+- `host/net/NET.md` provides guidance for local .NET and C# work in this webroot.
+- .NET settings reside in `docker/.env` rather than XML-only local config.
+
 Ports:
 - `8887` — Python HTTP server (`desktop/install/quickstart.sh`)
 - `8081` — Rust API server (from `team` repo)
+- `8004` — legacy .NET 4.x site for `net/` and `core/`
+- `8010` — shared .NET 10 host (`host/net/`, serves the webroot outside `net/` and `core/`)
 - `5001` — Data-Pipeline Flask server
 - `8100` — Cloud/run Flask server
