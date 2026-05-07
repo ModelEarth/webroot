@@ -34,12 +34,12 @@ CLI assistant sessions (Claude, Codex, etc):
 
 Start commands:
 - `start server` — starts Python HTTP server and Python backend (not Flask) (`desktop/install/quickstart.sh`)
-- `start rust` — Rust API server (from `team` repo)
+- `start rust` — Team Repo API (Actix Rust) (from `team` repo, port 8081)
 - `start net` — shared .NET host using `host/net/net.sh` and `host/net/NET.md` guidance
 - `start flask` — starts both `cloud` and `pipeline`
 - `start cloud` — Flask for `cloud/run` (RealityStream), local + deploy to Google Cloud
 - `start pipeline` — Flask for `data-pipeline/admin`
-- `start art` — Arts Engine Rust API (`cargo run --manifest-path requests/engine/rust-api/Cargo.toml`, port 8082)
+- `start art` — Arts Engine Axum Rust API (`cargo run --manifest-path requests/engine/rust-api/Cargo.toml`, port 8082)
 - `start chat` — Node Unified Server (`node chat/server.mjs`, port 8888); first run: `pnpm --prefix chat install`
 - `start html` — bare bones without Python (not needed if you ran `start server`)
 
@@ -49,7 +49,7 @@ Start commands:
 
 Ports:
 - `8887` — Python HTTP server (`desktop/install/quickstart.sh`)
-- `8081` — Rust API server (from `team` repo)
+- `8081` — Team Repo API (Actix Rust) (from `team` repo)
 - `8004` — legacy .NET 4.x site for `net/` and `core/`
 - `8010` — shared .NET 10 host (`host/net/`, serves the webroot outside `net/` and `core/`)
 - `5001` — Data-Pipeline Flask server
