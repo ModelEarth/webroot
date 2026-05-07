@@ -39,6 +39,8 @@ Start commands:
 - `start flask` — starts both `cloud` and `pipeline`
 - `start cloud` — Flask for `cloud/run` (RealityStream), local + deploy to Google Cloud
 - `start pipeline` — Flask for `data-pipeline/admin`
+- `start art` — Arts Engine Rust API (`cargo run --manifest-path requests/engine/rust-api/Cargo.toml`, port 8082)
+- `start chat` — Node Unified Server (`node chat/server.mjs`, port 8888); first run: `pnpm --prefix chat install`
 - `start html` — bare bones without Python (not needed if you ran `start server`)
 
 .NET / C#:
