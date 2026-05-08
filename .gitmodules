@@ -16,12 +16,12 @@
 [submodule "codechat"]
 	path = codechat
 	url = https://github.com/modelearth/codechat
-[submodule "comparison"]
-	path = comparison
-	url = https://github.com/modelearth/comparison
 [submodule "community-forecasting"]
 	path = community-forecasting
 	url = https://github.com/modelearth/community-forecasting
+[submodule "comparison"]
+	path = comparison
+	url = https://github.com/modelearth/comparison
 [submodule "data-pipeline"]
 	path = data-pipeline
 	url = https://github.com/ModelEarth/data-pipeline.git
@@ -73,6 +73,9 @@
 [submodule "requests"]
 	path = requests
 	url = https://github.com/modelearth/requests
+[submodule "sanity"]
+	path = sanity
+	url = https://github.com/ModelEarth/sanity.git
 [submodule "streamlit"]
 	path = streamlit
 	url = https://github.com/modelearth/streamlit

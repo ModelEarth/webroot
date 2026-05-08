@@ -40,7 +40,7 @@ Start commands:
 - `start cloud` — Flask for `cloud/run` (RealityStream), local + deploy to Google Cloud
 - `start pipeline` — Flask for `data-pipeline/admin`
 - `start art` — Arts Engine Axum Rust API (`cargo run --manifest-path requests/engine/rust-api/Cargo.toml`, port 8082)
-- `start chat` — Node Unified Server (`node chat/server.mjs`, port 8888); first run: `pnpm --prefix chat install`
+- `start chat` — Node unified server for chat + mounted `sanity/` Next.js site (`node chat/server.mjs`, port 8888); first run: `pnpm --prefix chat install` and `bun --cwd sanity install`
 - `start html` — bare bones without Python (not needed if you ran `start server`)
 
 .NET / C#:
