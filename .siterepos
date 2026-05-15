@@ -13,3 +13,6 @@
 [siterepo "space"]
 	path = space
 	url = https://github.com/modelearth/space
+[siterepo "workflow"]
+	path = workflow
+	url = https://github.com/modelearth/workflow
