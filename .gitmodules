@@ -13,6 +13,8 @@
 [submodule "cms"]
 	path = cms
 	url = https://github.com/ModelEarth/cms
+	upstream = https://github.com/sveltia/sveltia-cms.git
+	upstream-policy = merge-if-clean
 [submodule "codechat"]
 	path = codechat
 	url = https://github.com/modelearth/codechat
