@@ -50,7 +50,6 @@ Start commands:
 Ports:
 - `8887` — Python HTTP server (`desktop/install/quickstart.sh`)
 - `8081` — Team Repo API (Actix Rust) (from `team` repo)
-- `8004` — legacy .NET 4.x site for `net/` and `core/`
 - `8010` — shared .NET 10 host (`host/net/`, serves the webroot outside `net/` and `core/`)
 - `5001` — Data-Pipeline Flask server
 - `8100` — Cloud/run Flask server
