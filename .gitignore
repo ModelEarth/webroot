@@ -90,6 +90,7 @@ target/
 
 # Extra repos that are not submodules
 apps
+chat-prior
 community
 community-data
 community-timelines
@@ -106,6 +107,8 @@ display
 explore
 host
 inspire
+location
+locations
 membersense
 modelearth.github.io
 net
