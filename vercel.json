@@ -1,0 +1,6 @@
+{
+  "installCommand": "pnpm --prefix chat install",
+  "buildCommand": "pnpm --prefix chat build",
+  "outputDirectory": "chat/.next",
+  "framework": "nextjs"
+}
