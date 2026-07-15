@@ -90,22 +90,25 @@ target/
 
 # Extra repos that are not submodules
 apps
+chat-prior
 community
 community-data
 community-timelines
 community-zipcodes
 contributors
-core
+core*
 core10
 coreutilities
 cv
 data-commons
 data-pipeline-garage
-*nuclear
 display
 explore
 host
 inspire
+location
+locations*
+manage*
 membersense
 modelearth.github.io
 net
@@ -125,6 +128,7 @@ setup
 space
 storm
 swarmui
+team-tools*
 trade-data
 topojson
 useeio

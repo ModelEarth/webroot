@@ -20,6 +20,7 @@ Key standards (from linked AGENTS files):
 - Hash state: prefer `getHash`, `goHash`, `updateHash`, and `hashChangeEvent` from `localsite/js/localsite.js`.
 - Paths: never hardcode user-specific paths; use relative paths or repo-root discovery. "Users" and the current user's name or computer name are never included.
 - Git: only run push/pull via `./git.sh` and only commit/push when the user explicitly asks.
+- **OUTSIDE WEBROOT**: Before executing any process that writes or modifies files outside the webroot root folder, state "OUTSIDE WEBROOT" and wait for confirmation.
 - **Push scope**: when user says "push [repo]", push ONLY that specific repository. Do not use `git add .` or stage unrelated changes. Examples:
   - "push localsite" → push only localsite submodule changes
   - "push team" → push only team submodule changes
@@ -40,7 +41,7 @@ Start commands:
 - `start cloud` — Flask for `cloud/run` (RealityStream), local + deploy to Google Cloud
 - `start pipeline` — Flask for `data-pipeline/admin`
 - `start art` — Arts Engine Axum Rust API (`cargo run --manifest-path requests/engine/rust-api/Cargo.toml`, port 8082)
-- `start chat` — Node unified server for chat + mounted `sanity/` Next.js site (`node chat/server.mjs`, port 8888); first run: `pnpm --prefix chat install` and `bun --cwd sanity install`
+- `start chat` — **ask which mode first: webroot or chat repo** (see `chat/AGENTS.md`). Both use port **3700**: webroot mode `node chat/server.mjs` (chat + sibling repos + mounted `sanity/` at `/sanity`, internal Sanity on 3701); chat-repo mode `pnpm --prefix chat dev` (chat app only). First run: `pnpm --prefix chat install` and `bun --cwd sanity install`
 - `start html` — bare bones without Python (not needed if you ran `start server`)
 
 .NET / C#:
@@ -50,7 +51,6 @@ Start commands:
 Ports:
 - `8887` — Python HTTP server (`desktop/install/quickstart.sh`)
 - `8081` — Team Repo API (Actix Rust) (from `team` repo)
-- `8004` — legacy .NET 4.x site for `net/` and `core/`
 - `8010` — shared .NET 10 host (`host/net/`, serves the webroot outside `net/` and `core/`)
 - `5001` — Data-Pipeline Flask server
 - `8100` — Cloud/run Flask server
