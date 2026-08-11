@@ -10,15 +10,20 @@
 [submodule "cloud"]
 	path = cloud
 	url = https://github.com/modelearth/cloud
+[submodule "cms"]
+	path = cms
+	url = https://github.com/ModelEarth/cms
+	upstream = https://github.com/sveltia/sveltia-cms.git
+	upstream-policy = merge-if-clean
 [submodule "codechat"]
 	path = codechat
 	url = https://github.com/modelearth/codechat
-[submodule "comparison"]
-	path = comparison
-	url = https://github.com/modelearth/comparison
 [submodule "community-forecasting"]
 	path = community-forecasting
 	url = https://github.com/modelearth/community-forecasting
+[submodule "comparison"]
+	path = comparison
+	url = https://github.com/modelearth/comparison
 [submodule "data-pipeline"]
 	path = data-pipeline
 	url = https://github.com/ModelEarth/data-pipeline.git
@@ -49,6 +54,10 @@
 [submodule "localsite"]
 	path = localsite
 	url = https://github.com/ModelEarth/localsite
+	shallow = true
+[submodule "montage"]
+	path = montage
+	url = https://github.com/ModelEarth/montage.git
 [submodule "products"]
 	path = products
 	url = https://github.com/modelearth/products
@@ -67,6 +76,9 @@
 [submodule "requests"]
 	path = requests
 	url = https://github.com/modelearth/requests
+[submodule "sanity"]
+	path = sanity
+	url = https://github.com/ModelEarth/sanity.git
 [submodule "streamlit"]
 	path = streamlit
 	url = https://github.com/modelearth/streamlit
