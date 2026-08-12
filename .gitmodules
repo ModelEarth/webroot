@@ -91,3 +91,6 @@
 [submodule "trade"]
 	path = trade
 	url = https://github.com/modelearth/trade
+[submodule "localcore"]
+	path = localcore
+	url = https://github.com/ModelEarth/localcore
