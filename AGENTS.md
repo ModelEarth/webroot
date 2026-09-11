@@ -22,7 +22,7 @@ Key standards (from linked AGENTS files):
 - Hash state: prefer `getHash`, `goHash`, `updateHash`, and `hashChangeEvent` from `localsite/js/localsite.js`.
 - Paths: never hardcode user-specific paths; use relative paths or repo-root discovery. "Users" and the current user's name or computer name are never included.
 - Git: only run push/pull via `./git.sh` and only commit/push when the user explicitly asks.
-- Account: `./git.sh` pushes as whichever account is active in `gh` (`gh api user`). Before pushing, check `gh auth status`; if the active account is `componentcore`, switch to `ModelEarth` first with `gh auth switch --user ModelEarth` (and fix `origin` back to the `ModelEarth` URL if `git.sh` already repointed it) since `componentcore/webroot` does not exist.
+- Account: `./git.sh` pushes as whichever account is active in `gh` (`gh api user`). Before pushing, check `gh auth status`; if the active account is `componentcore`, switch to `ModelEarth` first with `gh auth switch --user ModelEarth` (and fix `origin` back to the `ModelEarth` URL if `git.sh` already repointed it) since `componentcore/webroot` does not exist. After the commit/push completes, switch back to `componentcore` with `gh auth switch --user componentcore` so it remains the default active account between requests.
 - **OUTSIDE WEBROOT**: Before executing any process that writes or modifies files outside the webroot root folder, state "OUTSIDE WEBROOT" and wait for confirmation.
 - **Push scope**: when user says "push [repo]", push ONLY that specific repository. Do not use `git add .` or stage unrelated changes. Examples:
   - "push localsite" → push only localsite submodule changes
