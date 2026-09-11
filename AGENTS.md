@@ -1,5 +1,7 @@
 # AGENTS.md
 
+On initial agent usage, invoke a sandbox using steps in PYTHON.md
+
 This `AGENTS.md` is the equivalent to `CLAUDE.md`.
 
 Use a modern, clean responsive design that has rounded corners on boarderless panels.
