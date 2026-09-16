@@ -121,11 +121,17 @@ To import TradeFlow data:
 The current TradeFlow data path is:
 
 ```text
-ModelEarth/exiobase/tradeflow Python pipeline
+Normal TradeFlow pipeline
+tradeflow/main.py
         ↓
-CSV/data transformation
+trade.py
+trade_impact.py
+trade_resource.py
+trade_competitiveness.py
         ↓
-Local trade-data/year/{year}/{country}/{tradeflow}/ output
+Generated TradeFlow CSVs
+        ↓
+Local trade-data/year/{year}/{country}/{flow_type}/
         ↓
 ModelEarth/trade-data GitHub repository
         ↓
@@ -137,6 +143,21 @@ TradeFlow UI
         ↓
 JS static schema fallback if the live Rust/DB schema request fails
 ```
+
+U.S. interstate data is generated through a separate BEA pipeline:
+
+```text
+bea/main.py
+        ↓
+BEA state-level processing
+        ↓
+interstate.csv
+interstate_factor.csv
+```
+
+The normal `tradeflow/main.py` execution path does not currently invoke `bea/main.py`, so `interstate.csv` and `interstate_factor.csv` are not generated as part of a normal TradeFlow pipeline run.
+
+For U.S. domestic interstate imports, the Rust API currently requests the published legacy files `bea_trade_detail.csv` and `state_trade_flows.csv` from the `ModelEarth/trade-data` repository.
 
 ### Database Tables
 
@@ -167,6 +188,8 @@ The request sends:
 - `country`
 
 The Rust backend processes the supported TradeFlow types (`domestic`, `imports`, and `exports`), initializes the required database tables if needed, fetches the published CSV files from the `ModelEarth/trade-data` repository, and inserts the data into PostgreSQL.
+
+For U.S. domestic interstate data, the Rust importer separately requests the published `bea_trade_detail.csv` and `state_trade_flows.csv` files. These are passed to the `interstate` and `interstate_factor` import functions respectively.
 
 ### Get Schema
 
