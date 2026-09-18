@@ -57,3 +57,6 @@ Ports:
 - `8010` — shared .NET 10 host (`host/net/`, serves the webroot outside `net/` and `core/`)
 - `5001` — Data-Pipeline Flask server
 - `8100` — Cloud/run Flask server
+
+When adding a new page, use the following index.html starter:
+https://raw.githubusercontent.com/ModelEarth/localsite/refs/heads/main/start/template/index.html
