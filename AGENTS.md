@@ -44,7 +44,7 @@ Start commands:
 - `start cloud` — Flask for `cloud/run` (RealityStream), local + deploy to Google Cloud
 - `start pipeline` — Flask for `data-pipeline/admin`
 - `start art` — Arts Engine Axum Rust API (`cargo run --manifest-path requests/engine/rust-api/Cargo.toml`, port 8082)
-- `start chat` — **ask which mode first: webroot or chat repo** (see `chat/AGENTS.md`). Both use port **3700**: webroot mode `node chat/server.mjs` (chat + sibling repos + mounted `sanity/` at `/sanity`, internal Sanity on 3701); chat-repo mode `pnpm --prefix chat dev` (chat app only). First run: `pnpm --prefix chat install` and `bun --cwd sanity install`
+- `start chat` — **check for an adjacent `CloudRoot` repo first**: if `../CloudRoot` exists next to this webroot repo, use it for port **3700** instead: `PORT=3700 node chat/server.mjs` run from `../CloudRoot` (see `../CloudRoot/AGENTS.md`; OUTSIDE WEBROOT — state that and wait for confirmation before starting it). If `../CloudRoot` does not exist, fall back to the within-webroot chat: **ask which mode first: webroot or chat repo** (see `chat/AGENTS.md`). Both use port **3700**: webroot mode `node chat/server.mjs` (chat + sibling repos + mounted `sanity/` at `/sanity`, internal Sanity on 3701); chat-repo mode `pnpm --prefix chat dev` (chat app only). First run: `pnpm --prefix chat install` and `bun --cwd sanity install`
 - `start html` — bare bones without Python (not needed if you ran `start server`)
 
 .NET / C#:
@@ -60,3 +60,9 @@ Ports:
 
 When adding a new page, use the following index.html starter:
 https://raw.githubusercontent.com/ModelEarth/localsite/refs/heads/main/start/template/index.html
+
+Commit Message Requirements:
+- **Repository-specific**: Each commit message describes only that repository's changes
+- **No cross-references**: Don't mention other repositories' changes in individual commits
+- **No Claude attribution**: Never include Claude Code credits or co-authored-by lines
+- **Concise and factual**: Focus on what was changed, not implementation details
