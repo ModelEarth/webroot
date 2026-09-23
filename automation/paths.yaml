@@ -1,0 +1,6 @@
+# Default paths used by scripts in this folder (e.g. sync-config.sh).
+# Generated/updated automatically - reflects the env file path last used.
+# Not committed to git (see .gitignore); pass a different path as
+# sync-config.sh's first argument to change it.
+
+env_file: ../../yourfolder/yourconfig.env
