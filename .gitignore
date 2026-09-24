@@ -5,6 +5,7 @@ config/keys.json
 config/.env
 settings.local.json
 .claude/settings.local.json
+automation/paths.yaml
 
 # Auth keys and secrets
 *.key
