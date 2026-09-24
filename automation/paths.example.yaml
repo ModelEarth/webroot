@@ -1,0 +1,5 @@
+# Rename to paths.yaml and set the path to a folder external to your webroot.
+# Default paths used by scripts in this folder (e.g. sync-config.sh).
+# Sometimes generated/updated automatically.
+
+env_file: ../../yourfolder/yourconfig.env
