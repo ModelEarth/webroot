@@ -106,7 +106,7 @@ http://localhost:8887/team/admin/sql/panel/
 
 To import TradeFlow data:
 
-1. Select a year (2019–2022).
+1. Select a year.
 2. Select a country from the map.
 3. Click **Insert Data**.
 4. The UI sends the selected `year` and `country` to `/api/db/insert-trade-data`.
