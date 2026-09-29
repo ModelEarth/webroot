@@ -16,6 +16,7 @@ env/*
 !.env.example
 *.env
 env
+.envrc
 
 # Logs
 *.log
