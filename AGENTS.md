@@ -8,10 +8,9 @@ Use a modern, clean responsive design that has rounded corners on boarderless pa
 Each new panel should use the "Panel Menu Toggle System" from localsite/js/localsite.js to place a cirlce icon in its upper right with options for Expand, Close, etc.
 Include .dark mode css. Set responsive layouts based on parent div widths rather than browser width. When possible, reuse common css from localsite/css/base.css
 
-Primary guidance files:
-- `/localsite/AGENTS.md`
-- `/team/AGENTS.md`
-- `/host/net/NET.md`
+Additional guidance files (wait to invoke for specific needs):
+- `/localsite/AGENTS.md` - css and static site navigation, maps
+- `/team/AGENTS.md` - Rust and Industry database API endpoints
 
 Submodule overview:
 - `codechat/README.md`
@@ -21,7 +20,7 @@ Key standards (from linked AGENTS files):
 - DOM waits: never use `setTimeout` for DOM; use `waitForElm(selector)` from `localsite/js/localsite.js` (confirm it is included first).
 - Hash state: prefer `getHash`, `goHash`, `updateHash`, and `hashChangeEvent` from `localsite/js/localsite.js`.
 - Paths: never hardcode user-specific paths; use relative paths or repo-root discovery. "Users" and the current user's name or computer name are never included.
-- Git: only run push/pull via `./git.sh` and only commit/push when the user explicitly asks.
+- Upstream: never pull from the `cms` submodule's upstream (`sveltia/sveltia-cms`). Pull `cms` only from `origin` (`ModelEarth/cms`), and never stage a `cms` pointer to an upstream-only commit.
 - Account: `./git.sh` pushes as whichever account is active in `gh` (`gh api user`). Before pushing, check `gh auth status`; if the active account is `componentcore`, switch to `ModelEarth` first with `gh auth switch --user ModelEarth` (and fix `origin` back to the `ModelEarth` URL if `git.sh` already repointed it) since `componentcore/webroot` does not exist. After the commit/push completes, switch back to `componentcore` with `gh auth switch --user componentcore` so it remains the default active account between requests.
 - **OUTSIDE WEBROOT**: Before executing any process that writes or modifies files outside the webroot root folder, state "OUTSIDE WEBROOT" and wait for confirmation.
 - **Push scope**: when user says "push [repo]", push ONLY that specific repository. Do not use `git add .` or stage unrelated changes. Examples:
