@@ -26,10 +26,10 @@
 	url = https://github.com/ModelEarth/comparison
 [submodule "data-pipeline"]
 	path = data-pipeline
-	url = https://github.com/ModelEarth/data-pipeline.git
+	url = https://github.com/ModelEarth/data-pipeline
 [submodule "desktop"]
 	path = desktop
-	url = https://github.com/ModelEarth/desktop.git
+	url = https://github.com/ModelEarth/desktop
 [submodule "docker"]
 	path = docker
 	url = https://github.com/ModelEarth/docker
@@ -57,7 +57,7 @@
 	shallow = true
 [submodule "montage"]
 	path = montage
-	url = https://github.com/ModelEarth/montage.git
+	url = https://github.com/ModelEarth/montage
 [submodule "products"]
 	path = products
 	url = https://github.com/ModelEarth/products
@@ -78,7 +78,7 @@
 	url = https://github.com/ModelEarth/requests
 [submodule "sanity"]
 	path = sanity
-	url = https://github.com/ModelEarth/sanity.git
+	url = https://github.com/ModelEarth/sanity
 [submodule "streamlit"]
 	path = streamlit
 	url = https://github.com/ModelEarth/streamlit
