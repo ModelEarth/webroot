@@ -42,9 +42,13 @@ cd webroot
 git submodule update --init --recursive team
 ```
 
-2. **Create .env file**
+2. **Create .env file** outside your webroot, and point `automation/paths.yaml` at it
 ```bash
-cp docker/.env.example docker/.env
+cp automation/paths.example.yaml automation/paths.yaml
+# In automation/paths.yaml, set env_file (relative to the automation folder),
+# e.g. env_file: ../../yourfolder/yourconfig.env
+mkdir -p ../yourfolder
+cp automation/.env.example ../yourfolder/yourconfig.env
 ```
 
 3. **Edit .env with your settings**

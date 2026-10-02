@@ -48,7 +48,7 @@ Start commands:
 
 .NET / C#:
 - `host/net/NET.md` provides guidance for local .NET and C# work in this webroot.
-- .NET settings reside in `docker/.env` rather than XML-only local config.
+- .NET settings reside in the `.env` file set by `env_file` in `automation/paths.yaml` (outside webroot) rather than XML-only local config. The `docker` repo is discontinued.
 
 Ports:
 - `8887` — Python HTTP server (`desktop/install/quickstart.sh`)
@@ -61,7 +61,7 @@ When adding a new page, use the following index.html starter:
 https://raw.githubusercontent.com/ModelEarth/localsite/refs/heads/main/start/template/index.html
 
 Commit Message Requirements:
+- **No Agent (Claude) attribution**: Never include Claude Code credits or co-authored-by lines for any agent
 - **Repository-specific**: Each commit message describes only that repository's changes
 - **No cross-references**: Don't mention other repositories' changes in individual commits
-- **No Claude attribution**: Never include Claude Code credits or co-authored-by lines
 - **Concise and factual**: Focus on what was changed, not implementation details

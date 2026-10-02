@@ -94,3 +94,6 @@
 [submodule "localcore"]
 	path = localcore
 	url = https://github.com/ModelEarth/localcore
+[submodule "keys"]
+	path = keys
+	url = https://github.com/ModelEarth/keys

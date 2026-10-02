@@ -1,11 +1,13 @@
 ---
 name: push-vercel-oauth-env
-description: Push the social-login OAuth client id/secret pairs from docker/.env into a linked Vercel project's Environment Variables, using chat/scripts/vercel-env.config.json for the public shape (which vars, which environment). Use when the user asks to sync/push/update OAuth or social-auth keys to Vercel. Never prints secret values.
+description: Push the social-login OAuth client id/secret pairs from the local env file (the env_file set in automation/paths.yaml) into a linked Vercel project's Environment Variables, using chat/scripts/vercel-env.config.json for the public shape (which vars, which environment). Use when the user asks to sync/push/update OAuth or social-auth keys to Vercel. Never prints secret values.
 ---
 
 # Push OAuth env vars to Vercel
 
-This wraps `chat/scripts/push-oauth-env-to-vercel.sh`. The script is the
+This wraps `chat/scripts/push-oauth-env-to-vercel.sh`. Secret values come from
+the env file named by `env_file` in `automation/paths.yaml` (or the config's
+`envFile` override). The script is the
 deterministic part (loops over the config, pipes secret values straight into
 `vercel env add`, never echoes them). Your job is the judgment calls around it.
 
@@ -42,7 +44,7 @@ deterministic part (loops over the config, pipes secret values straight into
    Both arguments are optional — defaults come from the config file.
 
 5. **Report results using only what the script printed** (key names and
-   skip/push status) — do not go looking for the actual values in `docker/.env`
+   skip/push status) — do not go looking for the actual values in the env file
    to "double check" as part of this flow.
 
 6. **Remind the user to trigger a redeploy** — Vercel does not rebuild
@@ -53,7 +55,6 @@ deterministic part (loops over the config, pipes secret values straight into
 Edit `chat/scripts/vercel-env.config.json`'s `vars` array — add
 `{ "source": "<KEY_IN_DOTENV>", "target": "<KEY_VERCEL_SHOULD_HAVE>" }`. Check
 `chat/lib/auth/social-providers.ts` first for the exact var name the app code
-actually reads — `source` and `target` differ when `docker/.env`'s naming
-doesn't match (e.g. Facebook: `.env` has `FACEBOOK_APP_ID` /
-`FACEBOOK_APP_SECRET`, the app reads `FACEBOOK_CLIENT_ID` /
-`FACEBOOK_CLIENT_SECRET`).
+actually reads — `source` and `target` only differ when the env file's naming
+doesn't match the app's (all current providers, including Facebook's
+`FACEBOOK_CLIENT_ID` / `FACEBOOK_CLIENT_SECRET`, use the same name for both).
