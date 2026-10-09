@@ -5,6 +5,8 @@ On initial agent usage, invoke a sandbox using steps in support/python/PYTHON.md
 Do not execute code external to this CloudRepos webroot.
 Do not modify files external to this CloudRepos webroot.
 Request permission when accessing externally residing config files.
+Avoid revealing secrets in the terminal: never print values of keys, tokens or passwords (show only names, or masked values).
+Avoid revealing the name or location of the .env file in the terminal. `automation/paths.yaml` sets its location via `env_file`; read it in code without echoing the path.
 
 This `AGENTS.md` is the equivalent to `CLAUDE.md`.
 
