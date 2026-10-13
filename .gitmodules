@@ -36,6 +36,9 @@
 [submodule "engage"]
 	path = engage
 	url = https://github.com/ModelEarth/engage
+[submodule "engine"]
+	path = engine
+	url = https://github.com/ModelEarth/engine
 [submodule "exiobase"]
 	path = exiobase
 	url = https://github.com/ModelEarth/exiobase
@@ -51,6 +54,12 @@
 [submodule "io"]
 	path = io
 	url = https://github.com/ModelEarth/io
+[submodule "keys"]
+	path = keys
+	url = https://github.com/ModelEarth/keys
+[submodule "localcore"]
+	path = localcore
+	url = https://github.com/ModelEarth/localcore
 [submodule "localsite"]
 	path = localsite
 	url = https://github.com/ModelEarth/localsite
@@ -91,9 +100,3 @@
 [submodule "trade"]
 	path = trade
 	url = https://github.com/ModelEarth/trade
-[submodule "localcore"]
-	path = localcore
-	url = https://github.com/ModelEarth/localcore
-[submodule "keys"]
-	path = keys
-	url = https://github.com/ModelEarth/keys
