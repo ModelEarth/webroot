@@ -27,12 +27,13 @@ Key standards (from linked AGENTS files):
 - Hash state: prefer `getHash`, `goHash`, `updateHash`, and `hashChangeEvent` from `localsite/js/localsite.js`.
 - Paths: never hardcode user-specific paths; use relative paths or repo-root discovery. "Users" and the current user's name or computer name are never included.
 - `sveltia-cms/`: a git-ignored clone of `sveltia/sveltia-cms` (not a submodule), kept as a read-only reference for agents. Pull to update it, but never commit, push, fork, or send PRs from it. Pages load Sveltia CMS from its npm release, or a local build of this clone when present; customize the editor from localsite (config, `launchCMS()`, theme CSS) rather than changing CMS source.
-- Account: `./git.sh` pushes as whichever account is active in `gh` (`gh api user`). Before pushing, check `gh auth status`; if the active account is `componentcore`, switch to `ModelEarth` first with `gh auth switch --user ModelEarth` (and fix `origin` back to the `ModelEarth` URL if `git.sh` already repointed it) since `componentcore/webroot` does not exist. After the commit/push completes, switch back to `componentcore` with `gh auth switch --user componentcore` so it remains the default active account between requests.
+- git.sh: we no longer use `./git.sh`. Commit and push with direct `git` commands unless "git.sh" is directly requested.
+- Account: pushes go out as whichever account is active in `gh` (`gh api user`). Before pushing, check `gh auth status`; if the active account is `componentcore`, switch to `ModelEarth` first with `gh auth switch --user ModelEarth` since `componentcore/webroot` does not exist. After the commit/push completes, switch back to `componentcore` with `gh auth switch --user componentcore` so it remains the default active account between requests.
 - **OUTSIDE WEBROOT**: Before executing any process that writes or modifies files outside the webroot root folder, state "OUTSIDE WEBROOT" and wait for confirmation.
 - **Push scope**: when user says "push [repo]", push ONLY that specific repository. Do not use `git add .` or stage unrelated changes. Examples:
   - "push localsite" → push only localsite submodule changes
   - "push team" → push only team submodule changes
-  - "push" or "push all" → push webroot + all submodules via `./git.sh push`
+  - "push" or "push all" → commit and push each changed submodule (on its `main` branch, not a detached HEAD), then commit and push webroot with the updated submodule pointers
 
 CLI assistant sessions (Claude, Codex, etc):
 - Use the session store for the active CLI tool. Do not assume Claude by default.
