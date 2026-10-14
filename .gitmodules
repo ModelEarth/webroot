@@ -82,7 +82,7 @@
 	url = https://github.com/ModelEarth/requests
 [submodule "sanity"]
 	path = sanity
-	url = https://github.com/ModelEarth/sanity
+	url = https://github.com/nuotsu/sanitypress
 [submodule "streamlit"]
 	path = streamlit
 	url = https://github.com/ModelEarth/streamlit
