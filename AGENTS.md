@@ -148,7 +148,7 @@ These steps apply to every repo: webroot, submodules and site repos. Follow them
 
 - Only commit or push when the user explicitly asks.
 - **CRITICAL**: always pull the repo being pushed before pushing, to get the latest changes and avoid conflicts. If the pull can't fast-forward, follow Version Conflicts above.
-- **Account**: pushes go out as whichever account is active in `gh` (`gh api user`). Before pushing, check `gh auth status`; if the active account is `componentcore`, switch to `ModelEarth` first with `gh auth switch --user ModelEarth`, since `componentcore/webroot` does not exist. After the commit/push completes, switch back with `gh auth switch --user componentcore` so it remains the default active account between requests.
+- **Account**: pushes go out as whichever account is active in `gh` (`gh api user`). Before pushing, check `gh auth status`; if the active account is `componentcore`, switch to `ModelEarth` first with `gh auth switch --user ModelEarth`, since `componentcore/webroot` does not exist. After the commit/push completes, switch back with `gh auth switch --user componentcore` so it remains the default active account between requests. For any other active account, check push access first (see Contributors Without Push Access below); if it lacks access and a logged-in account has it, switch to that account, then switch back to the previously active account after the push.
 - **Push scope**: "push [repo]" pushes ONLY that repository. Don't use `git add .` or stage unrelated changes.
   - "push localsite" → push only localsite submodule changes
   - "push engine" → push only engine submodule changes
@@ -161,7 +161,26 @@ Quick commands:
 - **"push [nopr]"** or **"push all [nopr]"**: push root, all submodules, and all forks.
 - **"PR [submodule name]"**: create a pull request.
 
-**PR fallback**: when a direct push fails for lack of permission, create a pull request instead. Add 'nopr' or 'No PR' (case insensitive) at the end of a push command to skip PR creation.
+**PR fallback**: when the account lacks push access, push to a fork and open a pull request instead, as described below. Add 'nopr' or 'No PR' (case insensitive) at the end of a push command to skip PR creation.
+
+### Contributors Without Push Access
+
+1. **Check access** before pushing each repo, using its upstream owner/name from `git remote -v`:
+   ```bash
+   gh api repos/<owner>/<repo> -q .permissions.push
+   ```
+   If this returns `false`, run `gh auth status` and switch to another logged-in account that has push access, if there is one. Never prompt for a new login or log out an account.
+2. **Ask before creating forks**: if no logged-in account has access, list each repo that needs a fork and the account that will own it, and ask the user to approve with Y/N, e.g. `Create forks under <account> for team, cloud, webroot? (Y/N)`. If the answer is N, stop and leave the commits local. If a fork already exists (`gh repo view <account>/<repo>`), reuse it and don't ask.
+3. **Fork and push a branch**:
+   ```bash
+   gh repo fork <owner>/<repo> --remote=false
+   git -C <repo> remote add fork https://github.com/<account>/<repo>.git   # if not already added
+   git -C <repo> push fork main:<branch>
+   ```
+   Keep `origin` pointing at the upstream repo so pulls still come from it.
+4. **Ask before opening each PR**, unless `nopr` was given. Show the repo, branch and title, then run `gh pr create --repo <owner>/<repo> --head <account>:<branch>`.
+5. **Submodules first**: open the submodule PRs before the webroot PR. Webroot's recorded submodule commits exist only in the forks until those PRs merge, so list the submodule PR links in the webroot PR description and note that they must merge first.
+6. **Report** the forks created, branches pushed, and PR links.
 
 ### Commit Messages and Push Reports
 
