@@ -1,6 +1,9 @@
 [submodule "airports"]
 	path = airports
 	url = https://github.com/ModelEarth/airports
+[submodule "auth"]
+	path = auth
+	url = https://github.com/ModelEarth/auth
 [submodule "better-auth"]
 	path = better-auth
 	url = https://github.com/ModelEarth/better-auth

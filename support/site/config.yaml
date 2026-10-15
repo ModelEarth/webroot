@@ -58,6 +58,14 @@ sites:
   model.maine:
     title: "Model Maine"
     base_url: "https://model.earth"
+  maestro:
+    title: "Maestro"
+    base_url: "https://neighborhood.org"
+    home_url: "https://tsqatl.maestropro.io"
+    domain_contains: "maestro"
+    logo: "https://tsqatl.maestropro.io/common/brand.png"
+    favicon: "https://tsqatl.maestropro.io/favicon.ico"
+    sideNavLive: false
   neighborhood.org:
     title: "Neighborhood"
     base_url: "https://neighborhood.org"
