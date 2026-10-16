@@ -1,9 +1,9 @@
 # =============================================================================
-# support/site/config.yaml (formerly home/webroot.yaml) — Platform-neutral config standard
+# support/site/config.yaml (formerly home/webroot.yaml) - Platform-neutral config standard
 # Site config lives here. Secrets live in .env
 #
 # Platform        Files replaced
-# ──────────────  ──────────────────────────────────────────
+# --------------  ------------------------------------------
 # Netlify         netlify.toml, _redirects, _headers
 # Vercel          vercel.json + next.config.js (hosting layer)
 # Firebase        firebase.json (hosting section)
@@ -16,7 +16,7 @@
 # For upcoming https://github.com/garmartirosy/pipeline
 pipeline: data-pipeline/nodes.csv
 
-# SITES — all sites sharing this webroot; default indicates the active site
+# SITES - all sites sharing this webroot; default indicates the active site
 default: model.earth
 
 sites:
@@ -66,6 +66,7 @@ sites:
     logo: "https://tsqatl.maestropro.io/common/brand.png"
     favicon: "https://tsqatl.maestropro.io/favicon.ico"
     sideNavLive: false
+    modelsite: false
   neighborhood.org:
     title: "Neighborhood"
     base_url: "https://neighborhood.org"
@@ -110,7 +111,7 @@ collections:
 
 # The above works in Sveltia CMS, but Loren is still working on this ...    
 
-# CMS — Netlify-Decap-Sveltia runtime config
+# CMS - Netlify-Decap-Sveltia runtime config
 # Values are injected into config.yaml at deploy time, keeping this file
 # the single source of truth for both hosting and CMS behavior.
 cms:
@@ -128,16 +129,16 @@ cms:
     - "/localsite/css/base.css"
   extra_js:
     - "/localsite/js/localsite.js?showheader=true&showsearch=false"
-  # Short TTL so editors receive config updates quickly.
-  # Emitted as Cache-Control max-age on /config.yaml in the headers section.
-  config_cache_ttl: 60
+  # 10 minutes, matching GitHub Pages, so pages loading the site config don't recheck it every minute.
+  # Emitted as Cache-Control max-age on /support/site/config.yaml in the headers section.
+  config_cache_ttl: 600
 
 
-# BUILD — Equivalent to [build] in netlify.toml and buildCommand/outputDirectory in vercel.json
+# BUILD - Equivalent to [build] in netlify.toml and buildCommand/outputDirectory in vercel.json
 build:
-  command: ""           # e.g. "npm run build" — empty = no build step
+  command: ""           # e.g. "npm run build" - empty = no build step
   publish: "."          # output dir: "dist", "build", "out", or "." for static
-  base: ""              # monorepo subdir — empty = repo root
+  base: ""              # monorepo subdir - empty = repo root
   node_version: "20"
   ignore:
     - ".env"
@@ -151,7 +152,7 @@ build:
     - "**/target/**"
     - "**/Dockerfile*"
 
-  # Context-specific overrides — mirrors netlify.toml [context.*]
+  # Context-specific overrides - mirrors netlify.toml [context.*]
   contexts:
     production:
       command: ""
@@ -169,7 +170,7 @@ hosting:
   spa_fallback_file: "/index.html"
 
 
-# REDIRECTS — equivalent to [[redirects]] in netlify.toml and "redirects" in vercel.json
+# REDIRECTS - equivalent to [[redirects]] in netlify.toml and "redirects" in vercel.json
 #
 # Fields:
 #   from        source path (supports :splat and * wildcards)
@@ -193,7 +194,7 @@ redirects:
     to: "https://example.com/localsite/:splat"
     status: 302
 
-  # Branch-specific redirect example — only active on staging branch.
+  # Branch-specific redirect example - only active on staging branch.
   # - from: "/api/*"
   #   to: "https://staging-api.example.com/:splat"
   #   status: 200
@@ -201,7 +202,7 @@ redirects:
   #     branch: "staging"
 
 
-# REWRITES — proxy rules (status 200, URL unchanged in browser)
+# REWRITES - proxy rules (status 200, URL unchanged in browser)
 # Equivalent to rewrite entries in netlify.toml and vercel.json.
 # Listed after redirects; redirects take precedence.
 rewrites:
@@ -211,23 +212,23 @@ rewrites:
     to: "https://example.com/localsite/:splat"
     status: 200
 
-  # Token-vending microservice — keeps API keys out of client-side code.
+  # Token-vending microservice - keeps API keys out of client-side code.
   - from: "/api/token/*"
     to: "function:tokenVendor"
     status: 200
 
-  # SPA fallback — must be last.
+  # SPA fallback - must be last.
   - from: "/*"
     to: "/index.html"
     status: 200
     spa_fallback: true    # hint to emitters: skip if hosting.spa_fallback handles it
 
 
-# HEADERS — equivalent to [[headers]] in netlify.toml and "headers" in vercel.json
+# HEADERS - equivalent to [[headers]] in netlify.toml and "headers" in vercel.json
 #
 # Fields:
 #   for       path pattern (supports wildcards)
-#   values    map of header key → value
+#   values    map of header key -> value
 headers:
 
   # Security headers for all routes
@@ -253,36 +254,36 @@ headers:
     values:
       Cache-Control: "public, max-age=31536000, immutable"
 
-  # Fonts — long cache + open CORS for cross-origin font loading
+  # Fonts - long cache + open CORS for cross-origin font loading
   - for: "/fonts/**"
     values:
       Cache-Control: "public, max-age=31536000, immutable"
       Access-Control-Allow-Origin: "*"
 
-  # Service worker — always revalidate
+  # Service worker - always revalidate
   - for: "/sw.js"
     values:
       Cache-Control: "public, max-age=0, must-revalidate"
 
-  # CMS admin panel — no indexing, no caching
+  # CMS admin panel - no indexing, no caching
   - for: "/admin/**"
     values:
       X-Robots-Tag: "noindex, nofollow"
       Cache-Control: "no-store"
 
-  # CMS config — short cache so editors receive updates quickly
-  - for: "/config.yaml"
+  # Site config - 10 minute cache (matches config_cache_ttl)
+  - for: "/support/site/config.yaml"
     values:
-      Cache-Control: "public, max-age=60, must-revalidate"
+      Cache-Control: "public, max-age=600, must-revalidate"
       Content-Type: "application/yaml"
 
-  # Data files — moderate cache + open CORS for cross-repo data loading
+  # Data files - moderate cache + open CORS for cross-repo data loading
   - for: "/**/*.{json,csv,yaml,yml}"
     values:
       Cache-Control: "public, max-age=300, stale-while-revalidate=600"
       Access-Control-Allow-Origin: "*"
 
-  # API responses — no cache, open CORS for JAMstack fetch calls
+  # API responses - no cache, open CORS for JAMstack fetch calls
   - for: "/api/**"
     values:
       Cache-Control: "no-store"
@@ -312,23 +313,25 @@ functions:
       memory: 256           # MB
 
 
-# AUTH — shared sign-in UI and OAuth API, hosted in the chat repo.
-# See chat/auth/README.md for architecture, URL resolution, and the /chat prefix.
+# AUTH - shared sign-in UI and OAuth API, from the auth submodule.
+# See auth/README.md for architecture and URL resolution.
+# Locally the widget is the static file at auth/public/js/, so any static server works.
+# In production both come from the CloudRoot Worker, whose ALLOWED_ORIGINS includes https://model.earth.
 # Secrets belong in .env, not here.
 auth:
   enabled: true
-  source_repo: "chat"
-  modal_url_development: "/chat/auth/js/auth-modal.js"
-  modal_url_production: "https://modelearth.vercel.app/auth/js/auth-modal.js"
-  plugin_url_development: "/chat/auth/js/auth-plugin.js"
-  plugin_url_production: "https://modelearth.vercel.app/auth/js/auth-plugin.js"
+  source_repo: "auth"
+  modal_url_development: "/auth/public/js/auth-modal.js"
+  modal_url_production: "https://cloud.model.earth/auth/js/auth-modal.js"
+  plugin_url_development: "/auth/public/js/auth-plugin.js"
+  plugin_url_production: "https://cloud.model.earth/auth/js/auth-plugin.js"
   # API runs on port 3700 (Node server), never on a static file server port.
   api_url_development: "http://localhost:3700/api"
-  api_url_production: "https://modelearth.vercel.app/api"
+  api_url_production: "https://cloud.model.earth/api"
 
 
-# ENVIRONMENT — non-secret variables safe to commit
-# Secrets belong in .env — never in webroot.yaml.
+# ENVIRONMENT - non-secret variables safe to commit
+# Secrets belong in .env - never in webroot.yaml.
 # Equivalent to [build.environment] in netlify.toml and "env" in vercel.json.
 environment:
   production:
@@ -342,14 +345,14 @@ environment:
     SITE_ENV: "local"
 
 
-# DEV SERVER — equivalent to [dev] in netlify.toml and devCommand in vercel.json
+# DEV SERVER - equivalent to [dev] in netlify.toml and devCommand in vercel.json
 dev:
   port: 8887
   target_port: 3000       # port your framework dev server runs on
-  command: ""             # e.g. "npm run dev" — empty = static file server
+  command: ""             # e.g. "npm run dev" - empty = static file server
 
 
-# I18N — internationalization (disabled by default)
+# I18N - internationalization (disabled by default)
 i18n:
   enabled: false
   default_locale: "en"
@@ -358,7 +361,7 @@ i18n:
   root: "/en"
 
 
-# PLUGINS — equivalent to [[plugins]] in netlify.toml
+# PLUGINS - equivalent to [[plugins]] in netlify.toml
 plugins: []
 # plugins:
 #   - package: "@org/webroot-plugin-sitemap"
