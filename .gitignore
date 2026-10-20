@@ -92,6 +92,7 @@ target/
 
 # Extra repos that are not submodules
 apps
+atlanta
 chat-prior
 community
 localsite-lg
