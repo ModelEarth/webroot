@@ -41,7 +41,7 @@ Start commands:
 - `start rust` — Team Repo API (Actix Rust) (from `team` repo, port 8081; requires the `team` submodule, see `team/AGENTS.md` for details)
 - `start net` — shared .NET host using `host/net/net.sh` and `host/net/NET.md` guidance
 - `start flask` — starts both `cloud` and `pipeline`
-- `start cloud` — Flask for `cloud/run` (RealityStream), local + deploy to Google Cloud
+- `start cloud` — RealityStream API, local (`python realitystream/api/main.py`, port 8080) + deploy to Google Cloud (`realitystream/deploy/deploy-cloud-run.sh`). See `realitystream/AGENTS.md`. The older notebook runner in `cloud/run` (port 8100) is in `cloud/AGENTS.md`
 - `start pipeline` — Flask for `data-pipeline/admin`
 - `start art` — Arts Engine Axum Rust API (`cargo run --manifest-path requests/engine/rust-api/Cargo.toml`, port 8082)
 - `start chat` — **check for an adjacent `CloudRoot` repo first**: if `../CloudRoot` exists next to this webroot repo, use it for port **3700** instead: `PORT=3700 node chat/server.mjs` run from `../CloudRoot` (see `../CloudRoot/AGENTS.md`; OUTSIDE WEBROOT — state that and wait for confirmation before starting it). If `../CloudRoot` does not exist, fall back to the within-webroot chat: **ask which mode first: webroot or chat repo** (see `chat/AGENTS.md`). Both use port **3700**: webroot mode `node chat/server.mjs` (chat + sibling repos); chat-repo mode `pnpm --prefix chat dev` (chat app only). First run: `pnpm --prefix chat install`
@@ -56,7 +56,8 @@ Ports:
 - `8081` — Team Repo API (Actix Rust) (from `team` repo, when present)
 - `8010` — shared .NET 10 host (`host/net/`, serves the webroot outside `net/` and `core/`)
 - `5001` — Data-Pipeline Flask server
-- `8100` — Cloud/run Flask server
+- `8080` — RealityStream API (`realitystream/api/main.py`), local
+- `8100` — Cloud/run Flask server (older notebook runner)
 
 When adding a new page, use the following index.html starter:
 https://raw.githubusercontent.com/ModelEarth/localsite/refs/heads/main/start/template/index.html
