@@ -83,9 +83,6 @@
 [submodule "requests"]
 	path = requests
 	url = https://github.com/ModelEarth/requests
-[submodule "streamlit"]
-	path = streamlit
-	url = https://github.com/ModelEarth/streamlit
 [submodule "swiper"]
 	path = swiper
 	url = https://github.com/ModelEarth/swiper
