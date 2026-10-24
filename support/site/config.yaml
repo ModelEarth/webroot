@@ -92,6 +92,8 @@ backend:
   name: github
   repo: DesktopFolders/content
   branch: main
+  # Saving asks for an optional note, added after Sveltia CMS's commit message.
+  prompt_commit_messages: suffix
 
 media_folder: img
 public_folder: /img
