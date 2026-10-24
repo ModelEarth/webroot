@@ -83,10 +83,10 @@ sites:
 
 # yaml-language-server: $schema=https://unpkg.com/@sveltia/cms/schema/sveltia-cms.json
 
-app_title: Edit My Page
+app_title: Edit My Content
 
 # Content is stored in each visitor's own fork of DesktopFolders/content. localsite's
-# launchCMS callers (localsite/edit "Edit Files" and the Markdown "Edit Content" menu) sign in,
+# launchCMS callers (localsite/edit "Edit My Content" and the Markdown "Edit Content" menu) sign in,
 # create the fork if needed, and set backend.repo to it, so edits never go to this repo.
 backend:
   name: github
