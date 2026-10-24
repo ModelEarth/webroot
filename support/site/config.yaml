@@ -120,6 +120,8 @@ collections:
 cms:
   app_title: "Site Editor"
   inline_editor: true
+  # true loads webroot/sveltia-cms/package/dist/sveltia-cms.js (build the clone first), else unpkg.
+  # local_build: true
   # GitHub sign-in relay for Sveltia CMS and localsite/edit's content tools (CloudRoot Worker).
   # Uncomment once CMS_GITHUB_CLIENT_ID / _SECRET are deployed (CloudRoot automation/README.md,
   # "CMS sign-in"). Until then sign-in uses Netlify's service ("Authorize Netlify CMS").
