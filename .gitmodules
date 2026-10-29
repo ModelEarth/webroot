@@ -31,6 +31,9 @@
 [submodule "docker"]
 	path = docker
 	url = https://github.com/ModelEarth/docker
+[submodule "eeio-docs"]
+	path = eeio-docs
+	url = https://github.com/cornerstone-data/eeio-docs
 [submodule "engage"]
 	path = engage
 	url = https://github.com/ModelEarth/engage
