@@ -1,18 +1,18 @@
 [siterepo "project"]
 	path = project
-	url = https://github.com/modelearth/project
+	url = https://github.com/ModelEarth/project
 [siterepo "community"]
 	path = community
-	url = https://github.com/modelearth/community
+	url = https://github.com/ModelEarth/community
 [siterepo "cv"]
 	path = cv
-	url = https://github.com/modelearth/cv
+	url = https://github.com/ModelEarth/cv
 [siterepo "nisar"]
 	path = nisar
-	url = https://github.com/modelearth/nisar
+	url = https://github.com/ModelEarth/nisar
 [siterepo "space"]
 	path = space
-	url = https://github.com/modelearth/space
+	url = https://github.com/ModelEarth/space
 [siterepo "workflow"]
 	path = workflow
-	url = https://github.com/modelearth/workflow
+	url = https://github.com/ModelEarth/workflow
