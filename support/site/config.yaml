@@ -53,6 +53,8 @@ sites:
     base_url: "https://model.georgia.org"
     domain_contains: "model.georgia.org"
     favicon: "/localsite/img/logo/states/GA-favicon.png"
+    # The voice agent's name, shown in place of Claude (engine/claude-voice.js)
+    agent_name: "Georgia"
     sideNavLocal: false
     sideNavLive: false
   model.maine:
@@ -64,8 +66,12 @@ sites:
     home_url: "https://tsqatl.maestropro.io"
     domain_contains: "maestro"
     logo: "https://tsqatl.maestropro.io/common/brand.png"
+    # The logo with white lettering, for dark mode (localsite/js/navigation.js)
+    logo_dark: "/project/goals/img/maestro-logo-dark.png"
     logo_height: "70px"
     favicon: "https://tsqatl.maestropro.io/favicon.ico"
+    # The voice agent's names, comma-separated: the first is shown ("Say “Ok Little Bird”"), and any starts a conversation (engine/claude-voice.js)
+    agent_name: "Little Bird, Sparrow"
     sideNavLive: false
     modelsite: false
   neighborhood.org:
